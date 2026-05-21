@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Actor/Registration/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:service="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Service/v1"
+           xmlns:actorregistration="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Actor/Registration/v1"
+           xmlns:dt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1"
+           xmlns:actor="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+           xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:address="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1"
+           xmlns:country="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+               schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1"
+               schemaLocation="../Party/AddressType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+               schemaLocation="../Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1"
+               schemaLocation="../Common/DecisionType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Service/v1"
+               schemaLocation="../../../service/Service/ServiceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1"
+               schemaLocation="../../../data/Entity/Entity.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1"
+               schemaLocation="../../../data/Entity/Common/CountryEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+               schemaLocation="../../../data/Entity/Actor.xsd"/>
+    <xs:complexType name="ActorRegistrationPreviousAssessmentType">
+        <xs:sequence>
+            <xs:element name="decision" type="dt:DecisionType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-ACT-092# - Outcome. Actor validation assessment by the authorised representative for a Non-EU manufacturer actor registration request.
+                        #FLD-ACT-091# - Outcome. Actor validation assessment by the competent authority.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ActorRegistrationRefusalDecisionType">
+        <xs:annotation>
+            <xs:documentation>#FLD-ACT-083# - State. The assessment decision outcome.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="dt:DecisionType">
+                <xs:sequence>
+                    <xs:element name="reason" type="actorregistration:RefusalReasonEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-084# - Reason for refusal. Refusal actor registration request assessment outcomes contain a refusal reason.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="RefusalReasonEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FRAUD_SUSPECTED"/>
+            <xs:enumeration value="REQUEST_NOT_APPLICABLE"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="ActorRegistrationCorrectionDecisionType">
+        <xs:annotation>
+            <xs:documentation>#FLD-ACT-083# - State. The assessment decision outcome.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="dt:DecisionType">
+                <xs:sequence>
+                    <xs:element name="reason" type="actorregistration:CorrectionReasonEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-085# - Correction reason. Rejected for correction actor registration request assessment outcomes contain a rejection reason.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="CorrectionReasonEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DUPLICATE"/>
+            <xs:enumeration value="INCOMPLETE"/>
+            <xs:enumeration value="WRONG_ASSESSOR"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="ActorRegistrationApprovalDecisionType">
+        <xs:annotation>
+            <xs:documentation>#FLD-ACT-083# - State. The assessment decision outcome.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="dt:DecisionType">
+                <xs:sequence>
+                    <xs:element name="reason" type="actorregistration:ApprovalDecisionEnum" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ActorRegistrationRequestType">
+        <xs:complexContent>
+            <xs:extension base="actorregistration:ActorRegistrationType">
+                <xs:sequence>
+                    <xs:element name="actor" type="actor:EOActorType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-090# - Actor information. The actor details for respective actor registration request.
+                                The state of an actor is DRAFT for pending actor registration requests (in state SUBMITTED or VERIFIED).</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="additionalInformation" type="commonbasic:stringLType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-088# - Additional Information. Comment provided by the Requesting User during registration.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="agreement" type="doct:DocumentType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-094# - Signed agreement annex. Document attachment provided by the requestor confirming to agree with the Eudamed conditions</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="initialSubmissionDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="organisationIdentificationDocument" type="doct:DocumentType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-095# - Organisation identification document. Document attachment provided by the requestor identifying the organisation he is representing.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="submissionDate" type="xs:date" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-089# - Submission date - The date of the actor registration request submission to Eudamed.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="previousAssessments" type="actorregistration:ActorRegistrationPreviousAssessmentsType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="duplicateJustification" type="commonbasic:stringLType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-099# Justification from the requestor why he continues the registration after being informed about possible duplicates</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="LAA" type="actorregistration:LAAType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-093#</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="LAASubcontractor" type="actorregistration:LAASubcontractorType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-098# Subcontractor information of requesting user</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ActorRegistrationType" abstract="true">
+        <xs:sequence>
+            <xs:element name="applicationID" type="xs:string" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-ACT-087# - Application Id. A unique actor registration request identifier used for reference during the assessment procedure.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ActorRegistrationAssessmentType">
+        <xs:complexContent>
+            <xs:extension base="actorregistration:ActorRegistrationType">
+                <xs:sequence>
+                    <xs:element name="validationChkActorAddress" type="address:GeographicAddressType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="validationChkActorOrgName" type="commonbasic:stringLType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="decision" type="dt:DecisionType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="actorType" type="service:ActorDownloadServiceActorTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-004# An actor is of a specific role and defines what information
+                                is required in Eudamed so operations can be performed within the system. Each actor role
+                                has a set of tasks. A predefined set of actor roles has been defined based on the system
+                                requirements.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ActorRegistrationAssessmentResponseType">
+        <xs:complexContent>
+            <xs:extension base="actorregistration:ActorRegistrationType">
+                <xs:sequence>
+                    <xs:element name="actorState" type="actor:ActorStateEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>The actor state after the assessment, REGISTERED if a positive assessment and DRAFT for a negative assessment.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="assessmentDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="actorName" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="country" type="country:CountryEnum" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="role" type="service:ActorDownloadServiceActorTypeEnum" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="actorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>In case of a positive assessment by the CA the actor will be REGISTERED and assigned an SRN.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="decision" type="dt:DecisionType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Details of the assessment. Possible sub-types:
+                                ActorRegistrationCorrectionDecisionType,
+                                ActorRegistrationRefusalDecisionType,
+                                ActorRegistrationApprovalDecisionType
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="ApprovalDecisionEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OK"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="ActorRegistrationPreviousAssessmentsType">
+        <xs:sequence>
+            <xs:element name="previousAssessment" type="actorregistration:ActorRegistrationPreviousAssessmentType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LAAType">
+        <xs:sequence>
+            <xs:element name="firstName" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="lastName" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="email" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LAASubcontractorType">
+        <xs:sequence>
+            <xs:element name="company" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="phone" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="email" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

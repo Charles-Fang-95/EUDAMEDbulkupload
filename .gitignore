@@ -1,0 +1,45 @@
+# Local runtime data
+local_beta_data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated exports, responses, reports
+exports/
+uploads/
+*.xml
+eudamed_report_*.html
+eudamed_report_*.json
+
+# Build artifacts
+dist/
+build/
+mac_app/.build/
+mac_app/.swiftpm/
+*.spec
+*.app
+*.exe
+*.dmg
+*.pkg
+*.zip
+
+# Python / OS noise
+__pycache__/
+*.py[cod]
+.DS_Store
+.build-cache/
+.claude/
+.codex/
+
+# Customer/private samples
+Test sample/
+*.xlsx
+!EUDAMED_Template_v2.4.xlsx
+!EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.4.xlsx
+
+# Official source downloads kept locally; production XSD files are tracked after unpacking.
+official_docs/*.pdf
+official_docs/unpacked/xsd/
+
+# Personal/payment assets
+donation_assets/

@@ -1,0 +1,145 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║         EUDAMED批量注册XML转换工具 v2.0                      ║
+║              快速开始指南                                     ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+【第一步】检查环境
+─────────────────────────────────────────────────────────────
+1. 确认已安装Python（版本3.7或更高）
+   - 打开命令行，输入：python --version
+   - 如未安装，请访问：https://www.python.org/downloads/
+
+2. 确认文件结构完整
+   ✓ eudamed_converter_integrated.py（主程序）
+   ✓ validator.py（验证模块）
+   ✓ xml_builder.py（XML构建模块）
+   ✓ logger.py（报告模块）
+   ✓ convert.bat（Windows快捷启动）
+   ✓ lib/文件夹（依赖库）
+   ✓ templates/EUDAMED_Template_v2.xlsx（模板文件）
+
+
+【第二步】填写Excel模板
+─────────────────────────────────────────────────────────────
+1. 打开 templates/EUDAMED_Template_v2.xlsx
+
+2. 必填工作表（按顺序填写）：
+   ① Basic UDI-DI（基本设备信息）
+   ② UDI-DI（设备详细信息）
+   ③ Market Information（市场信息）
+
+3. 可选工作表（根据需要填写）：
+   - Critical Warnings（关键警告）
+   - Storage Conditions（储存条件）
+   - CMR Substances（CMR物质）
+   - Package Information（包装信息）
+
+4. 填写技巧：
+   ✓ 必填字段标有 * 号
+   ✓ 枚举字段有下拉列表
+   ✓ 鼠标悬停在表头可查看字段说明
+   ✓ 第2行是示例数据，从第3行开始填写实际数据
+
+
+【第三步】运行转换
+─────────────────────────────────────────────────────────────
+方法一：Windows用户（推荐）
+  1. 保存并关闭Excel文件
+  2. 双击 convert.bat
+  3. 等待处理完成
+  4. 按任意键关闭窗口
+
+方法二：命令行（所有平台）
+  1. 打开命令行/终端
+  2. 进入工具目录：cd /path/to/EUDAMED_TOOL_v2
+  3. 运行命令：
+     python eudamed_converter_integrated.py --input templates/EUDAMED_Template_v2.xlsx
+
+
+【第四步】查看结果
+─────────────────────────────────────────────────────────────
+转换完成后，会生成3个文件：
+
+1. eudamed_upload_YYYYMMDD_HHMMSS.xml
+   → 用于上传到EUDAMED系统的XML文件
+
+2. eudamed_report_YYYYMMDD_HHMMSS.html
+   → 双击在浏览器中打开，查看详细的处理报告
+   → 包含数据统计、验证结果、错误详情
+
+3. eudamed_report_YYYYMMDD_HHMMSS.json
+   → JSON格式的报告，用于系统集成
+
+
+【数据格式要求】
+─────────────────────────────────────────────────────────────
+✓ 日期：YYYY-MM-DD（例：2026-12-31）
+✓ 布尔值：TRUE 或 FALSE（必须大写）
+✓ UDI代码：8-50位字母数字（例：00860000123456）
+✓ 邮箱：标准格式（例：contact@example.com）
+✓ URL：http:// 或 https:// 开头
+
+
+【常见错误处理】
+─────────────────────────────────────────────────────────────
+❌ 错误：未检测到Python
+   → 安装Python并勾选"Add Python to PATH"
+
+❌ 错误：找不到模板文件
+   → 确保模板文件在 templates/ 文件夹中
+
+❌ 错误：必填字段缺失
+   → 打开HTML报告，查看具体缺失的字段
+   → 在Excel中补充完整后重新运行
+
+❌ 错误：枚举值无效
+   → 从下拉列表中选择有效值
+   → 不要手动输入枚举值
+
+❌ 错误：日期格式不正确
+   → 使用YYYY-MM-DD格式
+   → 或在Excel中设置单元格格式为"日期"
+
+
+【高级用法】
+─────────────────────────────────────────────────────────────
+1. 仅验证数据，不生成XML：
+   python eudamed_converter_integrated.py --input templates/EUDAMED_Template_v2.xlsx --validate-only
+
+2. 指定输出文件名：
+   python eudamed_converter_integrated.py --input templates/EUDAMED_Template_v2.xlsx --output my_output.xml
+
+3. 查看帮助信息：
+   python eudamed_converter_integrated.py --help
+
+
+【重要提示】
+─────────────────────────────────────────────────────────────
+⚠ 非欧盟制造商必须填写"Authorised Representative SRN"
+⚠ Device Name/Model 和 Device Model 至少填写一个
+⚠ 风险等级必须与适用法规匹配：
+   - MDR设备：Class I/IIa/IIb/III
+   - IVDR设备：Class A/B/C/D
+⚠ 生成XML前建议先运行验证模式检查数据
+
+
+【技术支持】
+─────────────────────────────────────────────────────────────
+如遇到问题，请提供：
+1. 错误截图或错误信息
+2. 生成的JSON报告文件
+3. Python版本信息
+
+
+【版本信息】
+─────────────────────────────────────────────────────────────
+工具版本：v2.0.0
+规范版本：EUDAMED UDI Devices v3.0.25
+更新日期：2026-02-05
+
+
+═══════════════════════════════════════════════════════════════
+            祝您使用愉快！如有问题请联系技术支持
+═══════════════════════════════════════════════════════════════

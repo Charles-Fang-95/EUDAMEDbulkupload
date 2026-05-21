@@ -1,0 +1,986 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:crtfscp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1"
+           xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+           xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           xmlns:party="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:riskclass="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1"
+           xmlns:crtfcecp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1"
+           xmlns:comment="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1"
+           elementFormDefault="qualified">
+
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../Device/CommonDeviceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1" schemaLocation="../Party/Party.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" schemaLocation="../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" schemaLocation="../Common/RiskClassEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1" schemaLocation="CECPType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" schemaLocation="../Common/CommentType.xsd"/>
+
+    <xs:complexType name="SPPGroupType">
+        <xs:sequence>
+            <xs:element name="sppGroupIdentification" type="xs:string" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="SterilisationMethodsEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ASEPTIC_PROCESSING">
+                <xs:annotation>
+                    <xs:documentation>Aseptic processing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="EOG">
+                <xs:annotation>
+                    <xs:documentation>Ethylene oxide gas sterilisation (EOG)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="LOW_TEMPERATURE">
+                <xs:annotation>
+                    <xs:documentation>Low temperature steam and formaldehyde sterilisation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MOIST_HEAT">
+                <xs:annotation>
+                    <xs:documentation>Moist heat sterilisation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RADIATION">
+                <xs:annotation>
+                    <xs:documentation>Radiation sterilisation (gamma, x-ray, electron beam)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="OTHERS"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="SystemProcedurePackSterilisationType">
+        <xs:sequence>
+            <xs:element name="spppSteriliser" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="sppGroupApplicable" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="comments" type="comment:CommentsType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="sterilisationMethod" type="crtfscp:SterilisationMethodsEnum" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="steriliser" type="party:OrganisationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="sppGroup" type="crtfscp:SPPGroupType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="SpecialDeviceType">
+        <xs:sequence>
+            <xs:element name="deviceManufTissueAnimal" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="deviceManufTissueHuman" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="deviceInSterileCondition" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="deviceInVitro" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="deviceWithoutMedPurpose" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="QualityProcedureScopeType">
+        <xs:sequence>
+            <xs:element name="riskClass" type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="4"/>
+            <xs:element name="systemProcedurePackSterilisation" type="crtfscp:SystemProcedurePackSterilisationType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Defines the information that needs to be provided to include a system or procedure pack sterilisation (SPPS) in the scope of a MDR quality conformity assessment procedure.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="model" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="name" type="commonbasic:stringSType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="basicUdiKnown" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="implantable" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="isRegisteredInUDIModule" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:choice minOccurs="0" maxOccurs="1">
+                <xs:element name="DICode" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Basic UDI-DI of a device in the scope of a quality conformity assessment procedure.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="CMDdescription" type="commonbasic:stringLType" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Description (free text) of a custom-made device (CMD) in the scope of a MDR quality conformity assessment procedure.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="deviceReference" type="commonbasic:stringMType" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Device reference/catalogue number in the scope of a quality conformity assessment procedure.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="deviceGroupIdentifier" type="commonbasic:stringLType" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Identification (free text) of a device group in the scope of a quality conformity assessment procedure.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="deviceName" type="commonbasic:stringMType" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Device name in the scope of a quality conformity assessment procedure.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:choice>
+            <xs:element name="classICharacteristics" type="crtfscp:QualityCertificatePropertiesType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Additional (1 to 3) device characteristics (enumeration) for a class I device in the scope of a quality conformity assessment procedure.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="wasCECPfollowed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="mosOutsideEudamed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="DeviceHorizontalCodesEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MDS1001">
+                <xs:annotation>
+                    <xs:documentation>Devices incorporating medicinal substances</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1002">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured utilising tissues or cells of human origin, or their derivatives</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1003">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured utilising tissues or cells of animal origin, or their derivatives</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1004">
+                <xs:annotation>
+                    <xs:documentation>Devices which are also machinery as defined in point (a) of the second paragraph of Article 2 of Directive 2006/42/EC of the European Parliament and of the Council (1)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1005">
+                <xs:annotation>
+                    <xs:documentation>Devices in sterile condition</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1006">
+                <xs:annotation>
+                    <xs:documentation>Reusable surgical instruments</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1007">
+                <xs:annotation>
+                    <xs:documentation>Devices incorporating or consisting of nanomaterial</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1008">
+                <xs:annotation>
+                    <xs:documentation>Devices utilising biologically active coatings and/or materials or being wholly or mainly absorbed or locally dispersed in the human body or are intended to undergo a chemical change in the body</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1009">
+                <xs:annotation>
+                    <xs:documentation>Devices incorporating software/utilising software/controlled by software, including devices intended for controlling, monitoring or directly influencing the performance of active or active implantable devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1010">
+                <xs:annotation>
+                    <xs:documentation>Devices with a measuring function</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1011">
+                <xs:annotation>
+                    <xs:documentation>Devices in systems or procedure packs</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1012">
+                <xs:annotation>
+                    <xs:documentation>Products without an intended medical purpose listed in Annex XVI to Regulation (EU) 2017/745</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1013">
+                <xs:annotation>
+                    <xs:documentation>Class III custom-made implantable devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDS1014">
+                <xs:annotation>
+                    <xs:documentation>Devices incorporating as an integral part an in vitro diagnostic device</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2001">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured using metal processing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2002">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured using plastic processing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2003">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured using non-metal mineral processing (e.g. glass, ceramics)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2004">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured using non-metal non-mineral processing (e.g. textiles, rubber, leather, paper)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2005">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured using biotechnology</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2006">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured using chemical processing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2007">
+                <xs:annotation>
+                    <xs:documentation>Devices which require knowledge regarding the production of pharmaceuticals</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2008">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured in clean rooms and associated controlled environments</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2009">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured using processing of materials of human, animal, or microbial origin</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2010">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured using electronic components including communication devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2011">
+                <xs:annotation>
+                    <xs:documentation>Devices which require packaging, including labelling</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2012">
+                <xs:annotation>
+                    <xs:documentation>Devices which require installation, refurbishment</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDT2013">
+                <xs:annotation>
+                    <xs:documentation>Devices which have undergone reprocessing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1001">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for near-patient testing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1002">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for self-testing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1003">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used as companion diagnostics</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1004">
+                <xs:annotation>
+                    <xs:documentation>Devices manufactured utilising tissues or cells of human origin, or their derivatives</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1005">
+                <xs:annotation>
+                    <xs:documentation>Devices in sterile condition</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1006">
+                <xs:annotation>
+                    <xs:documentation>Calibrators (point 1.5 of Annex VIII to Regulation (EU) 2017/746)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1007">
+                <xs:annotation>
+                    <xs:documentation>Control materials with quantitative or qualitative assigned values intended for one specific analyte or multiple analytes (point 1.6 of Annex VIII to Regulation (EU) 2017/746)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1008">
+                <xs:annotation>
+                    <xs:documentation>Instruments, equipment, systems or apparatus</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1009">
+                <xs:annotation>
+                    <xs:documentation>Software that are devices in themselves including software apps, software for data analysis, and for defining or monitoring therapeutic measures</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVS1010">
+                <xs:annotation>
+                    <xs:documentation>Devices incorporating software/utilising software/controlled by software</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2001">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured using metal processing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2002">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured using plastic processing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2003">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured using non-metal mineral processing (e.g. glass, ceramics)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2004">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured using non-metal non-mineral processing (e.g. textiles, rubber, leather, paper)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2005">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured using biotechnology</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2006">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured using chemical processing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2007">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding the production of pharmaceuticals</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2008">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured in clean rooms and associated controlled environments</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2009">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured using processing of materials of human, animal or microbial origin</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2010">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices manufactured using electronic components including communication devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVT2011">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require packaging, including labelling</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3001">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding agglutination tests</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3002">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding biochemistry</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3003">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding chromatography</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3004">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding chromosomal analysis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3005">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding coagulometry</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3006">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding flow cytometry</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3007">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding immunoassays</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3008">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding lysis based testing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3009">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding measurement of radioactivity</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3010">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding microscopy</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3011">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding molecular biological testing including nucleic acid assays and next generation sequencing (NGS)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3012">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding physical chemistry including electrochemistry</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3013">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding spectroscopy</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVP3014">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding tests of cell function</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4001">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding bacteriology</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4002">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding clinical chemistry/biochemistry</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4003">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding detection of transmissible agents (without organisms or viruses)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4004">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding genetics</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4005">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding haematology/haemostasis, including coagulation disorders</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4006">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding histocompatibility and immunogenetics</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4007">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding immunohistochemistry/histology</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4008">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding immunology</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4009">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding molecular biology/diagnostics</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4010">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding mycology</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4011">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding parasitology</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD4012">
+                <xs:annotation>
+                    <xs:documentation>In vitro diagnostic devices which require knowledge regarding virology</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="DeviceCodesEnum">
+        <xs:annotation>
+            <xs:documentation>The list of codes and corresponding types of devices for the purpose of specifying the scope of the designation as notified bodies in the field of medical devices under Regulation (EU) 2017/745
+                Codes reflecting the design and intended propose of the device
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MDA0101">
+                <xs:annotation>
+                    <xs:documentation>Active implantable devices for stimulation/inhibition/monitoring</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0102">
+                <xs:annotation>
+                    <xs:documentation>Active implantable devices delivering drugs or other substances</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0103">
+                <xs:annotation>
+                    <xs:documentation>Active implantable devices supporting or replacing organ functions</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0104">
+                <xs:annotation>
+                    <xs:documentation>Active implantable devices utilising radiation and other active implantable devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0201">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable imaging devices utilising ionizing radiation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0202">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable imaging devices utilising non-ionizing radiation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0203">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices for monitoring of vital physiological parameters</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0204">
+                <xs:annotation>
+                    <xs:documentation>Other active non-implantable devices for monitoring and/or diagnosis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0301">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices utilising ionizing radiation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0302">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices utilising non-ionizing radiation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0303">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices utilising hyperthermia/hypothermia</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0304">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices for shock-wave therapy (lithotripsy)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0305">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices for stimulation or inhibition</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0306">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices for extra-corporal circulation, administration or removal of substances and haemapheresis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0307">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable respiratory devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0308">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices for wound and skin care</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0309">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable ophthalmologic devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0310">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices for ear, nose and throat</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0311">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable dental devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0312">
+                <xs:annotation>
+                    <xs:documentation>Other active non-implantable surgical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0313">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable prostheses, devices for rehabilitation and devices for patient positioning and transport</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0314">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices for processing and preservation of human cells, tissues or organs including in vitro fertilisation (IVF) and assisted reproductive technologies (ART)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0315">
+                <xs:annotation>
+                    <xs:documentation>Software</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0316">
+                <xs:annotation>
+                    <xs:documentation>Medical gas supply systems and parts thereof</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0317">
+                <xs:annotation>
+                    <xs:documentation>Active non-implantable devices for cleaning, disinfection and sterilisation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDA0318">
+                <xs:annotation>
+                    <xs:documentation>Other active non-implantable devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1101">
+                <xs:annotation>
+                    <xs:documentation>Non-active cardiovascular, vascular and neurovascular implants</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1102">
+                <xs:annotation>
+                    <xs:documentation>Non-active osteo- and orthopaedic implants</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1103">
+                <xs:annotation>
+                    <xs:documentation>Non-active dental implants and dental materials</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1104">
+                <xs:annotation>
+                    <xs:documentation>Non-active soft tissue and other implants</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1201">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable devices for anaesthesia, emergency and intensive care</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1202">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable devices for administration, channelling and removal of substances, including devices for dialysis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1203">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable guide catheters, balloon catheters, guidewires, introducers, filters, and related tools</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1204">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable devices for wound and skin care</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1205">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable orthopaedic and rehabilitation devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1206">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable ophthalmologic devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1207">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable diagnostic devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1208">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable instruments</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1209">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable dental materials</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1210">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable devices used for contraception or prevention of the transmission of sexually transmitted diseases</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1211">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable devices for disinfecting, cleaning and rinsing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1212">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable devices for processing and preservation of human cells, tissue or organs including in vitro fertilisation (IVF) and assisted reproductive technologies (ART)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1213">
+                <xs:annotation>
+                    <xs:documentation>Non-active non-implantable devices composed of substances to be introduced into the human body via a body orifice or the dermal route</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDN1214">
+                <xs:annotation>
+                    <xs:documentation>General non-active non-implantable devices used in health care and other non-active non-implantable devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+
+            <xs:enumeration value="IVR0101">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to determine markers of the ABO system [A (ABO1), B (ABO2), AB (ABO3)]</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0102">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to determine markers of the Rhesus system [RH1 (D), RHW1, RH2 (C), RH3 (E), RH4 (c), RH5 (e)]</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0103">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to determine markers of the Kell system [Kel1 (K)]</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0104">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to determine markers of the Kidd system [JK1 (Jka), JK2 (Jkb)]</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0105">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to determine markers of the Duffy system [FY1 (Fya), FY2 (Fyb)]</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0106">
+                <xs:annotation>
+                    <xs:documentation>Other devices intended to be used for blood grouping</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0201">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for tissue typing (HLA A, B, DR) to ensure the immunological compatibility of blood, blood components, cells, tissue or organs that are intended for transfusion or transplantation or cell administration</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0202">
+                <xs:annotation>
+                    <xs:documentation>Other devices intended to be used for tissue typing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0301">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used in screening, diagnosis, staging or monitoring of cancer</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0302">
+                <xs:annotation>
+                    <xs:documentation>Other devices intended to be used for markers of cancer and non-malignant tumours</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0401">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used in screening/confirmation of congenital/inherited disorders</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0402">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used to predict genetic disease/disorder risk and prognosis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0403">
+                <xs:annotation>
+                    <xs:documentation>Other devices intended to be used for human genetic testing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0501">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for pre-natal screening of women in order to determine their immune status towards transmissible agents</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0502">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used to detect the presence of, or exposure to transmissible agents in blood, blood components, cells, tissues or organs, or in any of their derivatives, to assess their suitability for transfusion, transplantation or cell administration</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0503">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used to detect the presence of, or exposure to an infectious agent including sexually transmitted agents</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0504">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used to determine the infectious load, to determine infective disease status or immune status and devices used for infectious disease staging</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0505">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used to grow/isolate/identify and handle infectious agents</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0506">
+                <xs:annotation>
+                    <xs:documentation>Other devices intended to be used to determine markers of infections/immune status</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0601">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for screening/confirmation of specific disorders/impairments</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0602">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for screening, determination or monitoring of physiological markers for a specific disease</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0603">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for screening, confirmation/determination, or monitoring of allergies and intolerances</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0604">
+                <xs:annotation>
+                    <xs:documentation>Other devices intended to be used for a specific disease</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0605">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for monitoring of levels of medicinal products, substances or biological components</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0606">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for non-infectious disease staging</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0607">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for detection of pregnancy or fertility testing</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0608">
+                <xs:annotation>
+                    <xs:documentation>Devices intended to be used for screening, determination or monitoring of physiological markers</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0609">
+                <xs:annotation>
+                    <xs:documentation>Other devices intended to be used to define or monitor physiological status and therapeutic measures</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0701">
+                <xs:annotation>
+                    <xs:documentation>Devices which are controls without a quantitative assigned value</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0702">
+                <xs:annotation>
+                    <xs:documentation>Devices which are controls without a qualitative assigned value</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0801">
+                <xs:annotation>
+                    <xs:documentation>Devices referred to in point 2.5 (rule 5), under a), of Annex VIII to Regulation (EU) 2017/746</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0802">
+                <xs:annotation>
+                    <xs:documentation>Instruments intended specifically to be used for in vitro diagnostic procedures referred to in point 2.5 (rule 5), under b), of Annex VIII to Regulation (EU) 2017/746</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVR0803">
+                <xs:annotation>
+                    <xs:documentation>Specimen receptacles referred to in point 2.5 (rule 5), under c), of Annex VIII to Regulation (EU) 2017/746</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="ProductProcedureScopeType">
+        <xs:sequence>
+            <xs:element name="riskClass" type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="DICode" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="horizontalDeviceTypeCodes" type="crtfscp:DeviceHorizontalCodes" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="intendedPurposes" type="crtfscp:IntendedPurposesType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="productDeviceTypeCode" type="crtfscp:DeviceCodesEnum" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="model" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="reference" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="name" type="commonbasic:stringSType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="basicUdiKnown" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="implantable" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="isRegisteredInUDIModule" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="wasCECPfollowed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="mosOutsideEudamed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ProductProcedureScopesType">
+        <xs:sequence>
+            <xs:element name="scope" type="crtfscp:ProductProcedureScopeType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="QualityProcedureScopesType">
+        <xs:sequence>
+            <xs:element name="scope" type="crtfscp:QualityProcedureScopeType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="QualityCertificatePropertiesType">
+        <xs:sequence>
+            <xs:element name="property" type="crtfscp:QualityProcedurePropertiesEnum" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="QualityProcedurePropertiesEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MEASURING_FUNCTION"/>
+            <xs:enumeration value="STERILE"/>
+            <xs:enumeration value="REUSABLE"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="IntendedPurposesType">
+        <xs:sequence>
+            <xs:element name="purpose" type="lsn:LanguageSpecificTextType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="InstructionForUseType">
+        <xs:sequence>
+            <xs:element name="basicUDI" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="instructionForUse" type="doct:DocumentType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MechanismForScrutinyMDRType">
+        <xs:sequence>
+            <xs:element name="NOCECP" type="crtfcecp:NOCECPType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="CECP" type="crtfcecp:CECPType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="instructionsForUse" type="crtfscp:InstructionForUseType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MechanismForScrutinyIVDRType">
+        <xs:sequence>
+            <xs:element name="SOFollowed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="laboratoryTestApplicable" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="expertPanelViewApplicable" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="divergentViewToExpertPanel" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="justificationNotFollowingSO" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="SODocument" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="laboratoryTest" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="expertPanelViews" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="PEAssessmentReport" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="instructionsForUse" type="crtfscp:InstructionForUseType" minOccurs="1" maxOccurs="unbounded"/>
+            <xs:element name="mosOutsideEudamed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="DeviceHorizontalCodes">
+        <xs:list itemType="crtfscp:DeviceHorizontalCodesEnum"/>
+    </xs:simpleType>
+</xs:schema>

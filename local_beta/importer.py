@@ -1,0 +1,602 @@
+import json
+import re
+import sys
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+
+from .constants import TOOL_DIR, VENDOR_LIB
+from .storage import Repository
+from .template_schema import ENTRY_SHEETS, ENUM_SOURCES, MAIN_COLUMNS, RELATED_SHEETS
+
+if str(VENDOR_LIB) not in sys.path:
+    sys.path.insert(0, str(VENDOR_LIB))
+if str(TOOL_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOL_DIR))
+
+import openpyxl  # type: ignore
+from validator import DataValidator  # type: ignore
+
+
+BUSINESS_SHEETS = [
+    "Basic UDI-DI",
+    "UDI-DI",
+    "Trade Names",
+    "Market Information",
+    "Critical Warnings",
+    "Storage Conditions",
+    "CMR Substances",
+    "Package Information",
+]
+DATA_START_ROW = 4
+FORMAT_RISK_FIELDS = {
+    "Basic UDI-DI Code",
+    "UDI-DI Code",
+    "UDI-DI Issuing Entity",
+    "Package UDI-DI Code",
+    "Contains DI Code",
+    "Reference Number",
+    "Manufacturer SRN",
+    "Authorised Representative SRN",
+    "Product Designer SRN",
+    "DM DI Code",
+    "Unit of Use DI Code",
+    "Secondary UDI-DI Code",
+    "EMDN Code",
+    "Nomenclature Code",
+    "CAS Code",
+    "EC Code",
+}
+CODE_LENGTH_RISK_FIELDS = {
+    "UDI-DI Code",
+    "Package UDI-DI Code",
+    "Contains DI Code",
+    "Secondary UDI-DI Code",
+    "DM DI Code",
+    "Unit of Use DI Code",
+}
+SCIENTIFIC_NOTATION_RE = re.compile(r"^[+-]?\d+(\.\d+)?E[+-]?\d+$", re.IGNORECASE)
+
+
+class WorkbookImporter:
+    def __init__(self, repository: Repository):
+        self.repository = repository
+
+    def import_workbook(self, workbook_path: Path) -> dict:
+        wb = openpyxl.load_workbook(workbook_path, data_only=True)
+        parsed, import_meta, format_warnings = self._parse_workbook(wb)
+
+        summary = self._summary(parsed)
+        if not any(summary.values()):
+            validation = {
+                "errors": [
+                    {
+                        "sheet": "Workbook",
+                        "row": "",
+                        "field": "",
+                        "value": workbook_path.name,
+                        "error_type": "unsupported_template",
+                        "message": "未识别到可导入的新版 EUDAMED 模板数据。请使用当前默认模板的 MDR_MDD 或 IVDR_IVDD sheet。",
+                        "suggestion": "旧模板或客户原始清单不要直接导入；请先迁移/映射到当前 v2.4 模板字段，确认字段含义后再导入。",
+                    }
+                ],
+                "warnings": [],
+            }
+            import_id = self.repository.create_import(workbook_path.name, summary, validation)
+            return {
+                "import_id": import_id,
+                "summary": summary,
+                "validation": validation,
+                "changes": [],
+                "change_summary": {"created": 0, "updated": 0, "unchanged": 0},
+            }
+
+        market_map = defaultdict(list)
+        warning_map = defaultdict(list)
+        storage_map = defaultdict(list)
+        package_map = defaultdict(list)
+        cmr_map = defaultdict(list)
+        trade_name_map = defaultdict(list)
+
+        for row in parsed.get("Trade Names", []):
+            trade_name_map[row.get("UDI-DI Code", "")].append(row)
+        for row in parsed.get("Market Information", []):
+            market_map[row.get("UDI-DI Code", "")].append(row)
+        for row in parsed.get("Critical Warnings", []):
+            warning_map[row.get("UDI-DI Code", "")].append(row)
+        for row in parsed.get("Storage Conditions", []):
+            storage_map[row.get("UDI-DI Code", "")].append(row)
+        for row in parsed.get("Package Information", []):
+            package_map[row.get("UDI-DI Code", "")].append(row)
+        for row in parsed.get("CMR Substances", []):
+            cmr_map[row.get("Basic UDI-DI Code", "")].append(row)
+
+        self._merge_trade_name_shortcuts(parsed, trade_name_map)
+        validator = DataValidator(parsed)
+        errors, warnings = validator.validate_all()
+        extra_errors = self._validate_related_rules(parsed)
+
+        validation = {
+            "errors": [error.to_dict() for error in errors] + extra_errors,
+            "warnings": [warning.to_dict() for warning in warnings] + format_warnings,
+        }
+        import_id = self.repository.create_import(workbook_path.name, summary, validation)
+        changes = []
+
+        for row in parsed.get("Basic UDI-DI", []):
+            basic_code = row.get("Basic UDI-DI Code", "")
+            change = self.repository.upsert_basic(
+                import_id=import_id,
+                row_number=row.get("_row_number", 0),
+                payload=self._clean_row(row),
+                cmr_rows=[self._clean_row(item) for item in cmr_map.get(basic_code, [])],
+                version=import_meta["basic_versions"].get(basic_code, ""),
+            )
+            if change:
+                changes.append(change)
+        for row in parsed.get("UDI-DI", []):
+            code = row.get("UDI-DI Code", "")
+            change = self.repository.upsert_udi(
+                import_id=import_id,
+                row_number=row.get("_row_number", 0),
+                payload=self._clean_row(row),
+                market_rows=[self._clean_row(item) for item in market_map.get(code, [])],
+                warning_rows=[self._clean_row(item) for item in warning_map.get(code, [])],
+                storage_rows=[self._clean_row(item) for item in storage_map.get(code, [])],
+                package_rows=[self._clean_row(item) for item in package_map.get(code, [])],
+                trade_name_rows=self._trade_name_rows_for_udi(row, trade_name_map.get(code, [])),
+                version=import_meta["udi_versions"].get(code, ""),
+            )
+            if change:
+                changes.append(change)
+
+        market_warnings = self._market_change_warnings(changes)
+        if market_warnings:
+            validation["warnings"].extend(market_warnings)
+            self.repository.update_import_validation(import_id, validation)
+
+        return {
+            "import_id": import_id,
+            "summary": summary,
+            "validation": validation,
+            "changes": changes,
+            "change_summary": self._change_summary(changes),
+        }
+
+    def _parse_workbook(self, wb) -> tuple[dict, dict, list[dict]]:
+        parsed = {sheet: [] for sheet in BUSINESS_SHEETS}
+        basic_index = {}
+        import_meta = {"basic_versions": {}, "udi_versions": {}}
+        format_warnings = []
+
+        for sheet_name in ENTRY_SHEETS:
+            if sheet_name not in wb.sheetnames:
+                continue
+            self._parse_entry_sheet(wb[sheet_name], parsed, basic_index, import_meta, format_warnings)
+
+        for sheet_name, spec in RELATED_SHEETS.items():
+            if sheet_name not in wb.sheetnames:
+                continue
+            rows = self._parse_related_sheet(wb[sheet_name], spec["columns"], format_warnings)
+            parsed[spec["target"]].extend(rows)
+
+        return parsed, import_meta, format_warnings
+
+    def _market_change_warnings(self, changes: list[dict]) -> list[dict]:
+        warnings = []
+        for item in changes:
+            if item.get("entity_type") != "udi" or item.get("action") != "updated":
+                continue
+            if "Market Info" not in item.get("changed_fields", []):
+                continue
+            warnings.append(
+                {
+                    "sheet": "Market Info",
+                    "row": item.get("row_number", ""),
+                    "field": "Market Information",
+                    "value": item.get("code", ""),
+                    "warning_type": "market_information_updated",
+                    "message": "检测到该 UDI-DI 的市场信息发生变化。国家/市场信息错误应优先通过 EUDAMED update/create new version 修正，不应默认删除 UDI-DI 重建。",
+                    "suggestion": "只有当 UDI-DI、器械身份或 Basic UDI-DI 关联本身错误且无法更新纠正时，才考虑 discard/逻辑删除并重新注册。",
+                }
+            )
+        return warnings
+
+    def _parse_entry_sheet(self, ws, parsed: dict, basic_index: dict, import_meta: dict, format_warnings: list[dict]):
+        headers = self._headers(ws)
+        schema_by_header = {item["header"]: item for item in MAIN_COLUMNS}
+
+        for row_idx in range(DATA_START_ROW, ws.max_row + 1):
+            raw, has_data = self._row_values(ws, headers, row_idx)
+            if not has_data:
+                continue
+
+            basic_payload = {}
+            udi_payload = {}
+            basic_version = ""
+            udi_version = ""
+
+            for header, value in raw.items():
+                item = schema_by_header.get(header)
+                if not item:
+                    continue
+                self._collect_format_risks(ws, row_idx, headers.index(header) + 1, item["field"], value, format_warnings)
+                if item["entity"] == "basic":
+                    basic_payload[item["field"]] = value
+                elif item["entity"] == "udi":
+                    udi_payload[item["field"]] = value
+                elif item["entity"] == "meta":
+                    if item["field"] == "basic_version":
+                        basic_version = str(value).strip()
+                    elif item["field"] == "udi_version":
+                        udi_version = str(value).strip()
+
+            basic_code = str(basic_payload.get("Basic UDI-DI Code", "")).strip()
+            udi_code = str(udi_payload.get("UDI-DI Code", "")).strip()
+            if basic_code:
+                udi_payload["Parent Basic UDI-DI"] = basic_code
+
+            if self._should_create_basic(basic_payload, basic_version):
+                basic_payload["_row_number"] = row_idx
+                clean_basic = self._clean_row(basic_payload)
+                if basic_code not in basic_index:
+                    basic_index[basic_code] = clean_basic
+                    parsed["Basic UDI-DI"].append(basic_payload)
+                else:
+                    self._merge_missing_basic_fields(basic_index[basic_code], clean_basic)
+                    for idx, item in enumerate(parsed["Basic UDI-DI"]):
+                        if item.get("Basic UDI-DI Code") == basic_code:
+                            merged = dict(item)
+                            self._merge_missing_basic_fields(merged, clean_basic)
+                            merged["_row_number"] = item.get("_row_number", row_idx)
+                            parsed["Basic UDI-DI"][idx] = merged
+                            break
+                if basic_version:
+                    import_meta["basic_versions"][basic_code] = basic_version
+
+            if udi_code:
+                udi_payload["_row_number"] = row_idx
+                parsed["UDI-DI"].append(udi_payload)
+                if udi_version:
+                    import_meta["udi_versions"][udi_code] = udi_version
+
+    def _parse_related_sheet(self, ws, columns: list[dict], format_warnings: list[dict]) -> list[dict]:
+        headers = self._headers(ws)
+        schema_by_header = {item["header"]: item for item in columns}
+        rows = []
+        for row_idx in range(DATA_START_ROW, ws.max_row + 1):
+            raw, has_data = self._row_values(ws, headers, row_idx)
+            if not has_data:
+                continue
+            row_data = {}
+            for header, value in raw.items():
+                item = schema_by_header.get(header)
+                if item:
+                    self._collect_format_risks(ws, row_idx, headers.index(header) + 1, item["field"], value, format_warnings)
+                    if item.get("validation") in {"critical_warning", "storage_condition"}:
+                        value = self._enum_code(value)
+                    row_data[item["field"]] = value
+            if any(value not in ("", None) for value in row_data.values()):
+                row_data["_row_number"] = row_idx
+                rows.append(row_data)
+        return rows
+
+    def _headers(self, ws) -> list[str]:
+        headers = []
+        for cell in ws[1]:
+            if cell.value is None:
+                break
+            headers.append(str(cell.value).strip())
+        return headers
+
+    def _row_values(self, ws, headers: list[str], row_idx: int) -> tuple[dict, bool]:
+        row_data = {}
+        has_data = False
+        for col_idx, header in enumerate(headers, start=1):
+            value = ws.cell(row_idx, col_idx).value
+            if isinstance(value, datetime):
+                value = value.strftime("%Y-%m-%d")
+            if isinstance(value, str):
+                value = value.strip()
+            if value not in (None, ""):
+                has_data = True
+            row_data[header] = "" if value is None else value
+        return row_data, has_data
+
+    def _collect_format_risks(self, ws, row_idx: int, col_idx: int, field: str, value, warnings: list[dict]):
+        if field not in FORMAT_RISK_FIELDS or value in (None, ""):
+            return
+        cell = ws.cell(row_idx, col_idx)
+        text = str(value).strip()
+        if SCIENTIFIC_NOTATION_RE.match(text):
+            warnings.append(self._format_warning(ws.title, row_idx, field, text, "疑似科学计数法。请核对原始标签/条码，避免 UDI/GTIN/Reference 被 Excel/WPS 自动改写。"))
+            return
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            warnings.append(self._format_warning(ws.title, row_idx, field, text, "该编码单元格是数字类型，可能已被 Excel/WPS 自动转换并丢失前导 0。请按文本格式维护。"))
+        if cell.number_format not in {"@", "General"}:
+            warnings.append(self._format_warning(ws.title, row_idx, field, text, f"该编码单元格格式为 {cell.number_format}，建议改为文本格式。"))
+        if field in CODE_LENGTH_RISK_FIELDS and text.isdigit() and len(text) < 8:
+            warnings.append(self._format_warning(ws.title, row_idx, field, text, "该 DI/UDI 编码长度较短，请核对是否丢失前导 0 或被自动转成数字。"))
+
+    def _format_warning(self, sheet: str, row: int, field: str, value, message: str) -> dict:
+        return {
+            "sheet": sheet,
+            "row": row,
+            "field": field,
+            "value": value,
+            "warning_type": "FORMAT_RISK",
+            "message": message,
+            "suggestion": "在 Excel/WPS 中把该列设置为文本格式，并按标签/证书原值重新填写。",
+        }
+
+    def _summary(self, parsed: dict) -> dict:
+        return {
+            "basic_count": len(parsed.get("Basic UDI-DI", [])),
+            "udi_count": len(parsed.get("UDI-DI", [])),
+            "market_count": len(parsed.get("Market Information", [])),
+            "warning_count": len(parsed.get("Critical Warnings", [])),
+            "storage_count": len(parsed.get("Storage Conditions", [])),
+            "trade_name_count": len(parsed.get("Trade Names", [])),
+            "cmr_count": len(parsed.get("CMR Substances", [])),
+            "package_count": len(parsed.get("Package Information", [])),
+        }
+
+    def _change_summary(self, changes: list[dict]) -> dict:
+        summary = {"created": 0, "updated": 0, "unchanged": 0}
+        for item in changes:
+            action = item.get("action")
+            if action in summary:
+                summary[action] += 1
+        return summary
+
+    def _clean_row(self, row: dict) -> dict:
+        return {key: value for key, value in row.items() if not key.startswith("_")}
+
+    def _merge_trade_name_shortcuts(self, parsed: dict, trade_name_map: dict):
+        for row in parsed.get("UDI-DI", []):
+            code = row.get("UDI-DI Code", "")
+            if row.get("Trade Name"):
+                continue
+            rows = trade_name_map.get(code, [])
+            if not rows:
+                continue
+            row["Trade Name"] = rows[0].get("Trade Name", "")
+            row["Trade Name Language"] = rows[0].get("Language", "")
+
+    def _trade_name_rows_for_udi(self, payload: dict, rows: list[dict]) -> list[dict]:
+        merged = []
+        if payload.get("Trade Name"):
+            merged.append(
+                {
+                    "UDI-DI Code": payload.get("UDI-DI Code", ""),
+                    "Trade Name": payload.get("Trade Name", ""),
+                    "Language": payload.get("Trade Name Language", "") or "en",
+                }
+            )
+        for row in rows:
+            merged.append(self._clean_row(row))
+
+        seen = set()
+        deduped = []
+        for row in merged:
+            key = (
+                str(row.get("UDI-DI Code", "")).strip(),
+                str(row.get("Trade Name", "")).strip(),
+                str(row.get("Language", "")).strip().lower(),
+            )
+            if not key[1] or key in seen:
+                continue
+            seen.add(key)
+            deduped.append(row)
+        return deduped
+
+    def _enum_code(self, value):
+        if isinstance(value, str) and " - " in value:
+            return value.split(" - ", 1)[0].strip()
+        return value
+
+    def _validate_related_rules(self, parsed: dict) -> list[dict]:
+        errors = []
+        udi_codes = {row.get("UDI-DI Code", "") for row in parsed.get("UDI-DI", [])}
+        storage_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("storage_condition", [])}
+        warning_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("critical_warning", [])}
+        language_any_codes = set(ENUM_SOURCES.get("language_any", []))
+
+        for row in parsed.get("Trade Names", []):
+            udi_code = str(row.get("UDI-DI Code", "")).strip()
+            trade_name = str(row.get("Trade Name", "")).strip()
+            language = str(row.get("Language", "")).strip()
+            if not udi_code:
+                errors.append(self._validation_error(row, "Trade Names", "UDI-DI Code", "", "Trade Names 行缺少 UDI-DI Code。"))
+            elif udi_code not in udi_codes:
+                errors.append(self._validation_error(row, "Trade Names", "UDI-DI Code", udi_code, "Trade Names 引用的 UDI-DI Code 不存在于主表。"))
+            if not trade_name:
+                errors.append(self._validation_error(row, "Trade Names", "Trade Name", "", "Trade Names 行缺少 Trade Name。"))
+            if not language:
+                errors.append(self._validation_error(row, "Trade Names", "Language", "", "Trade Names 行缺少 Language。"))
+            elif not self._valid_language_token(language, language_any_codes):
+                errors.append(self._validation_error(row, "Trade Names", "Language", language, "Trade Names 的 Language 必须是官方语言代码或 ANY。"))
+
+        for row in parsed.get("Critical Warnings", []):
+            code = str(row.get("Warning Type", "")).strip()
+            comment = str(row.get("Comment", "")).strip()
+            language = str(row.get("Language", "")).strip().upper()
+            if not code:
+                errors.append(self._validation_error(row, "Critical Warnings", "Warning Type", "", "Critical Warnings 行缺少 Warning Type。"))
+            elif code not in warning_codes:
+                errors.append(self._validation_error(row, "Critical Warnings", "Warning Type", code, "Warning Type 不在官方 CriticalWarningEnum 中。"))
+            if code == "CW999" and not comment:
+                errors.append(self._validation_error(row, "Critical Warnings", "Comment", "", "CW999 - OTHER 必须填写 Comment。"))
+            if code == "CW999" and language in {"", "ANY"}:
+                errors.append(self._validation_error(row, "Critical Warnings", "Language", language, "CW999 - OTHER 必须选择具体语言，不能为 ANY。"))
+        for row in parsed.get("Storage Conditions", []):
+            code = str(row.get("Storage Condition Type", "")).strip()
+            description = str(row.get("Description", "")).strip()
+            language = str(row.get("Language", "")).strip().upper()
+            if not code:
+                errors.append(self._validation_error(row, "Storage Conditions", "Storage Condition Type", "", "Storage Conditions 行缺少 Storage Condition Type。"))
+            elif code not in storage_codes:
+                errors.append(self._validation_error(row, "Storage Conditions", "Storage Condition Type", code, "Storage Condition Type 不在官方 StorageHandlingConditionEnum 中。"))
+            if code == "SHC099" and not description:
+                errors.append(self._validation_error(row, "Storage Conditions", "Description", "", "SHC099 - OTHER 必须填写 Description。"))
+            if code == "SHC099" and language in {"", "ANY"}:
+                errors.append(self._validation_error(row, "Storage Conditions", "Language", language, "SHC099 - OTHER 必须选择具体语言，不能为 ANY。"))
+        self._validate_market_rules(parsed, errors)
+        self._validate_package_rules(parsed, errors, udi_codes)
+        return errors
+
+    def _validate_market_rules(self, parsed: dict, errors: list[dict]):
+        udi_rows = {str(row.get("UDI-DI Code", "")).strip(): row for row in parsed.get("UDI-DI", [])}
+        market_rows_by_udi = defaultdict(list)
+        for row in parsed.get("Market Information", []):
+            udi_code = str(row.get("UDI-DI Code", "")).strip()
+            market_rows_by_udi[udi_code].append(row)
+
+        for udi_code, udi_row in udi_rows.items():
+            if str(udi_row.get("Device Status", "")).strip() != "On the EU market":
+                continue
+            rows = market_rows_by_udi.get(udi_code, [])
+            if not rows:
+                errors.append(self._validation_error(udi_row, "Market Info", "UDI-DI Code", udi_code, "On the EU market 的 UDI-DI 必须填写 Market Info。"))
+                continue
+            first_rows = [row for row in rows if self._is_true(row.get("Originally Placed on Market"))]
+            if len(first_rows) != 1:
+                row = first_rows[0] if first_rows else rows[0]
+                errors.append(self._validation_error(
+                    row,
+                    "Market Info",
+                    "Originally Placed on Market",
+                    len(first_rows),
+                    "每个 On the EU market UDI-DI 必须且只能有一条 Originally Placed on Market = TRUE；其它 made available 国家应填写 FALSE。",
+                ))
+
+    def _is_true(self, value) -> bool:
+        if isinstance(value, bool):
+            return value
+        return str(value).strip().upper() in {"TRUE", "YES", "Y", "1"}
+
+    def _valid_language_token(self, value, valid_values: set[str]) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        return text.upper() in valid_values or text.lower() in valid_values
+
+    def _validate_package_rules(self, parsed: dict, errors: list[dict], udi_codes: set[str]):
+        rows_by_udi = defaultdict(list)
+        for row in parsed.get("Package Information", []):
+            rows_by_udi[str(row.get("UDI-DI Code", "")).strip()].append(row)
+
+        for udi_code, rows in rows_by_udi.items():
+            if not udi_code:
+                for row in rows:
+                    errors.append(self._validation_error(row, "Package Info", "UDI-DI Code", "", "Package Info 行缺少 UDI-DI Code。"))
+                continue
+            if udi_code not in udi_codes:
+                for row in rows:
+                    errors.append(self._validation_error(row, "Package Info", "UDI-DI Code", udi_code, "Package Info 引用的 UDI-DI Code 不存在于主表。"))
+                continue
+
+            package_by_code = {}
+            for row in rows:
+                package_code = str(row.get("Package UDI-DI Code", "")).strip()
+                package_issuing = str(row.get("Package Issuing Entity", "")).strip()
+                quantity = row.get("Quantity per Package")
+                child_code = str(row.get("Contains DI Code", "")).strip() or udi_code
+
+                if not package_code:
+                    errors.append(self._validation_error(row, "Package Info", "Package UDI-DI Code", "", "Package Info 行缺少 Package UDI-DI Code。"))
+                elif package_code in package_by_code:
+                    errors.append(self._validation_error(row, "Package Info", "Package UDI-DI Code", package_code, "同一 UDI-DI 下 Package UDI-DI Code 重复。"))
+                else:
+                    package_by_code[package_code] = row
+
+                if not package_issuing:
+                    errors.append(self._validation_error(row, "Package Info", "Package Issuing Entity", "", "Package Info 行缺少 Package Issuing Entity。"))
+                if not self._positive_integer(quantity):
+                    errors.append(self._validation_error(row, "Package Info", "Quantity per Package", quantity, "Quantity per Package 必须为正整数。"))
+                if package_code and child_code == package_code:
+                    errors.append(self._validation_error(row, "Package Info", "Contains DI Code", child_code, "Package DI 不能包含自己。"))
+
+            valid_children = {udi_code} | set(package_by_code.keys())
+            for row in rows:
+                child_code = str(row.get("Contains DI Code", "")).strip() or udi_code
+                if child_code not in valid_children:
+                    errors.append(self._validation_error(row, "Package Info", "Contains DI Code", child_code, "child DI 必须是主 UDI-DI 或同一 UDI-DI 包装结构中已定义的 Package DI。"))
+
+            edges = {}
+            row_by_package = {}
+            for row in rows:
+                package_code = str(row.get("Package UDI-DI Code", "")).strip()
+                child_code = str(row.get("Contains DI Code", "")).strip() or udi_code
+                if package_code and child_code in package_by_code and child_code != package_code:
+                    edges[package_code] = child_code
+                    row_by_package[package_code] = row
+            reported_cycles = set()
+            for package_code in list(edges):
+                cycle = self._package_cycle(package_code, edges)
+                if cycle:
+                    cycle_key = frozenset(cycle)
+                    if cycle_key in reported_cycles:
+                        continue
+                    reported_cycles.add(cycle_key)
+                    errors.append(self._validation_error(row_by_package.get(package_code, {}), "Package Info", "Contains DI Code", " -> ".join(cycle), "Package Info 存在循环包含关系。"))
+
+    def _positive_integer(self, value) -> bool:
+        try:
+            return int(str(value).strip()) > 0
+        except (TypeError, ValueError):
+            return False
+
+    def _package_cycle(self, start: str, edges: dict[str, str]) -> list[str]:
+        seen = []
+        current = start
+        while current in edges:
+            if current in seen:
+                return seen[seen.index(current):] + [current]
+            seen.append(current)
+            current = edges[current]
+        return []
+
+    def _validation_error(self, row: dict, sheet: str, field: str, value, message: str) -> dict:
+        return {
+            "sheet": sheet,
+            "row": row.get("_row_number", "?"),
+            "field": field,
+            "value": value,
+            "error_type": "BUSINESS_RULE_ERROR",
+            "message": message,
+            "suggestion": "请按模板说明和 EUDAMED 业务规则补充该字段。",
+        }
+
+    def _should_create_basic(self, payload: dict, version: str) -> bool:
+        basic_code = str(payload.get("Basic UDI-DI Code", "")).strip()
+        if not basic_code:
+            return False
+        for field, value in payload.items():
+            if field == "Basic UDI-DI Code":
+                continue
+            if value not in ("", None):
+                return True
+        return bool(version)
+
+    def _merge_missing_basic_fields(self, existing: dict, incoming: dict):
+        for field, value in incoming.items():
+            if field == "_row_number" or value in ("", None):
+                continue
+            if existing.get(field) in ("", None):
+                existing[field] = value
+
+
+def parse_json_array(text: str) -> list[dict]:
+    text = (text or "").strip()
+    if not text:
+        return []
+    parsed = json.loads(text)
+    if not isinstance(parsed, list):
+        raise ValueError("JSON内容必须是数组")
+    clean = []
+    for item in parsed:
+        if not isinstance(item, dict):
+            raise ValueError("JSON数组中的每一项都必须是对象")
+        clean.append(item)
+    return clean

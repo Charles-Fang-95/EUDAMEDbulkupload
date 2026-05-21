@@ -1,0 +1,3134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+           xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           elementFormDefault="qualified">
+
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" schemaLocation="../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" schemaLocation="RegulationDevice/UDIDIType.xsd"/>
+    <xs:simpleType name="StorageHandlingConditionEnum">
+        <xs:annotation>
+            <xs:documentation>Storage and handling conditions can be represented using list of values.
+                The enumeration will present the list of values that can be used.
+                If OTHER, a comment should be provided.
+                If marked with "*", it requires an additional value that will not require translation.
+                If marked with "**", it requires to provide additional free text with translations.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SHC001">
+                <xs:annotation>
+                    <xs:documentation>Fragile, handle with care</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC002">
+                <xs:annotation>
+                    <xs:documentation>Keep away from sunlight</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC003">
+                <xs:annotation>
+                    <xs:documentation>Protect from heat and radioactive sources</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC004">
+                <xs:annotation>
+                    <xs:documentation>Protect from radioactive sources</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC005">
+                <xs:annotation>
+                    <xs:documentation>Keep dry</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC006">
+                <xs:annotation>
+                    <xs:documentation>Lower limit of temperature *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC007">
+                <xs:annotation>
+                    <xs:documentation>Upper limit of temperature *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC008">
+                <xs:annotation>
+                    <xs:documentation>Temperature limit *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC009">
+                <xs:annotation>
+                    <xs:documentation>Humidity limitation *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC010">
+                <xs:annotation>
+                    <xs:documentation>Atmospheric pressure limitation *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC012">
+                <xs:annotation>
+                    <xs:documentation>Dangerous voltage</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC013">
+                <xs:annotation>
+                    <xs:documentation>P401 – Store at… *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC014">
+                <xs:annotation>
+                    <xs:documentation>P402 – Store in a dry place.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC015">
+                <xs:annotation>
+                    <xs:documentation>P403 – Store in a well-ventilated place.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC016">
+                <xs:annotation>
+                    <xs:documentation>P404 – Store in a closed container.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC017">
+                <xs:annotation>
+                    <xs:documentation>P405 – Store locked up.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC018">
+                <xs:annotation>
+                    <xs:documentation>P406 – Store in corrosive resistant/… container with a resistant inner liner.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC019">
+                <xs:annotation>
+                    <xs:documentation>P407 – Maintain air gap between stacks/pallets.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC021">
+                <xs:annotation>
+                    <xs:documentation>P411 – Store at temperatures not exceeding … oC/…oF. *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC022">
+                <xs:annotation>
+                    <xs:documentation>P412 – Do not expose to temperatures exceeding 50 oC/122oF. *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC023">
+                <xs:annotation>
+                    <xs:documentation>P413 – Store bulk masses greater than … kg/… lbs at temperatures not exceeding … oC/…oF. *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC024">
+                <xs:annotation>
+                    <xs:documentation>P420 – Store away from other materials.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC025">
+                <xs:annotation>
+                    <xs:documentation>P422 – Store contents below … *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC033">
+                <xs:annotation>
+                    <xs:documentation>Electrostatic sensitive devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC035">
+                <xs:annotation>
+                    <xs:documentation>Do not sterilize</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC036">
+                <xs:annotation>
+                    <xs:documentation>Do not freeze</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC037">
+                <xs:annotation>
+                    <xs:documentation>Do not cut</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC038">
+                <xs:annotation>
+                    <xs:documentation>Do not store near magnets or magnetic devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC042">
+                <xs:annotation>
+                    <xs:documentation>Avoid contact with water</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC044">
+                <xs:annotation>
+                    <xs:documentation>This way up</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC045">
+                <xs:annotation>
+                    <xs:documentation>Period-after-opening ... *</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC046">
+                <xs:annotation>
+                    <xs:documentation>Special Storage Conditions (see IFU)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SHC099">
+                <xs:annotation>
+                    <xs:documentation>OTHER **</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="RangeClinicalSizeType">
+        <xs:annotation>
+            <xs:documentation>The Class contains the properties of the Clinical Sizes of the Devices.
+                Device Clinical Sizes can be provided if applicable. Several Clinical Sizes can be added for the Device. Clinical Size will be defined by the Type, Precision, Value (either Range, single value or Text) and Measuring Unit.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="commondi:ClinicalSizeType">
+                <xs:sequence>
+                    <xs:element name="maximum" type="xs:double" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-192# - Maximum. Maximum Value that the Clinical Size can get (when Range is selected as precision)</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="minimum" type="xs:double" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-193# - Value(minimum).
+                                The value(minimum) that the Clinical Size can get (when Range is selected as precision).
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="valueUnit" type="udidi:ClinicalSizeUnitEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-195# - Measure Unit.
+                                Clinical Size Measure Unit.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="measureUnitDescription" type="lsn:LanguageSpecificTextsType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="UDIDISubstatusType">
+        <xs:sequence>
+            <xs:element name="code" type="udidi:DeviceSubstatusEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-131# - SubStatus of the Device (Recalled, Field safety corrective action initiated).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="estimatedEndDate" type="xs:date" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-127# - Estimated end date when the Substatus is to be closed (Triggered by Vigilance module).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="mfCorrectiveActions" type="commondi:MFCorrectiveActions" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-122# - Manufacturer action (selected in the FSCA report).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="startDate" type="xs:date" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-126# - Start Date when the Substatus has been initialised.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MFCorrectiveActions">
+        <xs:sequence>
+            <xs:element name="mfCorrectiveAction" type="commondi:MFCorrectiveActionEnum" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="MFCorrectiveActionEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PRODUCT_REMOVAL_PARTIAL">
+                <xs:annotation>
+                    <xs:documentation>Product Removal : Full Recall</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="PRODUCT_REMOVAL_FULL">
+                <xs:annotation>
+                    <xs:documentation>Product Removal : Partial Recall (Lot/Batch/Model)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IFU_OR_LABELLING_CHANGE">
+                <xs:annotation>
+                    <xs:documentation>IFU or labelling change</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SOFTWARE_UPGRADE">
+                <xs:annotation>
+                    <xs:documentation>Software Upgrade</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ONSITE_MODIFICATION_OR_INSPECTION">
+                <xs:annotation>
+                    <xs:documentation>On-site modification/inspection by</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CUSTOMER_INFORMATION_ONLY">
+                <xs:annotation>
+                    <xs:documentation>Customer information only</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="OTHER">
+                <xs:annotation>
+                    <xs:documentation>Other</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="UDIDIStatusType">
+        <xs:sequence>
+            <xs:element name="code" type="udidi:DeviceStatusEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-130# - Device Status. Status of the Device (On the market, No longer placed on the market).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="DIIdentifiersType">
+        <xs:sequence>
+            <xs:element name="DI" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="StorageHandlingConditionsType">
+        <xs:sequence>
+            <xs:element name="condition" type="commondi:StorageHandlingConditionType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CriticalWarningsType">
+        <xs:sequence>
+            <xs:element name="warning" type="commondi:CriticalWarningType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:group name="MDApplicablePropertiesGroup">
+        <xs:sequence>
+            <xs:element name="active" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-28# - Active Device. Property defines if the Basic UDI-DI corresponds to an Active device or not. Active device means any device, the operation of which depends on a source of energy other than that generated by the human body for that purpose, or by gravity, and which acts by changing the density of or converting that energy. Devices intended to transmit energy, substances or other elements between an active device and the patient, without any significant change, shall not be deemed to be active devices. Software shall also be deemed to be an active device.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="administeringMedicine" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-29# - Device Intended to administer and/or Remove medicinal product. Property defines if the Device is intended to administer or remove medicinal product.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="implantable" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-30# - Implantable. Property defines if the Basic UDI-DI corresponds to a device that is Implantable or not.
+                        Any device intended to be partially introduced into the human body by clinical intervention and intended to remain in place after the procedure for at least 30 days shall also be deemed to be an implantable device.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="measuringFunction" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-31# - Measuring Function. Property defines if the Device has a Measuring Function or not.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="reusable" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-32# - Reusable Surgical Instruments. Property defines if the Device is a Reusable Surgical Instrument or not. Reusable surgical instrument means an instrument intended for surgical use in cutting, drilling, sawing, scratching, scraping, clamping, retracting, clipping or similar procedures, without a connection to an active device and which is intended by the Manufacturer to be reused after appropriate procedures such as cleaning, disinfection and sterilisation have been carried out.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:group name="IVDApplicablePropertiesGroup">
+        <xs:sequence>
+            <xs:element name="companionDiagnostics" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-33# - Companion Diagnostic. Property defines if the Device corresponds to a device that has a role of Companion Diagnostic device or not. Companion diagnostic means a device which is essential for the safe and effective use of a corresponding medicinal product to: identify, before and/or during treatment, patients who are most likely to benefit from the corresponding medicinal product; or identify, before and/or during treatment, patients likely to be at increased risk of serious adverse reactions as a result of treatment with the corresponding medicinal product.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="instrument" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-264# - Instrument. Property defines if the Device is an Instrument or not.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="kit" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-12# - Is it a System which is a Device in itself, Procedure pack which is a Device in itself or Kit. Property defines if the Basic UDI-DI is referring to a System which is a Device in itself, Procedure pack which is a Device in itself or Kit. Property is a applicable for Standard Devices (not Systems or Procedure Packs).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="microbialSubstances" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-34# - Tissues and cells - Presence of cells or substances of microbial origin. Property defines if the Device contains presence of substances of microbial origin.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="nearPatientTesting" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-35# - Near Patient Testing. Property defines if the Device device is Near Patient testing or not. Device for near-patient testing means any device that is not intended for self-testing but is intended to perform testing outside a laboratory environment, generally near to, or at the side of, the patient by a health professional.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="professionalTesting" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-263# - Professional Testing. Property defines if the Device is designed to be used for Professional Testing or not.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="reagent" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-262# - Reagent. Property defines if the Device is a reagent or not.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="selfTesting" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-36# - Patient Self Testing. Property defines if the Device is Self Patient testing device or not. Device for self-testing means any device intended by the manufacturer to be used by lay persons, including devices used for testing services offered to lay persons by means of information society services.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="DIIdentifierType">
+        <xs:annotation>
+            <xs:documentation>Contains the Unique elements that Identify the Device (UDI DI) or the Package Level DI
+                In case of UDI DI - udiDICode together with the Issuing Entity are the elements that give the uniqueness.
+                In case of Package Level DI - containerDi together with the Issuing Entity are the elements that give the uniqueness.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="DICode" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-02# - Basic UDI- DI Value / UDI-DI Code/ Package UDI-DI Code. Device Identified code/value (DI Code). Together with the Issuing Entity creates the uniqness of the element to which they are assigned (Basic UDI-DI , UDI-DI, etc.). The Basic UDI-DI is the primary identifier of a device model.It is the main key for records in the UDI database and is referenced in relevant certificates and EU declarations of conformity. The UDI-DI is a unique numeric or alphanumeric code specific to a model of device and that is also used as the access key to information stored in a UDI database. The Unit of Use DI serves to associate the use of a device with a patient in instances in which a UDI is not labeled on the individual device at the level of its unit of use, for example in the event of several units of the same device being packaged together.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="issuingEntityCode" type="udidi:IssuingEntityTypeEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-01# - Issuing Entity. Assigned Issuing Entities that will generate the DI Codes allocated for all DI inside Eudamed (Basic UDI DI, UDI-DI, Unit of Use DI, Secondary Di , Package level DI). The Commission shall designate one or several entities to operate a system for assignment of UDIs (issuing entity).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ModelNameGroup">
+        <xs:sequence>
+            <xs:element name="model" type="xs:string" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-20# - Device Model.
+                        Information allowing the identification of the device - Device Model.
+                        At least one of the Device identification details (Device Model or the Device Name) have to be provided for a Basic UDI-DI.
+                        It must be provided in case the information about both the Device/ System or Procedure Pack Model and Name are available (applicable).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="name" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-22# - Device Name. Information allowing the identification of the device - Device Name. At least one of the Device identification details (Device Model or the Device Name) have to be provided for a Basic UDI-DI.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ClinicalSizeType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>The Class contains the properties of the Clinical Sizes of the Devices.
+                Device Clinical Sizes can be provided if applicable. Several Clinical Sizes can be added for the Device. Clinical Size will be defined by the Type, Precision, Value (either Range, single value or Text) and Measuring Unit.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="clinicalSizeType" type="commondi:ClinicalSizeTypeEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-190# - Clinical Size. The Type of Clinical Size (example : length, width, etc.).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="clinicalSizeDescription" type="lsn:LanguageSpecificTextsType" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="ClinicalSizeTypeEnum">
+        <xs:annotation>
+            <xs:documentation>Enumeration presenting the Size Types taken into consideration for a Device</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CST1">
+                <xs:annotation>
+                    <xs:documentation>Acidity</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST40">
+                <xs:annotation>
+                    <xs:documentation>Addition power (Optical)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST2">
+                <xs:annotation>
+                    <xs:documentation>Amount of fingers</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST3">
+                <xs:annotation>
+                    <xs:documentation>Angle</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST58">
+                <xs:annotation>
+                    <xs:documentation>Back cylinder axis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST57">
+                <xs:annotation>
+                    <xs:documentation>Back cylinder power</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST18">
+                <xs:annotation>
+                    <xs:documentation>Balloon length (nominal)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST42">
+                <xs:annotation>
+                    <xs:documentation>Base curve (B.C. or R0)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST4">
+                <xs:annotation>
+                    <xs:documentation>Bevel</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST17">
+                <xs:annotation>
+                    <xs:documentation>Body side</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST56">
+                <xs:annotation>
+                    <xs:documentation>Body weight [kg]</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST6">
+                <xs:annotation>
+                    <xs:documentation>Cannula wall</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST7">
+                <xs:annotation>
+                    <xs:documentation>Capacity</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST48">
+                <xs:annotation>
+                    <xs:documentation>Cel</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST52">
+                <xs:annotation>
+                    <xs:documentation>Centre thickness</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST65">
+                <xs:annotation>
+                    <xs:documentation>Circumference</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST8">
+                <xs:annotation>
+                    <xs:documentation>Coating</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST45">
+                <xs:annotation>
+                    <xs:documentation>Colour</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST5">
+                <xs:annotation>
+                    <xs:documentation>Concentration</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST41">
+                <xs:annotation>
+                    <xs:documentation>Cylinder axis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST39">
+                <xs:annotation>
+                    <xs:documentation>Cylinder power</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST66">
+                <xs:annotation>
+                    <xs:documentation>Depth</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST9">
+                <xs:annotation>
+                    <xs:documentation>Diameter</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST10">
+                <xs:annotation>
+                    <xs:documentation>Diameter (inner)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST11">
+                <xs:annotation>
+                    <xs:documentation>Diameter (outer)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST63">
+                <xs:annotation>
+                    <xs:documentation>Direction of view</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST46">
+                <xs:annotation>
+                    <xs:documentation>Edge lift</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST55">
+                <xs:annotation>
+                    <xs:documentation>Edge radius</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST67">
+                <xs:annotation>
+                    <xs:documentation>Enzyme catalytic activity</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST13">
+                <xs:annotation>
+                    <xs:documentation>Flow rate</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST37">
+                <xs:annotation>
+                    <xs:documentation>Frequency</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST14">
+                <xs:annotation>
+                    <xs:documentation>Gauge</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST15">
+                <xs:annotation>
+                    <xs:documentation>Guide wire type</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST51">
+                <xs:annotation>
+                    <xs:documentation>Height</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST62">
+                <xs:annotation>
+                    <xs:documentation>Height steep</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST16">
+                <xs:annotation>
+                    <xs:documentation>Inflation volume</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST19">
+                <xs:annotation>
+                    <xs:documentation>Length</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST20">
+                <xs:annotation>
+                    <xs:documentation>Luminous flux</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST22">
+                <xs:annotation>
+                    <xs:documentation>Nominal capacity</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST23">
+                <xs:annotation>
+                    <xs:documentation>Number of electrodes</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST38">
+                <xs:annotation>
+                    <xs:documentation>Optical power</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST43">
+                <xs:annotation>
+                    <xs:documentation>Optical zone diameter</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST59">
+                <xs:annotation>
+                    <xs:documentation>Optical zone diameter back</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST21">
+                <xs:annotation>
+                    <xs:documentation>Particle size</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST12">
+                <xs:annotation>
+                    <xs:documentation>Pole distance</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST24">
+                <xs:annotation>
+                    <xs:documentation>Pore size</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST44">
+                <xs:annotation>
+                    <xs:documentation>Power profile (optical)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST25">
+                <xs:annotation>
+                    <xs:documentation>Pressure</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST47">
+                <xs:annotation>
+                    <xs:documentation>Prism</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST60">
+                <xs:annotation>
+                    <xs:documentation>Prism axis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST49">
+                <xs:annotation>
+                    <xs:documentation>Radius</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST26">
+                <xs:annotation>
+                    <xs:documentation>Shape/form</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST27">
+                <xs:annotation>
+                    <xs:documentation>Size</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST28">
+                <xs:annotation>
+                    <xs:documentation>Stiffness</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST29">
+                <xs:annotation>
+                    <xs:documentation>Strength</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST30">
+                <xs:annotation>
+                    <xs:documentation>Surface area</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST50">
+                <xs:annotation>
+                    <xs:documentation>Tangent</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST61">
+                <xs:annotation>
+                    <xs:documentation>Tangent steep</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST31">
+                <xs:annotation>
+                    <xs:documentation>Tip fixation/anchoring</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST53">
+                <xs:annotation>
+                    <xs:documentation>Truncation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST54">
+                <xs:annotation>
+                    <xs:documentation>Truncation axis</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST35">
+                <xs:annotation>
+                    <xs:documentation>Type of patient</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST32">
+                <xs:annotation>
+                    <xs:documentation>Volume</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST36">
+                <xs:annotation>
+                    <xs:documentation>Wavelength</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST34">
+                <xs:annotation>
+                    <xs:documentation>Weight</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST33">
+                <xs:annotation>
+                    <xs:documentation>Width</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CST999">
+                <xs:annotation>
+                    <xs:documentation>OTHER</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="CriticalWarningType">
+        <xs:annotation>
+            <xs:documentation>
+                #FLD-UDID-210# - Storage and handling Conditions and Critical Warnings or Contra-Indications specified on the Label of the Device or in the Instruction of Use have to be registered in EUDAMED - if applicable.
+                Field stores the type of Instruction for use (possible values Critical Warnings or Storage and Handling Conditions).
+                Comments provided for Critical Warnings or Storage and Handling Conditions for which the value is different than OTHER need to have the Language value set to value ANY.
+                In the case of Critical Warnings or Storage and Handling Conditions where the value is Other can be provided in several languages (selected Language must be different than ANY).
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="comments" type="lsn:LanguageOptionalTextsType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-319# - Critical warnings or contra-indications.
+                        Comments or description associated to the values selected form the Storage or handling Conditions or Critical warnings.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="warningValue" type="commondi:CriticalWarningEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-212# - Critical Warnings type.
+                        Field stores the Type of Critical Warnings or Contra-Indications, being required in this case. (Applicable only for Critical warnings or Contra-Indications).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="CriticalWarningEnum">
+        <xs:annotation>
+            <xs:documentation>Critical Warnings and Contra-Indications can be represented using list of values .
+                The enumeration will present the list of values that can be used.
+                If OTHER, a comment should be provided.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CW001">
+                <xs:annotation>
+                    <xs:documentation>Do not resterilize</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW006">
+                <xs:annotation>
+                    <xs:documentation>Defibrillation-proof type B applied part</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW007">
+                <xs:annotation>
+                    <xs:documentation>Do not use if package is damaged</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW008">
+                <xs:annotation>
+                    <xs:documentation>Biological risks</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW009">
+                <xs:annotation>
+                    <xs:documentation>Do not re-use</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW010">
+                <xs:annotation>
+                    <xs:documentation>Consult instructions for use</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW011">
+                <xs:annotation>
+                    <xs:documentation>Caution</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW012">
+                <xs:annotation>
+                    <xs:documentation>Caution: Electrostatic sensitive, do not touch directly.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW013">
+                <xs:annotation>
+                    <xs:documentation>Radiation of laser apparatus</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW014">
+                <xs:annotation>
+                    <xs:documentation>Type BF applied part</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW015">
+                <xs:annotation>
+                    <xs:documentation>Defibrillation-proof type BF applied part</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW016">
+                <xs:annotation>
+                    <xs:documentation>Type B applied part</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW017">
+                <xs:annotation>
+                    <xs:documentation>Defibrillation-proof type CF applied part</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW018">
+                <xs:annotation>
+                    <xs:documentation>Refer to instruction manual/booklet</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW020">
+                <xs:annotation>
+                    <xs:documentation>Do not sterilize</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW022">
+                <xs:annotation>
+                    <xs:documentation>Do not cut</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW023">
+                <xs:annotation>
+                    <xs:documentation>Consider hazards from magnetic fields</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW024">
+                <xs:annotation>
+                    <xs:documentation>Do not store near magnets or magnetic devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW025">
+                <xs:annotation>
+                    <xs:documentation>MR SAFE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW026">
+                <xs:annotation>
+                    <xs:documentation>MR CONDITIONAL</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW027">
+                <xs:annotation>
+                    <xs:documentation>MR UNSAFE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW028">
+                <xs:annotation>
+                    <xs:documentation>Exposure to radiation when using the device</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW029">
+                <xs:annotation>
+                    <xs:documentation>Caution, sharp edges</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW030">
+                <xs:annotation>
+                    <xs:documentation>Consult healthcare professional before use</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW031">
+                <xs:annotation>
+                    <xs:documentation>Implant timeframe limitations</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW032">
+                <xs:annotation>
+                    <xs:documentation>Do not use past indicated date</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW035">
+                <xs:annotation>
+                    <xs:documentation>Restriction in use of des infectors,</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW036">
+                <xs:annotation>
+                    <xs:documentation>Restrictions in use for combination of other devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW037">
+                <xs:annotation>
+                    <xs:documentation>GHS01 – Danger - Unstable, Explosive</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW038">
+                <xs:annotation>
+                    <xs:documentation>GHS02 - Danger or Warning - Flammable</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW039">
+                <xs:annotation>
+                    <xs:documentation>GHS03- Danger or Warning -Oxidising</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW040">
+                <xs:annotation>
+                    <xs:documentation>GHS04- Warning -Compressed gas</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW041">
+                <xs:annotation>
+                    <xs:documentation>GHS05 -Danger or Warning -Corrosive cat. 1</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW042">
+                <xs:annotation>
+                    <xs:documentation>GHS06 – Danger -Toxic cat. 1 - 3</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW043">
+                <xs:annotation>
+                    <xs:documentation>GHS07 - Warning -Toxic cat. 4, Irritant cat. 2 or 3, Lower systemic health hazards</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW044">
+                <xs:annotation>
+                    <xs:documentation>GHS08 - Danger or Warning - Systemic health hazards</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW045">
+                <xs:annotation>
+                    <xs:documentation>GHS09 - Warning (for cat. 1)- (for cat. 2 no signal word) Environment</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW046">
+                <xs:annotation>
+                    <xs:documentation>H200 – Unstable explosives.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW047">
+                <xs:annotation>
+                    <xs:documentation>H201 – Explosive; mass explosion hazard.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW048">
+                <xs:annotation>
+                    <xs:documentation>H202 – Explosive, severe projection hazard.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW049">
+                <xs:annotation>
+                    <xs:documentation>H203 – Explosive; fire, blast or projection hazard.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW050">
+                <xs:annotation>
+                    <xs:documentation>H204 – Fire or projection hazard.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW051">
+                <xs:annotation>
+                    <xs:documentation>H205 – May mass explode in fire.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW052">
+                <xs:annotation>
+                    <xs:documentation>H220 – Extremely flammable gas.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW053">
+                <xs:annotation>
+                    <xs:documentation>H221 – Flammable gas.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW054">
+                <xs:annotation>
+                    <xs:documentation>H222 – Extremely flammable aerosol.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW055">
+                <xs:annotation>
+                    <xs:documentation>H223 – Flammable aerosol.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW056">
+                <xs:annotation>
+                    <xs:documentation>H224 – Extremely flammable liquid and vapour.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW057">
+                <xs:annotation>
+                    <xs:documentation>H225 – Highly flammable liquid and vapour.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW058">
+                <xs:annotation>
+                    <xs:documentation>H226 – Flammable liquid and vapour.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW059">
+                <xs:annotation>
+                    <xs:documentation>H228 – Flammable solid.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW060">
+                <xs:annotation>
+                    <xs:documentation>H240 – Heating may cause an explosion.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW061">
+                <xs:annotation>
+                    <xs:documentation>H241 – Heating may cause a fire or explosion.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW062">
+                <xs:annotation>
+                    <xs:documentation>H242 – Heating may cause a fire.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW063">
+                <xs:annotation>
+                    <xs:documentation>H250 – Catches fire spontaneously if exposed to air.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW064">
+                <xs:annotation>
+                    <xs:documentation>H251 – Self-heating: may catch fire.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW065">
+                <xs:annotation>
+                    <xs:documentation>H252 – Self-heating in large quantities; may catch fire.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW066">
+                <xs:annotation>
+                    <xs:documentation>H260 – In contact with water releases flammable gases which may ignite spontaneously.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW067">
+                <xs:annotation>
+                    <xs:documentation>H261 – In contact with water releases flammable gases.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW068">
+                <xs:annotation>
+                    <xs:documentation>H270 – May cause or intensify fire; oxidiser.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW069">
+                <xs:annotation>
+                    <xs:documentation>H271 – May cause fire or explosion; strong oxidiser.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW070">
+                <xs:annotation>
+                    <xs:documentation>H272 – May intensify fire; oxidiser.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW071">
+                <xs:annotation>
+                    <xs:documentation>H280 – Contains gas under pressure; may explode if heated.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW072">
+                <xs:annotation>
+                    <xs:documentation>H281 – Contains refrigerated gas; may cause cryogenic burns or injury.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW073">
+                <xs:annotation>
+                    <xs:documentation>H290 – May be corrosive to metals.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW074">
+                <xs:annotation>
+                    <xs:documentation>H300 – Fatal if swallowed.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW075">
+                <xs:annotation>
+                    <xs:documentation>H301 – Toxic if swallowed.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW076">
+                <xs:annotation>
+                    <xs:documentation>H302 – Harmful if swallowed.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW077">
+                <xs:annotation>
+                    <xs:documentation>H304 – May be fatal if swallowed and enters airways.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW078">
+                <xs:annotation>
+                    <xs:documentation>H310 – Fatal in contact with skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW079">
+                <xs:annotation>
+                    <xs:documentation>H311 – Toxic in contact with skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW080">
+                <xs:annotation>
+                    <xs:documentation>H312 – Harmful in contact with skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW081">
+                <xs:annotation>
+                    <xs:documentation>H314 – Causes severe skin burns and eye damage.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW082">
+                <xs:annotation>
+                    <xs:documentation>H315 – Causes skin irritation.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW083">
+                <xs:annotation>
+                    <xs:documentation>H317 – May cause an allergic skin reaction.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW084">
+                <xs:annotation>
+                    <xs:documentation>H318 – Causes serious eye damage.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW085">
+                <xs:annotation>
+                    <xs:documentation>H319 – Causes serious eye irritation.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW086">
+                <xs:annotation>
+                    <xs:documentation>H330 – Fatal if inhaled.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW087">
+                <xs:annotation>
+                    <xs:documentation>H331 – Toxic if inhaled.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW088">
+                <xs:annotation>
+                    <xs:documentation>H332 – Harmful if inhaled.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW089">
+                <xs:annotation>
+                    <xs:documentation>H334 – May cause allergy or asthma symptoms or breathing difficulties if inhaled.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW090">
+                <xs:annotation>
+                    <xs:documentation>H335 – May cause respiratory irritation.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW091">
+                <xs:annotation>
+                    <xs:documentation>H336 – May cause drowsiness or dizziness.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW092">
+                <xs:annotation>
+                    <xs:documentation>H340 – May cause genetic defects exposure cause the hazard>.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW093">
+                <xs:annotation>
+                    <xs:documentation>H341 – Suspected of causing genetic defects.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW094">
+                <xs:annotation>
+                    <xs:documentation>H350 – May cause cancer.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW095">
+                <xs:annotation>
+                    <xs:documentation>H351 – Suspected of causing cancer.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW096">
+                <xs:annotation>
+                    <xs:documentation>H360 – May damage fertility or the unborn child.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW097">
+                <xs:annotation>
+                    <xs:documentation>H361 – Suspected of damaging fertility or the unborn child.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW098">
+                <xs:annotation>
+                    <xs:documentation>H362 – May cause harm to breast-fed children.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW099">
+                <xs:annotation>
+                    <xs:documentation>H370 – Causes damage to organs.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW100">
+                <xs:annotation>
+                    <xs:documentation>H371 – May cause damage to organs.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW101">
+                <xs:annotation>
+                    <xs:documentation>H372 – Causes damage to organs through prolonged or repeated exposure exposure cause the hazard>.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW102">
+                <xs:annotation>
+                    <xs:documentation>H373 – May cause damage to organs through prolonged or repeated exposure.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW103">
+                <xs:annotation>
+                    <xs:documentation>H400 – Very toxic to aquatic life.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW104">
+                <xs:annotation>
+                    <xs:documentation>H410 – Very toxic to aquatic life with long lasting effects.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW105">
+                <xs:annotation>
+                    <xs:documentation>H411 – Toxic to aquatic life with long lasting effects.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW106">
+                <xs:annotation>
+                    <xs:documentation>H412 – Harmful to aquatic life with long lasting effects.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW107">
+                <xs:annotation>
+                    <xs:documentation>H413 – May cause long lasting harmful effects to aquatic life.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW108">
+                <xs:annotation>
+                    <xs:documentation>EUH 001 – Explosive when dry.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW109">
+                <xs:annotation>
+                    <xs:documentation>EUH 006 – Explosive with or without contact with air.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW110">
+                <xs:annotation>
+                    <xs:documentation>EUH 014 – Reacts violently with water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW111">
+                <xs:annotation>
+                    <xs:documentation>EUH 018 – In use, may form flammable/explosive vapour-air mixture.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW112">
+                <xs:annotation>
+                    <xs:documentation>EUH 019 – May form explosive peroxides.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW113">
+                <xs:annotation>
+                    <xs:documentation>EUH 044 – Risk of explosion if heated under confinement.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW114">
+                <xs:annotation>
+                    <xs:documentation>EUH 029 – Contact with water liberates toxic gas.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW115">
+                <xs:annotation>
+                    <xs:documentation>EUH 031 – Contact with acids liberates toxic gas.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW116">
+                <xs:annotation>
+                    <xs:documentation>EUH 032 – Contact with acids liberates very toxic gas.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW117">
+                <xs:annotation>
+                    <xs:documentation>EUH 066 – Repeated exposure may cause skin dryness or cracking.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW118">
+                <xs:annotation>
+                    <xs:documentation>EUH 070 – Toxic by eye contact.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW119">
+                <xs:annotation>
+                    <xs:documentation>EUH 071 – Corrosive to the respiratory tract.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW120">
+                <xs:annotation>
+                    <xs:documentation>EUH 059 – Hazardous to the ozone layer.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW121">
+                <xs:annotation>
+                    <xs:documentation>EUH 201 – Contains lead. Should not be used on surfaces liable to be chewed or sucked by children.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW122">
+                <xs:annotation>
+                    <xs:documentation>EUH 201A – Warning! Contains lead.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW123">
+                <xs:annotation>
+                    <xs:documentation>EUH 202 – Cyanoacrylate. Danger. Bonds skin and eyes in seconds. Keep out of the reach of children.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW124">
+                <xs:annotation>
+                    <xs:documentation>EUH 203 – Contains chromium (VI). May produce an allergic reaction.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW125">
+                <xs:annotation>
+                    <xs:documentation>EUH 204 – Contains isocyanates. May produce an allergic reaction.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW126">
+                <xs:annotation>
+                    <xs:documentation>EUH 205 – Contains epoxy constituents. May produce an allergic reaction.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW127">
+                <xs:annotation>
+                    <xs:documentation>EUH 206 – Warning! Do not use together with other products. May release dangerous gases (chlorine)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW128">
+                <xs:annotation>
+                    <xs:documentation>EUH 207 – Warning! Contains cadmium. Dangerous fumes are formed during use. See information supplied by the manufacturer. Comply with the safety instructions.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW129">
+                <xs:annotation>
+                    <xs:documentation>EUH 208 – Contains (name of sensitising substance). May produce an allergic reaction.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW130">
+                <xs:annotation>
+                    <xs:documentation>EUH 209 – Can become highly flammable in use.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW131">
+                <xs:annotation>
+                    <xs:documentation>EUH 209A – Can become flammable in use.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW132">
+                <xs:annotation>
+                    <xs:documentation>EUH 210 – Safety data sheet available on request.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW133">
+                <xs:annotation>
+                    <xs:documentation>EUH 401 – To avoid risks to human health and the environment, comply with the instructions for use.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW134">
+                <xs:annotation>
+                    <xs:documentation>P101 – If medical advice is needed, have product container or label at hand.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW135">
+                <xs:annotation>
+                    <xs:documentation>P102 – Keep out of reach of children.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW136">
+                <xs:annotation>
+                    <xs:documentation>P103 – Read label before use.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW137">
+                <xs:annotation>
+                    <xs:documentation>P201 – Obtain special instructions before use.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW138">
+                <xs:annotation>
+                    <xs:documentation>P202 – Do not handle until all safety precautions have been read and understood.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW139">
+                <xs:annotation>
+                    <xs:documentation>P210 – Keep away from heat/sparks/open flames/hot surfaces. — No smoking.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW140">
+                <xs:annotation>
+                    <xs:documentation>P211 – Do not spray on an open flame or other ignition source.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW141">
+                <xs:annotation>
+                    <xs:documentation>P220 – Keep/Store away from clothing/…/combustible materials.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW142">
+                <xs:annotation>
+                    <xs:documentation>P221 – Take any precaution to avoid mixing with combustibles…</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW143">
+                <xs:annotation>
+                    <xs:documentation>P222 – Do not allow contact with air.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW144">
+                <xs:annotation>
+                    <xs:documentation>P223 – Keep away from any possible contact with water, because of violent reaction and possible flash fire.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW146">
+                <xs:annotation>
+                    <xs:documentation>P231 – Handle under inert gas.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW147">
+                <xs:annotation>
+                    <xs:documentation>P232 – Protect from moisture.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW148">
+                <xs:annotation>
+                    <xs:documentation>P233 – Keep container tightly closed.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW149">
+                <xs:annotation>
+                    <xs:documentation>P234 – Keep only in original container.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW150">
+                <xs:annotation>
+                    <xs:documentation>P235 – Keep cool.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW151">
+                <xs:annotation>
+                    <xs:documentation>P240 – Ground/bond container and receiving equipment.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW152">
+                <xs:annotation>
+                    <xs:documentation>P241 – Use explosion-proof electrical/ventilating/lighting/…/equipment.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW153">
+                <xs:annotation>
+                    <xs:documentation>P242 – Use only non-sparking tools.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW154">
+                <xs:annotation>
+                    <xs:documentation>P243 – Take precautionary measures against static discharge.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW155">
+                <xs:annotation>
+                    <xs:documentation>P244 – Keep reduction valves free from grease and oil.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW156">
+                <xs:annotation>
+                    <xs:documentation>P250 – Do not subject to grinding/shock/…/friction.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW157">
+                <xs:annotation>
+                    <xs:documentation>P251 – Pressurized container: Do not pierce or burn, even after use.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW158">
+                <xs:annotation>
+                    <xs:documentation>P260 – Do not breathe dust/fume/gas/mist/vapours/spray.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW159">
+                <xs:annotation>
+                    <xs:documentation>P261 – Avoid breathing dust/fume/gas/mist/vapours/spray.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW160">
+                <xs:annotation>
+                    <xs:documentation>P262 – Do not get in eyes, on skin, or on clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW161">
+                <xs:annotation>
+                    <xs:documentation>P263 – Avoid contact during pregnancy/while nursing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW162">
+                <xs:annotation>
+                    <xs:documentation>P264 – Wash thoroughly after handling.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW163">
+                <xs:annotation>
+                    <xs:documentation>P270 – Do not eat, drink or smoke when using this product.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW164">
+                <xs:annotation>
+                    <xs:documentation>P271 – Use only outdoors or in a well-ventilated area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW165">
+                <xs:annotation>
+                    <xs:documentation>P272 – Contaminated work clothing should not be allowed out of the workplace.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW166">
+                <xs:annotation>
+                    <xs:documentation>P273 – Avoid release to the environment.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW167">
+                <xs:annotation>
+                    <xs:documentation>P280 – Wear protective gloves/protective clothing/eye protection/face protection.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW168">
+                <xs:annotation>
+                    <xs:documentation>P281 – Use personal protective equipment as required.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW169">
+                <xs:annotation>
+                    <xs:documentation>P282 – Wear cold insulating gloves/face shield/eye protection.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW170">
+                <xs:annotation>
+                    <xs:documentation>P283 – Wear fire/flame resistant/retardant clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW171">
+                <xs:annotation>
+                    <xs:documentation>P284 – Wear respiratory protection.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW172">
+                <xs:annotation>
+                    <xs:documentation>P285 – In case of inadequate ventilation wear respiratory protection.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW173">
+                <xs:annotation>
+                    <xs:documentation>P231 + P232 – Handle under inert gas. Protect from moisture.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW175">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW176">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW177">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW178">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW179">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW180">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW181">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW182">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW183">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW184">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW185">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW186">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW187">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW188">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW189">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW190">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW191">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW192">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW193">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P330 – Rinse mouth.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW194">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P331 – Do NOT induce vomiting.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW195">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW196">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW197">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P334 – Immerse in cool water/wrap in wet bandages.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW198">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P335 – Brush off loose particles from skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW199">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P336 – Thaw frosted parts with lukewarm water. Do no rub affected area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW201">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P338 – Remove contact lenses, if present and easy to do. Continue rinsing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW202">
+                <xs:annotation>
+                    <xs:documentation>P342 – If experiencing respiratory symptoms: P340 – Remove victim to fresh air and keep at rest in a position comfortable for breathing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW203">
+                <xs:annotation>
+                    <xs:documentation>P341 – If breathing is difficult, remove victim to fresh air and keep at rest in a position comfortable for breathing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW206">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P350 – Gently wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW207">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW208">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P352 – Wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW209">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P353 – Rinse skin with water/shower.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW210">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P360 – Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW211">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P361 – Remove/Take off immediately all contaminated clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW212">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P362 – Take off contaminated clothing and wash before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW213">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P363 – Wash contaminated clothing before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW216">
+                <xs:annotation>
+                    <xs:documentation>P372 – Explosion risk in case of fire.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW217">
+                <xs:annotation>
+                    <xs:documentation>P373 – DO NOT fight fire when fire reaches explosives.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW218">
+                <xs:annotation>
+                    <xs:documentation>P370 – In case of fire: P374 – Fight fire with normal precautions from a reasonable distance.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW219">
+                <xs:annotation>
+                    <xs:documentation>P370 – In case of fire: P375 – Fight fire remotely due to the risk of explosion.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW220">
+                <xs:annotation>
+                    <xs:documentation>P376 – Stop leak if safe to do so.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW221">
+                <xs:annotation>
+                    <xs:documentation>P377 – Leaking gas fire: Do not extinguish, unless leak can be stopped safely.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW223">
+                <xs:annotation>
+                    <xs:documentation>P370 – In case of fire: P380 – Evacuate area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW224">
+                <xs:annotation>
+                    <xs:documentation>P370 – In case of fire: P381 – Eliminate all ignition sources if safe to do so.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW225">
+                <xs:annotation>
+                    <xs:documentation>P390 – Absorb spillage to prevent material damage.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW226">
+                <xs:annotation>
+                    <xs:documentation>P391 – Collect spillage.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW254">
+                <xs:annotation>
+                    <xs:documentation>Do not Use Tap Water</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW255">
+                <xs:annotation>
+                    <xs:documentation>Do Not use saliva</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW257">
+                <xs:annotation>
+                    <xs:documentation>Warning; Crushing of hands</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW258">
+                <xs:annotation>
+                    <xs:documentation>Warning; Hot surface</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW259">
+                <xs:annotation>
+                    <xs:documentation>Warning; Electricity</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW260">
+                <xs:annotation>
+                    <xs:documentation>Warning; Counterrotating rollers</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW261">
+                <xs:annotation>
+                    <xs:documentation>Warning; Optical radiation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW262">
+                <xs:annotation>
+                    <xs:documentation>Single patient multiple use</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW263">
+                <xs:annotation>
+                    <xs:documentation>Contains human blood or plasma derivatives</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW264">
+                <xs:annotation>
+                    <xs:documentation>Contains a medicinal substance</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW265">
+                <xs:annotation>
+                    <xs:documentation>Contains hazardous substances</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW266">
+                <xs:annotation>
+                    <xs:documentation>Contains biological material of human origin</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW267">
+                <xs:annotation>
+                    <xs:documentation>Contains biological material of animal origin</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW268">
+                <xs:annotation>
+                    <xs:documentation>H229 Pressurized container: may burst if heated</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW269">
+                <xs:annotation>
+                    <xs:documentation>H230 May react explosively even in the absence of air</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW270">
+                <xs:annotation>
+                    <xs:documentation>H231 May react explosively even in the absence of air at elevated pressure and/or temperature</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW271">
+                <xs:annotation>
+                    <xs:documentation>H420 Harms public health and the environment by destroying ozone in the upper atmosphere</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW272">
+                <xs:annotation>
+                    <xs:documentation>P364 And wash it before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW273">
+                <xs:annotation>
+                    <xs:documentation>Caution, risk of electric shock</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW274">
+                <xs:annotation>
+                    <xs:documentation>Non-ionizing electromagnetic radiation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW275">
+                <xs:annotation>
+                    <xs:documentation>Ask your pharmacist or doctor for advice before using or taking the product (e.g. if pregnant or breastfeeding)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW276">
+                <xs:annotation>
+                    <xs:documentation>Potential Interactions with other products (e.g. medicines, food)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW277">
+                <xs:annotation>
+                    <xs:documentation>If any symptoms are troublesome or last more than a few days or if you notice any side effects not mentioned, please inform your doctor or pharmacist</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW278">
+                <xs:annotation>
+                    <xs:documentation>Avoid contact with non-sterile water</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW279">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW280">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW281">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P310 – Immediately call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW282">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW283">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW284">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW285">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW286">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW287">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW288">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW289">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW290">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW291">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW292">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P311 – Call a POISON CENTER or doctor/physician.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW293">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW294">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW295">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW296">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW297">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW298">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW299">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW300">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW301">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW302">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW303">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P312 – Call a POISON CENTER or doctor/physician if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW304">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW305">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW306">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW307">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW308">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW309">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW310">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW311">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW312">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW313">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW314">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P313 – Get medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW315">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW316">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW317">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW318">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW319">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW320">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW321">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW322">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW323">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW324">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW325">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW326">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P314 – Get medical advice/attention if you feel unwell.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW327">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW328">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW329">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW330">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW331">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW332">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW333">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW334">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW335">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW336">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW337">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P315 – Get immediate medical advice/attention.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW338">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW339">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW340">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW341">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW342">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW343">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW344">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW345">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW346">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW347">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW348">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW349">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P320 – Specific treatment is urgent (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW350">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW351">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW352">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW353">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW354">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW355">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW356">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW357">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW358">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW359">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW360">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW361">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P321 – Specific treatment (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW362">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW363">
+                <xs:annotation>
+                    <xs:documentation>P301 – IF SWALLOWED: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW364">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW365">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW366">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW367">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW368">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW369">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW370">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW371">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P322 – Specific measures (see on this label).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW372">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P330 – Rinse mouth.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW373">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P330 – Rinse mouth.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW374">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P330 – Rinse mouth.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW375">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P331 – Do NOT induce vomiting.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW376">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P331 – Do NOT induce vomiting.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW377">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P331 – Do NOT induce vomiting.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW378">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation occurs or rash occurs: P334 – Immerse in cool water/wrap in wet bandages.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW379">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P334 – Immerse in cool water/wrap in wet bandages.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW380">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P334 – Immerse in cool water/wrap in wet bandages.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW381">
+                <xs:annotation>
+                    <xs:documentation>P337 – If eye irritation persists: P334 – Immerse in cool water/wrap in wet bandages.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW382">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P334 – Immerse in cool water/wrap in wet bandages.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW383">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation occurs or rash occurs: P335 – Brush off loose particles from skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW384">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P335 – Brush off loose particles from skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW385">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P335 – Brush off loose particles from skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW386">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P335 – Brush off loose particles from skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW387">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P335 – Brush off loose particles from skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW388">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P335 – Brush off loose particles from skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW389">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P335 – Brush off loose particles from skin.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW390">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation occurs or rash occurs: P336 – Thaw frosted parts with lukewarm water. Do no rub affected area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW391">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P336 – Thaw frosted parts with lukewarm water. Do no rub affected area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW392">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P336 – Thaw frosted parts with lukewarm water. Do no rub affected area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW393">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P336 – Thaw frosted parts with lukewarm water. Do no rub affected area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW394">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P336 – Thaw frosted parts with lukewarm water. Do no rub affected area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW395">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P336 – Thaw frosted parts with lukewarm water. Do no rub affected area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW396">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P336 – Thaw frosted parts with lukewarm water. Do no rub affected area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW397">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P338 – Remove contact lenses, if present and easy to do. Continue rinsing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW398">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P338 – Remove contact lenses, if present and easy to do. Continue rinsing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW399">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P338 – Remove contact lenses, if present and easy to do. Continue rinsing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW400">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P338 – Remove contact lenses, if present and easy to do. Continue rinsing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW401">
+                <xs:annotation>
+                    <xs:documentation>P304 – IF INHALED: P340 – Remove victim to fresh air and keep at rest in a position comfortable for breathing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW402">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P340 – Remove victim to fresh air and keep at rest in a position comfortable for breathing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW403">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P340 – Remove victim to fresh air and keep at rest in a position comfortable for breathing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW404">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P340 – Remove victim to fresh air and keep at rest in a position comfortable for breathing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW405">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P350 – Gently wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW406">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P350 – Gently wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW407">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P350 – Gently wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW408">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P350 – Gently wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW409">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P350 – Gently wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW410">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P350 – Gently wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW411">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P350 – Gently wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW412">
+                <xs:annotation>
+                    <xs:documentation>P333 – If skin irritation or rash occurs: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW413">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW414">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW415">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW416">
+                <xs:annotation>
+                    <xs:documentation>P305 – IF IN EYES: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW417">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW418">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW419">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW420">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P351 – Rinse cautiously with water for several minutes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW421">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P352 – Wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW422">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P352 – Wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW423">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P352 – Wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW424">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P352 – Wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW425">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P352 – Wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW426">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P352 – Wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW427">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P352 – Wash with plenty of soap and water.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW428">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P353 – Rinse skin with water/shower.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW429">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P353 – Rinse skin with water/shower.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW430">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P353 – Rinse skin with water/shower.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW431">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P353 – Rinse skin with water/shower.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW432">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P353 – Rinse skin with water/shower.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW433">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P353 – Rinse skin with water/shower.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW434">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P353 – Rinse skin with water/shower.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW435">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P360 – Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW436">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P360 – Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW437">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P360 – Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW438">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P360 – Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW439">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P360 – Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW440">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P360 – Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW441">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P360 – Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW442">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P361 – Remove/Take off immediately all contaminated clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW443">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P361 – Remove/Take off immediately all contaminated clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW444">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P361 – Remove/Take off immediately all contaminated clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW445">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P361 – Remove/Take off immediately all contaminated clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW446">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P361 – Remove/Take off immediately all contaminated clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW447">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P361 – Remove/Take off immediately all contaminated clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW448">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P361 – Remove/Take off immediately all contaminated clothing.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW449">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P362 – Take off contaminated clothing and wash before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW450">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P362 – Take off contaminated clothing and wash before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW451">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P362 – Take off contaminated clothing and wash before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW452">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P362 – Take off contaminated clothing and wash before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW453">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P362 – Take off contaminated clothing and wash before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW454">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P362 – Take off contaminated clothing and wash before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW455">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P362 – Take off contaminated clothing and wash before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW456">
+                <xs:annotation>
+                    <xs:documentation>P332 – If skin irritation occurs: P363 – Wash contaminated clothing before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW457">
+                <xs:annotation>
+                    <xs:documentation>P302 – IF ON SKIN: P363 – Wash contaminated clothing before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW458">
+                <xs:annotation>
+                    <xs:documentation>P303 – IF ON SKIN (or hair): P363 – Wash contaminated clothing before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW459">
+                <xs:annotation>
+                    <xs:documentation>P306 – IF ON CLOTHING: P363 – Wash contaminated clothing before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW460">
+                <xs:annotation>
+                    <xs:documentation>P307 – IF exposed: P363 – Wash contaminated clothing before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW461">
+                <xs:annotation>
+                    <xs:documentation>P308 – IF exposed or concerned: P363 – Wash contaminated clothing before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW462">
+                <xs:annotation>
+                    <xs:documentation>P309 – IF exposed or if you feel unwell: P363 – Wash contaminated clothing before reuse.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW463">
+                <xs:annotation>
+                    <xs:documentation>P371 – In case of major fire and large quantities: P374 – Fight fire with normal precautions from a reasonable distance.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW464">
+                <xs:annotation>
+                    <xs:documentation>P371 – In case of major fire and large quantities: P375 – Fight fire remotely due to the risk of explosion.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW465">
+                <xs:annotation>
+                    <xs:documentation>P371 – In case of major fire and large quantities: P380 – Evacuate area.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW466">
+                <xs:annotation>
+                    <xs:documentation>P371 – In case of major fire and large quantities: P381 – Eliminate all ignition sources if safe to do so.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CW999">
+                <xs:annotation>
+                    <xs:documentation>OTHER. It requires to provide additional free text with translations.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="MedicalHumanSubstanceTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MEDICINAL_PRODUCT_SUBSTANCE">
+                <xs:annotation>
+                    <xs:documentation>MEDICINAL_PRODUCT_SUBSTANCE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="HUMAN_PRODUCT_SUBSTANCE">
+                <xs:annotation>
+                    <xs:documentation>HUMAN_PRODUCT_SUBSTANCE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="TextClinicalSizeType">
+        <xs:annotation>
+            <xs:documentation>The Class contains the properties of the Clinical Sizes of the Devices.
+                Device Clinical Sizes can be provided if applicable. Several Clinical Sizes can be added for the Device. Clinical Size will be defined by the Type, Precision, Value (either Range, single value or Text) and Measuring Unit.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="commondi:ClinicalSizeType">
+                <xs:sequence>
+                    <xs:element name="text" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-194# - Value(Text). Value that the Clinical Size can get (when Other is selected as precision).</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="SubstatusesType">
+        <xs:sequence>
+            <xs:element name="substatus" type="commondi:UDIDISubstatusType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ClinicalSizesType">
+        <xs:sequence>
+            <xs:element name="clinicalSize" type="commondi:ClinicalSizeType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="StorageHandlingConditionType">
+        <xs:annotation>
+            <xs:documentation>
+                #FLD-UDID-210# - Storage and handling Conditions and Critical Warnings or Contra-Indications specified on the Label of the Device or in the Instruction of Use have to be registered in EUDAMED - if applicable.
+                Field stores the type of Instruction for use (possible values Critical Warnings or Storage and Handling Conditions).
+                Comments provided for Critical Warnings or Storage and Handling Conditions for which the value is different than OTHER need to have the Language value set to value ANY. In the case of Critical Warnings or Storage and Handling Conditions where the value is Other can be provided in several languages (selected Language must be different than ANY).
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="comments" type="lsn:LanguageOptionalTextsType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-213# - Storage/Handling conditions. Comments or description associated to the values selected form the Storage or handling Conditions or Critical warnings.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="storageHandlingConditionValue" type="commondi:StorageHandlingConditionEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-211# - Storage/handling conditions type. Field stores the Type of Storage and Handling Conditions. Field is Applicable only when the type of Conditions for Use have the Type Storage / handling Conditions, being required in this case.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ValueClinicalSizeType">
+        <xs:annotation>
+            <xs:documentation>The Class contains the properties of the Clinical Sizes of the Devices.
+                Device Clinical Sizes can be provided if applicable. Several Clinical Sizes can be added for the Device. Clinical Size will be defined by the Type, Precision, Value (either Range, single value or Text) and Measuring Unit.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="commondi:ClinicalSizeType">
+                <xs:sequence>
+                    <xs:element name="value" type="xs:double" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-196# - Value.
+                                The value that the Clinical Size can get (when Value is selected as precision).
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="valueUnit" type="udidi:ClinicalSizeUnitEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-195# - Measure Unit.
+                                Clinical Size Measure Unit.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="measureUnitDescription" type="lsn:LanguageSpecificTextsType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:group name="MDOCMApplicablePropertiesGroup">
+        <xs:sequence>
+            <xs:element name="active" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-28# - Active Device. Property defines if the Basic UDI-DI corresponds to an Active device or not. Active device means any device, the operation of which depends on a source of energy other than that generated by the human body for that purpose, or by gravity, and which acts by changing the density of or converting that energy. Devices intended to transmit energy, substances or other elements between an active device and the patient, without any significant change, shall not be deemed to be active devices. Software shall also be deemed to be an active device.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="administeringMedicine" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-29# - Device Intended to administer and/or Remove medicinal product. Property defines if the Device is intended to administer or remove medicinal product.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="implantable" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-30# - Implantable. Property defines if the Basic UDI-DI corresponds to a device that is Implantable or not.
+                        Any device intended to be partially introduced into the human body by clinical intervention and intended to remain in place after the procedure for at least 30 days shall also be deemed to be an implantable device.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="measuringFunction" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-31# - Measuring Function. Property defines if the Device has a Measuring Function or not.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="reusable" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-32# - Reusable Surgical Instruments. Property defines if the Device is a Reusable Surgical Instrument or not. Reusable surgical instrument means an instrument intended for surgical use in cutting, drilling, sawing, scratching, scraping, clamping, retracting, clipping or similar procedures, without a connection to an active device and which is intended by the Manufacturer to be reused after appropriate procedures such as cleaning, disinfection and sterilisation have been carried out.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+			<xs:element name="medicinalProductSubstances" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>OCM attribute</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="humanProductSubstances" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>OCM attribute</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:group name="IVDOCMApplicablePropertiesGroup">
+        <xs:sequence>
+            <xs:element name="companionDiagnostics" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-33# - Companion Diagnostic. Property defines if the Device corresponds to a device that has a role of Companion Diagnostic device or not. Companion diagnostic means a device which is essential for the safe and effective use of a corresponding medicinal product to: identify, before and/or during treatment, patients who are most likely to benefit from the corresponding medicinal product; or identify, before and/or during treatment, patients likely to be at increased risk of serious adverse reactions as a result of treatment with the corresponding medicinal product.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="instrument" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-264# - Instrument. Property defines if the Device is an Instrument or not.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="kit" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-12# - Is it a System which is a Device in itself, Procedure pack which is a Device in itself or Kit. Property defines if the Basic UDI-DI is referring to a System which is a Device in itself, Procedure pack which is a Device in itself or Kit. Property is a applicable for Standard Devices (not Systems or Procedure Packs).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="nearPatientTesting" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-35# - Near Patient Testing. Property defines if the Device device is Near Patient testing or not. Device for near-patient testing means any device that is not intended for self-testing but is intended to perform testing outside a laboratory environment, generally near to, or at the side of, the patient by a health professional.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="professionalTesting" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-263# - Professional Testing. Property defines if the Device is designed to be used for Professional Testing or not.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="reagent" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-262# - Reagent. Property defines if the Device is a reagent or not.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="selfTesting" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-36# - Patient Self Testing. Property defines if the Device is Self Patient testing device or not. Device for self-testing means any device intended by the manufacturer to be used by lay persons, including devices used for testing services offered to lay persons by means of information society services.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="deviceCriterionType">
+        <xs:annotation>
+            <xs:documentation>Identifier for a Standard, Spp or Legacy Device.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="STANDARD">
+                <xs:annotation>
+                    <xs:documentation>Standard Device</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SPP">
+                <xs:annotation>
+                    <xs:documentation>Spp Device</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="LEGACY">
+                <xs:annotation>
+                    <xs:documentation>legacy Device</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

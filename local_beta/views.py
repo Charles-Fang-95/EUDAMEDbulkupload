@@ -1,0 +1,1226 @@
+import html
+import json
+import threading
+from datetime import datetime
+from pathlib import Path
+from urllib.parse import quote, urlencode
+
+from .constants import (
+    BASIC_FIELDS,
+    BULK_UPLOAD_ENTITY_LIMIT,
+    BULK_UPLOAD_LIMIT_SOURCE,
+    COPYRIGHT_HOLDER,
+    COPYRIGHT_YEAR,
+    EUDAMED_PLAYGROUND_HELP_URL,
+    EUDAMED_PLAYGROUND_URL,
+    EUDAMED_PRODUCTION_URL,
+    RELEASES_API_URL,
+    RELEASES_PAGE_URL,
+    SCHEMA_VERSION,
+    SERVICE_LABELS,
+    STATIC_DIR,
+    TECHNICAL_DOCUMENTATION_URL,
+    TOOL_UPDATED,
+    TOOL_VERSION,
+    TOOL_VERSION_LABEL,
+    UDI_FIELDS,
+)
+from .template_schema import ENUM_SOURCES, MAIN_COLUMNS
+from .xsd_version import get_tool_xsd_version
+
+
+# ---------------------------------------------------------------------------
+# 语言上下文（线程局部）：route() 每次请求开头调用 set_lang()，视图内用 t() 取文案。
+# ---------------------------------------------------------------------------
+_lang_ctx = threading.local()
+
+
+def set_lang(lang: str) -> None:
+    _lang_ctx.lang = "en" if lang == "en" else "zh"
+
+
+def current_lang() -> str:
+    return getattr(_lang_ctx, "lang", "zh")
+
+
+def t(zh: str, en: str) -> str:
+    """界面框架文案：根据当前语言返回中文或英文。"""
+    return en if current_lang() == "en" else zh
+
+
+SUPPORTED_SERVICES = {
+    "DEVICE.POST": {
+        "label": "Upload of Legacy / Regulation Device / SPP ( Basic UDI and UDI-DI / Master UDI-DI )",
+        "scope": "新上传 Legacy Device / Regulation Device / SPP 的 Basic UDI-DI + UDI-DI / Master UDI-DI，可一次选择多条 UDI-DI。MDD/AIMDD/IVDD 会按 Legacy EUDI 结构输出。",
+        "scope_en": "New upload of Legacy Device / Regulation Device / SPP Basic UDI-DI + UDI-DI / Master UDI-DI; multiple UDI-DIs can be selected at once. MDD/AIMDD/IVDD are exported using the Legacy EUDI structure.",
+        "requires": "Basic 和 UDI-DI 必填字段、Reference Number、市场信息；不需要现有 EUDAMED version。新上传时可随 UDI-DI 一起输出 container package。",
+        "requires_en": "Mandatory Basic and UDI-DI fields, Reference Number and market info; no existing EUDAMED version needed. Container packages can be exported together with the UDI-DI.",
+        "after": "在 EUDAMED 选择该 bulk upload service 后上传 XML。MDR/IVDR 输出 Regulation Device XML；MDD/AIMDD/IVDD 输出 Legacy Device / EUDI XML。上传成功后请保存官方 response；本地不会自动标记为已提交。",
+        "after_en": "In EUDAMED, pick this bulk upload service and upload the XML. MDR/IVDR are exported as Regulation Device XML; MDD/AIMDD/IVDD are exported as Legacy Device / EUDI XML. Keep the official response after a successful upload; this tool does not mark records as submitted automatically.",
+    },
+    "UDI_DI.POST": {
+        "label": "Upload of UDI-DI / Master UDI-DI for existing Basic UDI-DI",
+        "scope": "给已经存在于 EUDAMED 的 Basic UDI-DI 增加新的 UDI-DI。",
+        "scope_en": "Add new UDI-DIs to a Basic UDI-DI that already exists in EUDAMED.",
+        "requires": "Parent Basic UDI-DI 必须已存在于 EUDAMED；UDI-DI 不需要现有 version。新上传 UDI-DI 时可随 UDI-DI 一起输出 container package。",
+        "requires_en": "The parent Basic UDI-DI must already exist in EUDAMED; the UDI-DI needs no existing version. Container packages can be exported together with the new UDI-DI.",
+        "after": "适合后续追加规格、包装或型号，不适合首次创建 Basic。",
+        "after_en": "Suitable for adding later specifications, packaging or models; not for creating a Basic UDI-DI for the first time.",
+    },
+    "Basic_UDI.PATCH": {
+        "label": "Update Basic UDI",
+        "scope": "更新已存在 Basic UDI-DI 的 Basic 层字段。",
+        "scope_en": "Update Basic-level fields of an existing Basic UDI-DI.",
+        "requires": "必须填写当前 EUDAMED version，否则官方会拒绝更新。",
+        "requires_en": "The current EUDAMED version must be provided, otherwise the update will be rejected.",
+        "after": "只更新 Basic 层，不会更新 UDI-DI 层规格、市场或包装信息。",
+        "after_en": "Updates the Basic level only; UDI-DI level specifications, market or packaging info are not changed.",
+    },
+    "UDI_DI.PATCH": {
+        "label": "Update of UDI-DI / Master UDI-DI",
+        "scope": "更新已存在 UDI-DI 的 UDI 层字段。",
+        "scope_en": "Update UDI-level fields of an existing UDI-DI.",
+        "requires": "必须填写当前 EUDAMED version，否则官方会拒绝更新。",
+        "requires_en": "The current EUDAMED version must be provided, otherwise the update will be rejected.",
+        "after": "适合更改规格、警告、存储条件等 UDI-DI 层数据。国家/市场信息错误应优先通过 update/create new version 修正；只有器械身份、UDI-DI 或 Basic 关联本身错误且无法更新纠正时，才考虑 discard/逻辑删除并重建。",
+        "after_en": "Suitable for changing specifications, warnings, storage conditions and other UDI-DI level data. Market information errors should be corrected through update/create new version where possible; discard and re-registration should be reserved for device identity, UDI-DI or Basic linkage errors that cannot be corrected by update.",
+    },
+}
+
+UNAVAILABLE_SERVICES = [
+    {
+        "label": "Update container package",
+        "status": "暂未开放；新上传时可随 UDI-DI 一起输出 container package",
+        "status_en": "Not available yet; container packages can be exported with the UDI-DI on a new upload",
+    },
+    {
+        "label": "Update market information",
+        "status": "后续实现；国家/市场信息错误应优先 update/create new version，不应默认删除重建",
+        "status_en": "Planned; market information errors should be corrected through update/create new version where possible, not by default delete and re-registration",
+    },
+    {
+        "label": "Update product original manufacturer",
+        "status": "暂未开放",
+        "status_en": "Not available yet",
+    },
+]
+
+
+# 字段规格映射：field 名 -> template_schema 列定义，用于详情页按 schema 渲染下拉 / 说明 / 必填
+FIELD_SPECS = {col["field"]: col for col in MAIN_COLUMNS}
+ENUM_SELECT_VALIDATIONS = {
+    "issuing_entity",
+    "risk_class",
+    "legislation",
+    "device_type",
+    "device_status",
+    "language",
+    "language_any",
+}
+
+
+def esc(value) -> str:
+    return html.escape("" if value is None else str(value))
+
+
+def service_text(service: dict, key: str) -> str:
+    """取 SUPPORTED_SERVICES 的多语言文案。"""
+    if current_lang() == "en":
+        return service.get(f"{key}_en") or service.get(key, "")
+    return service.get(key, "")
+
+
+def display_time(value) -> str:
+    """把存储的 UTC ISO 时间串转成电脑本地时区的 YYYY-MM-DD HH:MM。"""
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    try:
+        dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return text
+    if dt.tzinfo is not None:
+        dt = dt.astimezone()
+    return dt.strftime("%Y-%m-%d %H:%M")
+
+
+def _enum_select(field: str, current: str, options: list) -> str:
+    parts = [f'<option value="">{t("— 请选择 —", "— Select —")}</option>']
+    matched = False
+    for opt in options:
+        text = str(opt)
+        selected = " selected" if text == current else ""
+        if selected:
+            matched = True
+        parts.append(f'<option value="{esc(text)}"{selected}>{esc(text)}</option>')
+    if current and not matched:
+        parts.append(f'<option value="{esc(current)}" selected>{esc(current)}{t("（当前值）", " (current)")}</option>')
+    return f'<select name="field_{esc(field)}">{"".join(parts)}</select>'
+
+
+def _bool_select(field: str, current: str) -> str:
+    cur = current.strip().upper()
+    values = [("", t("—（留空）", "— (empty)")), ("TRUE", t("是", "Yes")), ("FALSE", t("否", "No"))]
+    parts = []
+    matched = False
+    for value, label in values:
+        selected = " selected" if value == cur else ""
+        if selected:
+            matched = True
+        parts.append(f'<option value="{value}"{selected}>{label}</option>')
+    if cur and not matched:
+        parts.append(f'<option value="{esc(current)}" selected>{esc(current)}{t("（当前值）", " (current)")}</option>')
+    return f'<select name="field_{esc(field)}">{"".join(parts)}</select>'
+
+
+def field_input(field: str, value) -> str:
+    """按 template_schema 规格渲染单个详情页字段：枚举→下拉、布尔→是/否、其余→文本。"""
+    spec = FIELD_SPECS.get(field)
+    current = "" if value is None else str(value)
+    validation = spec.get("validation") if spec else None
+    if validation == "boolean":
+        control = _bool_select(field, current)
+    elif validation in ENUM_SELECT_VALIDATIONS and validation in ENUM_SOURCES:
+        control = _enum_select(field, current, ENUM_SOURCES[validation])
+    else:
+        control = f'<input type="text" name="field_{esc(field)}" value="{esc(current)}">'
+    star = ' <span class="req">*</span>' if spec and spec.get("required") else ""
+    desc = spec.get("description") if spec else ""
+    # 英文模式下隐藏中文字段说明
+    hint = f'<small class="field-hint">{esc(desc)}</small>' if desc and current_lang() == "zh" else ""
+    return f"""
+        <label>
+          <span>{esc(field)}{star}</span>
+          {control}
+          {hint}
+        </label>
+        """
+
+
+def active_class(href: str, active_path: str) -> str:
+    if not active_path:
+        return ""
+    if href == "/":
+        return "active" if active_path == "/" else ""
+    return "active" if active_path.startswith(href) else ""
+
+
+def alert_block(message: str, level: str = "notice") -> str:
+    if not message:
+        return ""
+    css_level = level if level in {"success", "error", "warning", "notice"} else alert_class(message)
+    return f'<div class="alert {css_level}">{esc(message)}</div>'
+
+
+def alert_class(message: str) -> str:
+    text = str(message)
+    if any(token in text for token in ("失败", "错误", "请选择", "缺少", "不一致", "无法", "fail", "error", "missing")):
+        return "error"
+    if any(token in text for token in ("成功", "完成", "success", "done")):
+        return "success"
+    return "notice"
+
+
+def page(title: str, body: str, active_path: str = "") -> str:
+    primary_items = [
+        ("/", t("概览", "Overview")),
+        ("/import", t("导入 Excel", "Import Excel")),
+        ("/library", t("产品库", "Product Library")),
+        ("/export", t("导出任务", "Export")),
+        ("/history", t("导出历史", "Export History")),
+    ]
+    secondary_items = [
+        ("/xsd-version", t("XSD 版本", "XSD Version")),
+        ("/download-template", t("下载模板", "Download Template")),
+        ("/help", t("帮助", "Help")),
+    ]
+    primary_links = "".join(
+        f'<a href="{href}" class="{active_class(href, active_path)}">{label}</a>'
+        for href, label in primary_items
+    )
+    secondary_links = "".join(
+        f'<a href="{href}" class="nav-secondary {active_class(href, active_path)}">{label}</a>'
+        for href, label in secondary_items
+    )
+    next_path = active_path or "/"
+    if current_lang() == "en":
+        lang_link = f'<a class="lang-toggle" href="/set-lang?lang=zh&amp;next={quote(next_path, safe="")}">中文</a>'
+    else:
+        lang_link = f'<a class="lang-toggle" href="/set-lang?lang=en&amp;next={quote(next_path, safe="")}">EN</a>'
+    nav = f"""
+    <nav class="topbar">
+      <div class="nav-group">{primary_links}</div>
+      <div class="nav-group nav-group-end">{secondary_links}{lang_link}</div>
+    </nav>
+    """
+    footer = f"""
+    <footer class="site-footer">
+      <div>{esc(t("工具版本", "Tool version"))} {esc(TOOL_VERSION_LABEL)}
+      · {esc(t("最近更新", "Updated"))} {esc(TOOL_UPDATED)}</div>
+      <div class="footer-copyright">© {esc(COPYRIGHT_YEAR)} {esc(COPYRIGHT_HOLDER)} ·
+      {esc(t("保留所有权利", "All rights reserved"))} ·
+      <a href="/help">{esc(t("免责声明", "Disclaimer"))}</a></div>
+    </footer>
+    """
+    return f"""<!DOCTYPE html>
+<html lang="{'en' if current_lang() == 'en' else 'zh-CN'}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{esc(title)}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  {nav}
+  <main class="shell">
+    {body}
+  </main>
+  {footer}
+  <script>
+  function toggleChecks(formId, checked) {{
+    var form = document.getElementById(formId);
+    if (!form) return;
+    var boxes = document.querySelectorAll('input[type=checkbox][form=' + formId + ']');
+    if (boxes.length === 0) {{ boxes = form.querySelectorAll('input[type=checkbox]'); }}
+    boxes.forEach(function (box) {{ box.checked = checked; }});
+  }}
+  </script>
+</body>
+</html>"""
+
+
+def dashboard(
+    stats: dict,
+    imports: list,
+    exports: list,
+    xsd_report: dict | None = None,
+    srn_summary: list[dict] | None = None,
+) -> str:
+    xsd_report = xsd_report or {"tool_version": SCHEMA_VERSION, "local_xsd_version": "", "status": "unknown"}
+    import_cards = "".join(
+        f"<li><strong>{esc(row['filename'])}</strong><span>{esc(display_time(row['imported_at']))}</span></li>" for row in imports
+    ) or f"<li>{t('还没有导入记录', 'No imports yet')}</li>"
+    export_cards = "".join(
+        f"<li><strong>{esc(SERVICE_LABELS.get(row['service_type'], row['service_type']))}</strong>"
+        f"<span>{esc(display_time(row['created_at']))}</span></li>"
+        for row in exports
+    ) or f"<li>{t('还没有导出记录', 'No exports yet')}</li>"
+    body = f"""
+    <section class="hero">
+      <div>
+        <h1>{t('本地运行的 EUDAMED 内测版', 'EUDAMED helper — local beta')}</h1>
+        <p>{t('先导入 Excel 总表，在网页端管理记录，再按官方 service 批量生成 XML。数据默认保存在本机 SQLite。',
+              'Import the Excel workbook, manage records in the browser, then generate XML per official service. Data stays in a local SQLite file.')}</p>
+      </div>
+      <a class="button primary" href="/import">{t('开始导入 Excel', 'Start importing Excel')}</a>
+    </section>
+    <section class="grid cards">
+      <article class="card"><h2>Basic UDI-DI</h2><p>{stats['basic_count']}</p></article>
+      <article class="card"><h2>UDI-DI</h2><p>{stats['udi_count']}</p></article>
+      <article class="card" title="{t('草稿，或导入后有变更、尚未生成 XML 的 UDI-DI 数量', 'Draft UDI-DIs, or UDI-DIs changed on import and not yet exported as XML')}">
+        <h2>{t('待导出 UDI-DI', 'UDI-DI to export')}</h2><p>{stats['pending_count']}</p>
+      </article>
+      <article class="card"><h2>{t('导出历史', 'Export history')}</h2><p>{stats['export_count']}</p></article>
+    </section>
+    {actor_panel(srn_summary)}
+    {support_status_panel(xsd_report)}
+    <section class="grid columns">
+      <article class="panel">
+        <h2>{t('最近导入', 'Recent imports')}</h2>
+        <ul class="simple-list">{import_cards}</ul>
+      </article>
+      <article class="panel">
+        <h2>{t('最近导出', 'Recent exports')}</h2>
+        <ul class="simple-list">{export_cards}</ul>
+      </article>
+    </section>
+    """
+    return page(t("概览", "Overview"), body, "/")
+
+
+def actor_panel(srn_summary: list[dict] | None) -> str:
+    rows = [item for item in (srn_summary or []) if item.get("srn")]
+    if not rows:
+        return ""
+    items = "".join(
+        f"""
+        <li>
+          <span><strong>{esc(item['srn'])}</strong>
+            <span class="muted"> · Basic {esc(item['basic_count'])} / UDI-DI {esc(item['udi_count'])}</span>
+          </span>
+          <a href="/library?srn={quote(item['srn'], safe='')}">{t('在产品库查看', 'Open in library')}</a>
+        </li>
+        """
+        for item in rows
+    )
+    return f"""
+    <section class="panel">
+      <h2>{t('制造商 / Actor', 'Manufacturer / Actor')}</h2>
+      <p class="muted">{t('按导入 Excel 中的 Manufacturer SRN 分组。一家公司若有多个 actor（如 System/Procedure Pack Producer），可在产品库按 SRN 切换查看。',
+                          'Grouped by the Manufacturer SRN from the imported Excel. If a company has several actors (e.g. System/Procedure Pack Producer), switch between them by SRN in the product library.')}</p>
+      <ul class="simple-list">{items}</ul>
+    </section>
+    """
+
+
+def support_status_panel(xsd_report: dict) -> str:
+    supported = "".join(
+        f"<li><strong>{esc(item['label'])}</strong><br><span class='muted'>{esc(service_text(item, 'scope'))}</span></li>"
+        for item in SUPPORTED_SERVICES.values()
+    )
+    unavailable = "".join(
+        f"<li><strong>{esc(item['label'])}</strong> <span class='badge muted-badge'>{esc(service_text(item, 'status'))}</span></li>"
+        for item in UNAVAILABLE_SERVICES
+    )
+    return f"""
+    <section class="panel">
+      <h2>{t('EUDAMED 支持状态', 'EUDAMED support status')}</h2>
+      {xsd_panel(xsd_report)}
+      <div class="grid columns">
+        <article>
+          <h3>{t('当前工具可生成 XML 的 service', 'Services this tool can generate XML for')}</h3>
+          <ul>{supported}</ul>
+        </article>
+        <article>
+          <h3>{t('暂未开放', 'Not available yet')}</h3>
+          <ul>{unavailable}</ul>
+        </article>
+      </div>
+    </section>
+    """
+
+
+def import_page(message: str = "", result: dict | None = None, message_level: str = "notice") -> str:
+    alert = alert_block(message, message_level)
+    market_notice = f"""
+    <div class="alert notice">
+      <strong>{t('市场信息提醒：', 'Market information note:')}</strong>
+      {t('国家/市场信息填报错误时，应优先通过 EUDAMED update/create new version 纠正，不应默认删除 UDI-DI 重新注册。只有当 UDI-DI、器械身份或 Basic UDI-DI 关联本身错误且无法更新纠正时，才考虑 discard/逻辑删除并重建。',
+         'Market information errors should be corrected through EUDAMED update/create new version where possible, not by default deleting and re-registering the UDI-DI. Discard and re-registration should be reserved for device identity, UDI-DI or Basic UDI-DI linkage errors that cannot be corrected by update.')}
+    </div>
+    """
+    details = ""
+    if result:
+        errors = result["validation"]["errors"]
+        warnings = result["validation"]["warnings"]
+        change_summary = result.get("change_summary", {})
+        changes = result.get("changes", [])
+        change_cards = f"""
+        <section class="grid cards">
+          <article class="card"><h2>{t('新增', 'Created')}</h2><p>{change_summary.get('created', 0)}</p></article>
+          <article class="card"><h2>{t('已更新', 'Updated')}</h2><p>{change_summary.get('updated', 0)}</p></article>
+          <article class="card"><h2>{t('未变化', 'Unchanged')}</h2><p>{change_summary.get('unchanged', 0)}</p></article>
+          <article class="card"><h2>{t('错误', 'Errors')}</h2><p>{len(errors)}</p></article>
+        </section>
+        """
+        change_rows = "".join(_import_change_row(item) for item in changes[:300])
+        if not change_rows:
+            change_rows = f'<tr><td colspan="6">{t("没有可展示的入库记录。", "No records to show.")}</td></tr>'
+        error_rows = "".join(
+            f"<li>{esc(item.get('sheet'))} {t('第', 'row')} {esc(item.get('row'))} {esc(item.get('field'))}: {esc(item.get('message'))}</li>"
+            for item in errors[:50]
+        ) or f"<li>{t('无', 'None')}</li>"
+        warning_rows = "".join(
+            f"<li>{esc(item.get('sheet'))} {t('第', 'row')} {esc(item.get('row'))} {esc(item.get('field'))}: {esc(item.get('message'))}</li>"
+            for item in warnings[:50]
+        ) or f"<li>{t('无', 'None')}</li>"
+        details = f"""
+        <section class="panel">
+          <h2>{t('导入结果', 'Import result')}</h2>
+          <p>Basic UDI-DI: {result['summary']['basic_count']} · UDI-DI: {result['summary']['udi_count']}</p>
+          {change_cards}
+          <h3>{t('差异报告', 'Change report')}</h3>
+          <div class="table-wrap"><table>
+            <thead><tr>
+              <th>{t('类型', 'Type')}</th><th>{t('动作', 'Action')}</th><th>{t('编码', 'Code')}</th>
+              <th>{t('关联 Basic', 'Related Basic')}</th><th>{t('Excel 行', 'Excel row')}</th><th>{t('变化字段', 'Changed fields')}</th>
+            </tr></thead>
+            <tbody>{change_rows}</tbody>
+          </table></div>
+          <div class="grid columns">
+            <article><h3>{t('错误', 'Errors')}</h3><ul>{error_rows}</ul></article>
+            <article><h3>{t('警告', 'Warnings')}</h3><ul>{warning_rows}</ul></article>
+          </div>
+          <p><a class="button primary" href="/library">{t('进入产品库', 'Open product library')}</a></p>
+        </section>
+        """
+    body = f"""
+    <section class="panel narrow">
+      <h1>{t('导入产品总表', 'Import product workbook')}</h1>
+      <p>{t('上传最新版 Excel template。Excel 是主维护文件；本地库用于批量校验、筛选、选择 service 和导出 XML。',
+            'Upload the latest Excel template. The Excel file is the master data; the local database is for bulk validation, filtering, choosing a service and exporting XML.')}</p>
+      <p class="muted">{t('上传前请确认 UDI/GTIN/Reference/SRN 等编码没有被 Excel/WPS 改成科学计数法，也没有丢失前导 0。',
+                          'Before uploading, make sure UDI/GTIN/Reference/SRN codes were not turned into scientific notation by Excel/WPS and that no leading zeros were lost.')}</p>
+      <p class="muted">{t('旧模板或客户原始 Excel 不建议直接导入；请先迁移/映射到当前 v2.4 模板，避免字段误映射。',
+                          'Old templates or customer source Excel files should be migrated/mapped to the current v2.4 template first to avoid incorrect field mapping.')}</p>
+      <p class="muted">{t('Market Info：同一 UDI-DI 可以有多个 made available 国家，但 Originally Placed on Market 必须且只能有一个 TRUE，其它国家填写 FALSE。',
+                          'Market Info: one UDI-DI may have multiple made available countries, but Originally Placed on Market must have exactly one TRUE; all other countries should be FALSE.')}</p>
+      {market_notice}
+      {alert}
+      <form action="/import" method="post" enctype="multipart/form-data" class="stack">
+        <input type="file" name="workbook" accept=".xlsx" required>
+        <button class="button primary" type="submit">{t('开始导入', 'Start import')}</button>
+      </form>
+    </section>
+    {details}
+    """
+    return page(t("导入 Excel", "Import Excel"), body, "/import")
+
+
+def _import_change_row(item: dict) -> str:
+    detail_path = "/basic/" if item.get("entity_type") == "basic" else "/udi/"
+    fields = ", ".join(item.get("changed_fields", [])) or t("无", "None")
+    return f"""
+    <tr>
+      <td>{esc(_entity_label(item.get('entity_type')))}</td>
+      <td>{change_badge(item.get('action'))}</td>
+      <td><a href="{detail_path}{esc(item.get('record_id'))}">{esc(item.get('code'))}</a></td>
+      <td>{esc(item.get('related_code'))}</td>
+      <td>{esc(item.get('row_number'))}</td>
+      <td>{esc(fields)}</td>
+    </tr>
+    """
+
+
+def library_page(records: list[dict], filters: dict, srn_options: list[str] | None = None) -> str:
+    rows = []
+    for item in records:
+        payload = item["payload"]
+        basic_payload = item.get("basic_payload") or {}
+        product_name = _product_name(item)
+        spec = payload.get("Additional Description") or basic_payload.get("Device Name/Model") or basic_payload.get("Device Model", "")
+        reference = payload.get("Reference Number", "")
+        rows.append(
+            f"""
+            <tr>
+              <td><input type="checkbox" form="library-export" name="record_ids" value="{item['id']}"></td>
+              <td><a href="/udi/{item['id']}">{esc(product_name or item['udi_code'])}</a><br><span class="muted">{esc(spec)}</span></td>
+              <td>{esc(reference)}</td>
+              <td><a href="/basic-code/{quote(item['basic_code'], safe='')}">{esc(item['basic_code'])}</a><br><span class="muted">{esc(item['udi_code'])}</span></td>
+              <td>{esc(basic_payload.get('Applicable Legislation', ''))}</td>
+              <td>{state_badge(item['state'])}<br>{change_badge(item.get('last_change_type'))}</td>
+              <td><span class="muted">{t('首次', 'First')}</span> {esc(display_time(item.get('first_imported_at')))}<br><span class="muted">{t('最近导入', 'Last import')}</span> {esc(display_time(item.get('last_imported_at')))}<br><span class="muted">{t('最近更新', 'Last update')}</span> {esc(display_time(item.get('last_changed_at')))}</td>
+            </tr>
+            """
+        )
+    table = "".join(rows) or f'<tr><td colspan="7">{t("没有符合条件的 UDI-DI 记录。", "No UDI-DI records match the filter.")}</td></tr>'
+    body = f"""
+    <section class="panel">
+      <h1>{t('产品库', 'Product Library')}</h1>
+      <p class="muted">{t('这里管理本地库中的 UDI-DI。搜索会匹配产品名、Reference、Basic UDI-DI、UDI-DI 和备注；可按 Manufacturer SRN 切换不同 actor 的产品。',
+                          'Manage local UDI-DI records here. Search matches product name, Reference, Basic UDI-DI, UDI-DI and notes; switch between actors by Manufacturer SRN.')}</p>
+      {filter_form('/library', filters, srn_options)}
+      <form id="library-export" method="get" action="/export" class="toolbar">
+        <input type="hidden" name="q" value="{esc(filters.get('query', ''))}">
+        <input type="hidden" name="state" value="{esc(filters.get('state', ''))}">
+        <input type="hidden" name="legislation" value="{esc(filters.get('legislation', ''))}">
+        <input type="hidden" name="change_type" value="{esc(filters.get('change_type', ''))}">
+        <input type="hidden" name="srn" value="{esc(filters.get('srn', ''))}">
+        <button class="button" type="button" onclick="toggleChecks('library-export', true)">{t('全选', 'Select all')}</button>
+        <button class="button" type="button" onclick="toggleChecks('library-export', false)">{t('取消勾选', 'Clear')}</button>
+        <button class="button" type="submit">{t('用勾选 / 当前筛选去导出', 'Export selected / filtered')}</button>
+      </form>
+      <div class="table-wrap"><table>
+        <thead>
+          <tr><th>{t('选择', 'Select')}</th><th>{t('产品/规格', 'Product / spec')}</th><th>Reference</th><th>Basic / UDI</th><th>{t('法规', 'Legislation')}</th><th>{t('状态', 'State')}</th><th>{t('日期', 'Dates')}</th></tr>
+        </thead>
+        <tbody>{table}</tbody>
+      </table></div>
+    </section>
+    """
+    return page(t("产品库", "Product Library"), body, "/library")
+
+
+def _advanced_json_block(sections: list[tuple[str, str, int, str]]) -> str:
+    """sections: (name, label, rows, json_text)。统一折叠为「高级编辑」。"""
+    fields = "".join(
+        f"""
+        <label><span>{esc(label)}</span>
+          <textarea name="{esc(name)}" rows="{rows}">{esc(text)}</textarea>
+        </label>
+        """
+        for name, label, rows, text in sections
+    )
+    return f"""
+    <details class="advanced-edit">
+      <summary>{t('高级编辑（JSON）—— 建议优先在 Excel 模板中维护这些明细', 'Advanced edit (JSON) — prefer maintaining these details in the Excel template')}</summary>
+      <p class="muted">{t('这些明细数据请优先在 Excel template 中修改后重新导入；此处仅供临时排错，格式必须是合法 JSON。',
+                          'Edit these detail rows in the Excel template and re-import; this area is for quick fixes only and must contain valid JSON.')}</p>
+      {fields}
+    </details>
+    """
+
+
+def basic_detail(record: dict, message: str = "", message_level: str = "notice") -> str:
+    form_fields = "".join(field_input(field, record["payload"].get(field, "")) for field in BASIC_FIELDS)
+    cmr_json = json.dumps(record["cmr_rows"], ensure_ascii=False, indent=2)
+    advanced = _advanced_json_block([("cmr_json", "CMR Substances JSON", 8, cmr_json)])
+    body = f"""
+    <section class="panel">
+      <h1>{t('Basic UDI-DI 详情', 'Basic UDI-DI detail')}</h1>
+      <p>Basic UDI-DI Code: <strong>{esc(record['basic_code'])}</strong></p>
+      <p>{state_badge(record['state'])} {change_badge(record.get('last_change_type'))}</p>
+      {message_block(message, message_level)}
+      <form action="/basic/{record['id']}" method="post" class="stack">
+        <div class="form-grid">{form_fields}</div>
+        <label><span>{t('当前 EUDAMED 版本号（更新用）', 'Current EUDAMED version (for updates)')}</span><input type="text" name="version" value="{esc(record['version'])}"></label>
+        <label><span>{t('本地状态', 'Local state')}</span>{state_select(record['state'])}</label>
+        <label><span>{t('备注', 'Notes')}</span><textarea name="notes">{esc(record['notes'])}</textarea></label>
+        {advanced}
+        <button class="button primary" type="submit">{t('保存', 'Save')}</button>
+      </form>
+    </section>
+    """
+    return page(t("Basic UDI-DI 详情", "Basic UDI-DI detail"), body, "/library")
+
+
+def udi_detail(record: dict, message: str = "", message_level: str = "notice") -> str:
+    form_fields = "".join(field_input(field, record["payload"].get(field, "")) for field in UDI_FIELDS)
+
+    def _dump(value):
+        return json.dumps(value, ensure_ascii=False, indent=2)
+
+    advanced = _advanced_json_block(
+        [
+            ("market_json", "Market Information JSON", 8, _dump(record["market_rows"])),
+            ("trade_name_json", "Trade Names JSON", 6, _dump(record.get("trade_name_rows", []))),
+            ("warning_json", "Critical Warnings JSON", 6, _dump(record["warning_rows"])),
+            ("storage_json", "Storage Conditions JSON", 6, _dump(record["storage_rows"])),
+            ("package_json", "Package Information JSON", 6, _dump(record["package_rows"])),
+        ]
+    )
+    body = f"""
+    <section class="panel">
+      <h1>{t('UDI-DI 详情', 'UDI-DI detail')}</h1>
+      <p>UDI-DI: <strong>{esc(record['udi_code'])}</strong></p>
+      <p>Parent Basic UDI-DI: <a href="/basic-code/{quote(record['basic_code'], safe='')}">{esc(record['basic_code'])}</a></p>
+      <p>{state_badge(record['state'])} {change_badge(record.get('last_change_type'))}</p>
+      {message_block(message, message_level)}
+      <form action="/udi/{record['id']}" method="post" class="stack">
+        <div class="form-grid">{form_fields}</div>
+        <label><span>{t('当前 EUDAMED 版本号（更新用）', 'Current EUDAMED version (for updates)')}</span><input type="text" name="version" value="{esc(record['version'])}"></label>
+        <label><span>{t('本地状态', 'Local state')}</span>{state_select(record['state'])}</label>
+        <label><span>{t('备注', 'Notes')}</span><textarea name="notes">{esc(record['notes'])}</textarea></label>
+        {advanced}
+        <button class="button primary" type="submit">{t('保存', 'Save')}</button>
+      </form>
+    </section>
+    """
+    return page(t("UDI-DI 详情", "UDI-DI detail"), body, "/library")
+
+
+def export_page(
+    service_type: str,
+    records: list[dict],
+    result: dict | None = None,
+    filters: dict | None = None,
+    xsd_report: dict | None = None,
+    total_filtered: int = 0,
+    selected_ids: list[int] | None = None,
+    srn_options: list[str] | None = None,
+) -> str:
+    filters = filters or {"query": "", "state": "", "legislation": "", "change_type": "", "srn": ""}
+    xsd_report = xsd_report or {}
+    selected_id_set = {int(item) for item in (selected_ids or [])}
+    entity_type = "basic" if service_type == "Basic_UDI.PATCH" else "udi"
+    preview = export_result_panel(result, service_type) if result else ""
+    step_state = export_step_state(service_type, result)
+    xsd = xsd_panel(xsd_report)
+    steps = f"""
+      <div class="steps">
+        {step_badge("service", t("1 选择 service", "1 Choose service"), step_state)}
+        {step_badge("filter", t("2 筛选记录", "2 Filter records"), step_state)}
+        {step_badge("preflight", t("3 预检版本和字段", "3 Pre-check version & fields"), step_state)}
+        {step_badge("generated", t("4 生成 XML", "4 Generate XML"), step_state)}
+        {step_badge("generated", t("5 按指引上传", "5 Upload as guided"), step_state)}
+      </div>
+    """
+    service_picker = f"""
+      <form method="get" action="/export" class="filters">
+        <select name="service_type">{service_options(service_type)}</select>
+        {filter_controls(filters, srn_options)}
+        <button class="button" type="submit">{t('载入记录', 'Load records')}</button>
+      </form>
+    """
+
+    if not service_type:
+        body = f"""
+    <section class="panel">
+      <h1>{t('导出任务', 'Export task')}</h1>
+      {steps}
+      {alert_block(t('请先在下方选择一个 EUDAMED service，再载入并勾选要导出的记录。', 'Choose an EUDAMED service below first, then load and select the records to export.'), "notice")}
+      {bulk_limit_notice()}
+      {xsd}
+      {service_picker}
+    </section>
+    """
+        return page(t("导出任务", "Export"), body, "/export")
+
+    record_rows = []
+    for item in records:
+        code = item.get("udi_code") or item.get("basic_code")
+        detail_link = f"/udi/{item['id']}" if item.get("udi_code") else f"/basic/{item['id']}"
+        secondary = item.get("basic_code", "")
+        product = _product_name(item) if item.get("udi_code") else item["payload"].get("Device Name/Model", "")
+        record_rows.append(
+            f"""
+            <tr>
+              <td><input type="checkbox" name="record_ids" value="{item['id']}"{" checked" if int(item["id"]) in selected_id_set else ""}></td>
+              <td><a href="{detail_link}">{esc(code)}</a><br><span class="muted">{esc(product)}</span></td>
+              <td>{esc(secondary)}</td>
+              <td>{state_badge(item['state'])}</td>
+              <td>{esc(item['version']) or f'<span class="muted">{t("无", "none")}</span>'}</td>
+              <td>{change_badge(item.get('last_change_type'))}</td>
+            </tr>
+            """
+        )
+    table = "".join(record_rows) or f'<tr><td colspan="6">{t("没有可导出的记录。", "No records to export.")}</td></tr>'
+    service = SUPPORTED_SERVICES.get(service_type, SUPPORTED_SERVICES["DEVICE.POST"])
+    unavailable = "".join(
+        f"<li><strong>{esc(item['label'])}</strong><br><span class='muted'>{esc(service_text(item, 'status'))}</span></li>"
+        for item in UNAVAILABLE_SERVICES
+    )
+    body = f"""
+    <section class="panel">
+      <h1>{t('导出任务', 'Export task')}</h1>
+      {steps}
+      <div class="grid columns">
+        <article>
+          <h2>{t('当前 service', 'Current service')}</h2>
+          <p><strong>{esc(SERVICE_LABELS.get(service_type, service_type))}</strong></p>
+          <p class="muted">{esc(service['label'])}</p>
+          <p>{esc(service_text(service, 'scope'))}</p>
+          <p><strong>{t('要求：', 'Requires: ')}</strong>{esc(service_text(service, 'requires'))}</p>
+        </article>
+        <article>
+          <h2>{t('暂未开放', 'Not available yet')}</h2>
+          <ul>{unavailable}</ul>
+        </article>
+      </div>
+      {bulk_limit_notice()}
+      {xsd}
+      {service_picker}
+      <form id="export-form" method="post" action="/export#result" class="stack">
+        <input type="hidden" name="service_type" value="{esc(service_type)}">
+        {hidden_filters(filters)}
+        <div class="selection-bar">
+          <label><input type="radio" name="selection_mode" value="selected" checked> {t('只导出下方勾选记录', 'Export only the rows checked below')}</label>
+          <label><input type="radio" name="selection_mode" value="filtered"> {t('导出全部筛选结果', 'Export all filtered results')}（{total_filtered}）</label>
+          <button class="button" type="button" onclick="toggleChecks('export-form', true)">{t('全选', 'Select all')}</button>
+          <button class="button" type="button" onclick="toggleChecks('export-form', false)">{t('取消勾选', 'Clear')}</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead>
+            <tr><th>{t('选择', 'Select')}</th><th>{t('编码/产品', 'Code / product')}</th><th>{'Parent Basic' if entity_type == 'udi' else 'Basic'}</th><th>{t('本地状态', 'Local state')}</th><th>{t('版本号', 'Version')}</th><th>{t('最近变化', 'Last change')}</th></tr>
+          </thead>
+          <tbody>{table}</tbody>
+        </table></div>
+        <div class="toolbar">
+          <button class="button" type="submit" name="action" value="preflight">{t('只做预检', 'Pre-check only')}</button>
+          <button class="button primary" type="submit" name="action" value="export">{t('生成 XML', 'Generate XML')}</button>
+        </div>
+      </form>
+    </section>
+    {preview}
+    """
+    return page(t("导出任务", "Export"), body, "/export")
+
+
+def export_result_panel(result: dict, service_type: str) -> str:
+    errors = "".join(f"<li>{esc(item)}</li>" for item in result.get("errors", [])) or f"<li>{t('无', 'None')}</li>"
+    warnings = "".join(f"<li>{esc(item)}</li>" for item in result.get("warnings", [])) or f"<li>{t('无', 'None')}</li>"
+    selected_count = result.get("selected_count", len(result.get("codes", [])))
+    download = export_downloads(result)
+    guidance = upload_guidance(service_type) if result.get("file_path") else ""
+    batches = export_batch_table(result.get("files") or result.get("batches") or [])
+    title = t("预检结果", "Pre-check result") if result.get("action") == "preflight" else t("导出结果", "Export result")
+    return f"""
+    <section class="panel" id="result">
+      <h2>{title}</h2>
+      <p>Service: <strong>{esc(result['service_type'])}</strong> · {t('选择记录', 'Selected records')}: <strong>{esc(selected_count)}</strong></p>
+      <div class="grid columns">
+        <article><h3>{t('错误', 'Errors')}</h3><ul>{errors}</ul></article>
+        <article><h3>{t('警告', 'Warnings')}</h3><ul>{warnings}</ul></article>
+      </div>
+      {batches}
+      {download}
+      {guidance}
+    </section>
+    """
+
+
+def bulk_limit_notice() -> str:
+    xsd_version = get_tool_xsd_version()
+    return f"""
+    <article class="alert notice">
+      <strong>{t('EUDAMED bulk upload 官方限制', 'Official EUDAMED bulk upload limit')}</strong>
+      <p>{t(
+          f'根据官方 XSD {xsd_version}，单个 XML payload 中同类实体最多 {BULK_UPLOAD_ENTITY_LIMIT} 条；payload 是 xs:choice，不能在同一个 XML 混放不同实体。超过限制时本工具会按 service 自动拆分。',
+          f'According to official XSD {xsd_version}, one XML payload can contain at most {BULK_UPLOAD_ENTITY_LIMIT} entities of the same type; payload is xs:choice, so different entity types cannot be mixed in one XML. This tool splits files automatically when the limit is exceeded.'
+      )}</p>
+      <p class="muted">{esc(BULK_UPLOAD_LIMIT_SOURCE)}</p>
+    </article>
+    """
+
+
+def export_downloads(result: dict) -> str:
+    if not result.get("file_path"):
+        return ""
+    main_name = Path(result["file_path"]).name
+    label = t("下载 ZIP 总包", "Download ZIP package") if main_name.lower().endswith(".zip") else t("下载 XML", "Download XML")
+    links = [f'<a class="button primary" href="/download/{esc(main_name)}">{label}</a>']
+    files = result.get("files") or []
+    if len(files) > 1:
+        links.extend(
+            f'<a class="button" href="/download/{esc(Path(item["file_path"]).name)}">{esc(item["file_name"])}</a>'
+            for item in files
+        )
+    return f'<div class="toolbar">{"".join(links)}</div>'
+
+
+def export_batch_table(batches: list[dict]) -> str:
+    if not batches:
+        return ""
+    rows = []
+    for item in batches:
+        file_name = item.get("file_name") or t("预检后生成", "Generated after export")
+        rows.append(
+            f"""
+            <tr>
+              <td>{esc(item.get('sequence'))}</td>
+              <td>{esc(file_name)}</td>
+              <td>{esc(item.get('service_type'))}</td>
+              <td>{esc(item.get('payload_entity'))}</td>
+              <td>{esc(item.get('record_count'))}</td>
+              <td>{esc(', '.join(item.get('basic_codes') or []))}</td>
+              <td>{esc(item.get('depends_on') or '')}</td>
+              <td>{esc(item.get('dependency') or '')}</td>
+            </tr>
+            """
+        )
+    return f"""
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>{t('顺序', 'Order')}</th><th>{t('文件', 'File')}</th><th>Service</th><th>Payload</th><th>{t('数量', 'Count')}</th><th>Basic UDI-DI</th><th>{t('依赖', 'Depends on')}</th><th>{t('说明', 'Note')}</th></tr>
+        </thead>
+        <tbody>{''.join(rows)}</tbody>
+      </table>
+    </div>
+    """
+
+
+def export_step_state(service_type: str, result: dict | None) -> str:
+    if not service_type:
+        return "service"
+    if not result:
+        return "filter"
+    if result.get("file_path"):
+        return "generated"
+    return "preflight"
+
+
+def step_badge(step: str, label: str, current: str) -> str:
+    return f'<span class="{"active" if step == current else ""}">{esc(label)}</span>'
+
+
+def upload_guidance(service_type: str) -> str:
+    service = SUPPORTED_SERVICES.get(service_type, SUPPORTED_SERVICES["DEVICE.POST"])
+    return f"""
+    <article class="upload-guide">
+      <h3>{t('Bulk upload 指引', 'Bulk upload guide')}</h3>
+      <p>{t('进入 EUDAMED 后，在 bulk upload service 中选择：', 'In EUDAMED, choose this bulk upload service: ')}<strong>{esc(service['label'])}</strong></p>
+      <p>{esc(service_text(service, 'after'))}</p>
+      <p>{t(
+          '如果导出结果包含多个 XML，请按分片表或 ZIP 内 manifest 的顺序上传；带依赖的 UDI_DI.POST 必须等对应 DEVICE.POST 上传成功后再上传。',
+          'If multiple XML files are generated, upload them in the order shown in the batch table or ZIP manifest; dependent UDI_DI.POST files must wait until the corresponding DEVICE.POST has succeeded.'
+      )}</p>
+      <p class="muted">{t('本工具只把本地状态标记为 XML 已生成；请不要把这个状态等同于 EUDAMED 上传成功。',
+                          'This tool only marks the local state as XML generated; do not treat that as a successful EUDAMED upload.')}</p>
+    </article>
+    """
+
+
+def history_page(exports: list) -> str:
+    rows = []
+    for item in exports:
+        rows.append(
+            f"""
+            <tr>
+              <td>{item['id']}</td>
+              <td>{esc(SERVICE_LABELS.get(item['service_type'], item['service_type']))}</td>
+              <td>{esc(item['record_count'])}</td>
+              <td>{esc(display_time(item['created_at']))}</td>
+              <td><a href="/download/{esc(Path(item['file_path']).name)}">{t('下载 XML', 'Download XML')}</a></td>
+            </tr>
+            """
+        )
+    table = "".join(rows) or f'<tr><td colspan="5">{t("还没有导出记录。", "No exports yet.")}</td></tr>'
+    body = f"""
+    <section class="panel">
+      <h1>{t('导出历史', 'Export History')}</h1>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Service</th><th>{t('条数', 'Count')}</th><th>{t('时间', 'Time')}</th><th>{t('文件', 'File')}</th></tr></thead>
+        <tbody>{table}</tbody>
+      </table></div>
+    </section>
+    """
+    return page(t("导出历史", "Export History"), body, "/history")
+
+
+def help_page(check_result: dict | None = None) -> str:
+    update_section = update_check_block(check_result)
+    body = f"""
+    <section class="panel narrow help-page">
+      <h1>{t('帮助与关于', 'Help & About')}</h1>
+      <p class="lead">{t('EUDAMED 内测工具：把 Excel 总表导入本地库，批量校验并按官方 service 生成上传用 XML。',
+            'EUDAMED helper (beta): import the Excel workbook into a local database, validate in bulk and generate upload-ready XML per official service.')}</p>
+      <h2>{t('检查更新', 'Check for updates')}</h2>
+      {update_section}
+      <h2>{t('作者', 'Author')}</h2>
+      <ul class="simple-list">
+        <li><span>{t('姓名', 'Name')}</span><span><strong>Xiongfei Fang</strong></span></li>
+        <li><span>{t('邮箱', 'Email')}</span><span><a href="mailto:qecslan@hotmail.com">qecslan@hotmail.com</a></span></li>
+      </ul>
+      <h2>{t('支持作者', 'Support the author')}</h2>
+      <p class="muted">{t('如果这个工具帮到了你，欢迎请作者喝杯咖啡。', 'If this tool helps you, feel free to buy the author a coffee.')}</p>
+      <div class="grid cards">
+        {_qr_slot('alipay.jpg', t('支付宝', 'Alipay'))}
+        {_qr_slot('wechat.png', t('微信', 'WeChat Pay'))}
+        {_kofi_slot()}
+      </div>
+      <h2>{t('EUDAMED 官方环境', 'Official EUDAMED environments')}</h2>
+      <p class="muted">{t('Playground 是独立的官方测试环境，账号和 SRN 都需要在里面单独注册，数据为虚构数据，不会影响生产环境。',
+                          'The Playground is a separate official test environment; its account and SRN must be registered there separately and all data is fictional, never affecting Production.')}</p>
+      <ul class="simple-list">
+        <li><span>{t('Playground（测试环境）', 'Playground (test)')}</span>
+          <span><a href="{esc(EUDAMED_PLAYGROUND_URL)}" target="_blank" rel="noopener">{t('打开登录页', 'Open landing page')}</a></span></li>
+        <li><span>{t('Playground 环境说明', 'Playground environment guide')}</span>
+          <span><a href="{esc(EUDAMED_PLAYGROUND_HELP_URL)}" target="_blank" rel="noopener">{t('查看官方说明', 'Official help')}</a></span></li>
+        <li><span>{t('Production（生产环境）', 'Production')}</span>
+          <span><a href="{esc(EUDAMED_PRODUCTION_URL)}" target="_blank" rel="noopener">{t('打开登录页', 'Open landing page')}</a></span></li>
+      </ul>
+      <h2>{t('版权与授权', 'Copyright')}</h2>
+      <p>© {esc(COPYRIGHT_YEAR)} {esc(COPYRIGHT_HOLDER)}. {t('保留所有权利。', 'All rights reserved.')}</p>
+      <p class="muted">{t('本软件未经作者书面许可，不得复制、修改、分发或用于商业用途。',
+                          'This software may not be copied, modified, distributed or used commercially without written permission from the author.')}</p>
+      <h2>{t('免责声明', 'Disclaimer')}</h2>
+      <div class="disclaimer">
+        <ul>
+          <li>{t('本工具由个人开发，与欧盟委员会、EUDAMED 官方无任何关联，非官方软件。',
+                 'This tool is developed by an individual and is not affiliated with the European Commission or EUDAMED in any way; it is unofficial software.')}</li>
+          <li>{t('工具按「现状」提供，不对生成的 XML 是否完全符合 EUDAMED 要求作任何明示或默示担保。',
+                 'The tool is provided "as is" with no express or implied warranty that the generated XML fully meets EUDAMED requirements.')}</li>
+          <li>{t('数据准确性、完整性与法规合规的最终责任由使用者承担。',
+                 'The user bears final responsibility for data accuracy, completeness and regulatory compliance.')}</li>
+          <li>{t('正式提交前请务必在 EUDAMED 官方 TEST 环境（', 'Always validate in the official EUDAMED ')}<a href="{esc(EUDAMED_PLAYGROUND_URL)}" target="_blank" rel="noopener">Playground</a>{t('）验收。', ' TEST environment before any production submission.')}</li>
+          <li>{t('作者不对因使用或无法使用本工具导致的任何直接或间接损失负责。',
+                 'The author is not liable for any direct or indirect loss arising from the use of, or inability to use, this tool.')}</li>
+        </ul>
+      </div>
+    </section>
+    """
+    return page(t("帮助", "Help"), body, "/help")
+
+
+def update_check_block(check_result: dict | None) -> str:
+    """渲染「检查更新」区块。默认显示当前版本 + 按钮；点击后渲染结果。"""
+    current_label = f'<p class="muted">{esc(t("当前版本", "Current version"))}: <strong>{esc(TOOL_VERSION_LABEL)}</strong></p>'
+    if check_result is None:
+        button = f'<a class="button" href="/check-update">{esc(t("检查更新", "Check for updates"))}</a>'
+        if not RELEASES_API_URL:
+            hint = f'<p class="muted">{esc(t("更新源尚未配置；联系作者获取最新版本。", "Update source not configured yet; contact the author for the latest version."))}</p>'
+        else:
+            hint = f'<p class="muted">{esc(t("点击按钮联网检查最新版本。", "Click the button to check the latest version online."))}</p>'
+        return f'<div class="panel inset">{current_label}{hint}{button}</div>'
+
+    status = check_result.get("status", "error")
+    latest = check_result.get("latest_version", "")
+    page_url = check_result.get("html_url") or RELEASES_PAGE_URL
+    asset = check_result.get("asset_url", "")
+    published = check_result.get("published_at", "")
+    body = check_result.get("body", "")
+    error = check_result.get("error", "")
+
+    if status == "ok":
+        level = "warning"
+        title = t("发现新版本", "New version available")
+        details = t("最新版本", "Latest version") + f": <strong>{esc(latest)}</strong>"
+        if published:
+            details += f' · {esc(t("发布于", "released"))} {esc(display_time(published) or published)}'
+        download_links = []
+        if asset:
+            download_links.append(f'<a class="button primary" href="{esc(asset)}" target="_blank" rel="noopener">{esc(t("下载新版安装包", "Download package"))}</a>')
+        if page_url:
+            download_links.append(f'<a class="button" href="{esc(page_url)}" target="_blank" rel="noopener">{esc(t("打开发布页", "Open release page"))}</a>')
+        notes = ""
+        if body:
+            snippet = body.strip().splitlines()
+            first_lines = "\n".join(snippet[:10])
+            notes = f'<details><summary>{esc(t("查看更新说明", "View release notes"))}</summary><pre class="release-notes">{esc(first_lines)}</pre></details>'
+        return f"""
+        <div class="alert {level}">
+          <strong>{esc(title)}</strong>
+          <p>{details}</p>
+          {''.join(download_links)}
+          {notes}
+        </div>
+        {current_label}
+        """
+    if status == "up_to_date":
+        return f"""
+        <div class="alert success">
+          <strong>{esc(t("已是最新版本", "You are up to date"))}</strong>
+          <p>{esc(t("当前版本", "Current version"))} <strong>{esc(TOOL_VERSION_LABEL)}</strong> {esc(t("等于线上最新", "matches the latest release"))} <strong>{esc(latest)}</strong>.</p>
+        </div>
+        """
+    if status == "unconfigured":
+        return f"""
+        <div class="alert notice">
+          <strong>{esc(t("未配置更新源", "Update source not configured"))}</strong>
+          <p>{esc(t("仓库地址未填，无法联网比对版本。联系作者获取最新版本。", "Repository URL is not set; cannot compare versions online. Contact the author for the latest version."))}</p>
+        </div>
+        {current_label}
+        """
+    if status == "offline":
+        return f"""
+        <div class="alert error">
+          <strong>{esc(t("无法联网检查", "Cannot reach update server"))}</strong>
+          <p class="muted">{esc(error or t("请检查网络后重试。", "Please check your network and try again."))}</p>
+          <a class="button" href="/check-update">{esc(t("重试", "Retry"))}</a>
+        </div>
+        {current_label}
+        """
+    return f"""
+    <div class="alert error">
+      <strong>{esc(t("检查失败", "Update check failed"))}</strong>
+      <p class="muted">{esc(error or t("未知错误", "Unknown error"))}</p>
+      <a class="button" href="/check-update">{esc(t("重试", "Retry"))}</a>
+    </div>
+    {current_label}
+    """
+
+
+def _qr_slot(filename: str, label: str) -> str:
+    if (STATIC_DIR / filename).exists():
+        inner = f'<img class="qr-img" src="/static/{esc(filename)}" alt="{esc(label)}">'
+    else:
+        inner = f'<span class="muted">{t("收款码待补充", "QR code coming soon")}</span>'
+    return f'<article class="card qr-slot"><h3>{esc(label)}</h3>{inner}</article>'
+
+
+def _kofi_slot() -> str:
+    return f"""
+    <article class="card qr-slot">
+      <h3>Ko-fi</h3>
+      <p class="support-copy">{t('海外用户可通过 Ko-fi 支持。', 'International users can support via Ko-fi.')}</p>
+      <a class="button primary kofi-link" href="https://ko-fi.com/charles_fang" target="_blank" rel="noopener">{t('前往 Ko-fi', 'Open Ko-fi')}</a>
+    </article>
+    """
+
+
+def xsd_version_page(report: dict) -> str:
+    status_label = {
+        "ok": t("一致", "Consistent"),
+        "mismatch": t("不一致", "Mismatch"),
+        "unknown": t("无法确认", "Unknown"),
+    }.get(report["status"], t("无法确认", "Unknown"))
+    status_class = f"status {report['status']}"
+    error = f"<p class='muted'>{esc(report['error'])}</p>" if report.get("error") else ""
+    body = f"""
+    <section class="panel narrow">
+      <h1>{t('XSD 版本检查', 'XSD version check')}</h1>
+      <p><span class="{status_class}">{esc(status_label)}</span></p>
+      <div class="table-wrap"><table>
+        <tbody>
+          <tr><th>{t('工具当前版本', 'Tool XSD version')}</th><td>{esc(report.get('tool_version'))}</td></tr>
+          <tr><th>{t('本地官方 XSD 包版本', 'Local official XSD version')}</th><td>{esc(report.get('local_xsd_version') or t('未找到', 'not found'))}</td></tr>
+          <tr><th>{t('官方技术文档页版本', 'Official documentation version')}</th><td>{esc(report.get('official_xsd_version') or t('未识别', 'not detected'))}</td></tr>
+          <tr><th>{t('官方页面', 'Official page')}</th><td><a href="{esc(report.get('official_url'))}">{esc(report.get('official_url'))}</a></td></tr>
+        </tbody>
+      </table></div>
+      {error}
+      <p><a class="button" href="/xsd-version">{t('重新检查', 'Re-check')}</a></p>
+    </section>
+    """
+    return page(t("XSD 版本检查", "XSD version check"), body, "/xsd-version")
+
+
+def xsd_panel(report: dict) -> str:
+    status = report.get("status", "unknown")
+    label = {
+        "ok": t("版本一致", "Version OK"),
+        "mismatch": t("版本不一致", "Version mismatch"),
+        "unknown": t("离线确认", "Offline check"),
+    }.get(status, t("离线确认", "Offline check"))
+    local = report.get("local_xsd_version") or t("未找到", "not found")
+    tool = report.get("tool_version") or ""
+    return f"""
+    <div class="xsd-strip">
+      <span class="status {esc(status)}">{esc(label)}</span>
+      <span>{t('当前支持 EUDAMED XSD', 'Supported EUDAMED XSD')}: <strong>{esc(tool)}</strong></span>
+      <span>{t('本地 XSD', 'Local XSD')}: <strong>{esc(local)}</strong></span>
+      <a href="{esc(TECHNICAL_DOCUMENTATION_URL)}">{t('官方技术文档', 'Official documentation')}</a>
+      <a href="/xsd-version">{t('联网检查', 'Check online')}</a>
+    </div>
+    """
+
+
+def filter_form(action: str, filters: dict, srn_options: list[str] | None = None) -> str:
+    return f"""
+    <form method="get" action="{esc(action)}" class="filters">
+      {filter_controls(filters, srn_options)}
+      <button class="button" type="submit">{t('筛选', 'Filter')}</button>
+    </form>
+    """
+
+
+def filter_controls(filters: dict, srn_options: list[str] | None = None) -> str:
+    placeholder = t("产品名 / Reference / Basic / UDI / 备注", "Product / Reference / Basic / UDI / notes")
+    return f"""
+    <input type="text" name="q" value="{esc(filters.get('query', ''))}" placeholder="{esc(placeholder)}">
+    <select name="state">{state_options(filters.get('state', ''))}</select>
+    <select name="legislation">{legislation_options(filters.get('legislation', ''))}</select>
+    <select name="change_type">{change_options(filters.get('change_type', ''))}</select>
+    <select name="srn">{srn_filter_options(filters.get('srn', ''), srn_options)}</select>
+    """
+
+
+def srn_filter_options(current: str, srn_options: list[str] | None) -> str:
+    parts = [f'<option value=""{" selected" if not current else ""}>{t("全部 Manufacturer SRN", "All Manufacturer SRNs")}</option>']
+    found = False
+    for srn in srn_options or []:
+        selected = " selected" if srn == current else ""
+        if selected:
+            found = True
+        parts.append(f'<option value="{esc(srn)}"{selected}>{esc(srn)}</option>')
+    if current and not found:
+        parts.append(f'<option value="{esc(current)}" selected>{esc(current)}</option>')
+    return "".join(parts)
+
+
+def hidden_filters(filters: dict) -> str:
+    return "".join(
+        f'<input type="hidden" name="{esc(name)}" value="{esc(value)}">'
+        for name, value in {
+            "q": filters.get("query", ""),
+            "state": filters.get("state", ""),
+            "legislation": filters.get("legislation", ""),
+            "change_type": filters.get("change_type", ""),
+            "srn": filters.get("srn", ""),
+        }.items()
+    )
+
+
+def message_block(message: str, level: str = "notice") -> str:
+    return alert_block(message, level)
+
+
+def state_options(current: str) -> str:
+    values = [
+        ("", t("全部状态", "All states")),
+        ("draft", t("草稿", "Draft")),
+        ("xml_generated", t("XML 已生成", "XML generated")),
+        ("pending_update", t("待更新", "Pending update")),
+        ("submitted", t("已提交", "Submitted")),
+    ]
+    return "".join(
+        f'<option value="{value}"{" selected" if value == current else ""}>{label}</option>'
+        for value, label in values
+    )
+
+
+def state_select(current: str) -> str:
+    values = [
+        ("draft", t("草稿", "Draft")),
+        ("xml_generated", t("XML 已生成", "XML generated")),
+        ("pending_update", t("待更新", "Pending update")),
+        ("submitted", t("已提交", "Submitted")),
+    ]
+    options = "".join(
+        f'<option value="{value}"{" selected" if value == current else ""}>{label}</option>'
+        for value, label in values
+    )
+    return f'<select name="state">{options}</select>'
+
+
+def legislation_options(current: str) -> str:
+    values = [("", t("全部法规", "All legislation")), ("MDR", "MDR"), ("MDD", "MDD"), ("AIMDD", "AIMDD"), ("IVDR", "IVDR"), ("IVDD", "IVDD")]
+    return "".join(
+        f'<option value="{value}"{" selected" if value == current else ""}>{label}</option>'
+        for value, label in values
+    )
+
+
+def change_options(current: str) -> str:
+    values = [
+        ("", t("全部变化", "All changes")),
+        ("created", t("新增", "Created")),
+        ("updated", t("已更新", "Updated")),
+        ("unchanged", t("未变化", "Unchanged")),
+        ("existing", t("历史数据", "Existing")),
+    ]
+    return "".join(
+        f'<option value="{value}"{" selected" if value == current else ""}>{label}</option>'
+        for value, label in values
+    )
+
+
+def service_options(current: str) -> str:
+    parts = [
+        f'<option value=""{" selected" if not current else ""}>{t("— 请选择 service —", "— Choose a service —")}</option>'
+    ]
+    parts.extend(
+        f'<option value="{key}"{" selected" if key == current else ""}>{esc(label)}</option>'
+        for key, label in SERVICE_LABELS.items()
+    )
+    return "".join(parts)
+
+
+def state_badge(state: str) -> str:
+    labels = {
+        "draft": t("草稿", "Draft"),
+        "xml_generated": t("XML 已生成", "XML generated"),
+        "pending_update": t("待更新", "Pending update"),
+        "submitted": t("已提交", "Submitted"),
+    }
+    return f'<span class="badge state-{esc(state)}">{esc(labels.get(state, state))}</span>'
+
+
+def change_badge(action: str | None) -> str:
+    labels = {
+        "created": t("新增", "Created"),
+        "updated": t("已更新", "Updated"),
+        "unchanged": t("未变化", "Unchanged"),
+        "existing": t("历史数据", "Existing"),
+    }
+    key = action or "existing"
+    return f'<span class="badge change-{esc(key)}">{esc(labels.get(key, key))}</span>'
+
+
+def _entity_label(entity_type: str | None) -> str:
+    return "Basic" if entity_type == "basic" else "UDI-DI"
+
+
+def _product_name(item: dict) -> str:
+    payload = item.get("payload") or {}
+    basic_payload = item.get("basic_payload") or {}
+    return (
+        payload.get("Trade Name")
+        or basic_payload.get("Device Name/Model")
+        or basic_payload.get("Device Model")
+        or payload.get("Reference Number")
+        or ""
+    )
+
+
+def filter_query(filters: dict) -> str:
+    return urlencode(
+        {
+            "q": filters.get("query", ""),
+            "state": filters.get("state", ""),
+            "legislation": filters.get("legislation", ""),
+            "change_type": filters.get("change_type", ""),
+            "srn": filters.get("srn", ""),
+        }
+    )
