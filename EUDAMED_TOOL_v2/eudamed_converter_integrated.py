@@ -281,7 +281,7 @@ def main():
                        help='上传服务类型：DEVICE/POST（默认）或 UDI_DI/POST')
     # 新增参数：XSD版本号
     parser.add_argument('--schema-version', default='3.0.25',
-                       help='XML XSD版本号，例如3.0.25或3.0.28')
+                       help='XML XSD版本号，例如3.0.25或3.0.30')
     
     args = parser.parse_args()
     

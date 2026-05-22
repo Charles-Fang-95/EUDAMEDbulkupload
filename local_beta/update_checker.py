@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import platform
 import urllib.error
 import urllib.request
 
@@ -18,11 +19,13 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
       status: "ok"          有新版本可下载
               "up_to_date"  本地已是最新
               "unconfigured" RELEASES_API_URL 留空
+              "no_release"   仓库存在但尚未发布 GitHub Release
               "offline"     联网失败 / 超时
               "error"       JSON 解析或字段缺失
       latest_version: 远端语义化版本（去掉前缀 v）
       html_url: 用户可点开看 release 的页面
       asset_url: 第一个 asset 的下载直链（可能为空）
+      assets: release 中所有 asset 的 name/url/size 列表
       published_at: ISO 时间串
       body: release notes 全文（裁剪由调用方决定）
       error: 失败时的简要描述
@@ -32,6 +35,7 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
         "latest_version": "",
         "html_url": "",
         "asset_url": "",
+        "assets": [],
         "published_at": "",
         "body": "",
         "error": "",
@@ -46,6 +50,14 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
         )
         with urllib.request.urlopen(request, timeout=timeout) as response:
             payload = json.loads(response.read().decode("utf-8", errors="ignore"))
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            result["status"] = "no_release"
+            result["error"] = "GitHub 仓库尚未发布 Release。"
+        else:
+            result["status"] = "error"
+            result["error"] = f"GitHub API HTTP {exc.code}: {exc.reason}"
+        return result
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         result["status"] = "offline"
         result["error"] = str(exc)
@@ -66,13 +78,57 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
     result["html_url"] = str(payload.get("html_url") or "")
     result["published_at"] = str(payload.get("published_at") or "")
     result["body"] = str(payload.get("body") or "")
-    assets = payload.get("assets") or []
-    if assets and isinstance(assets, list):
-        first = assets[0] or {}
-        result["asset_url"] = str(first.get("browser_download_url") or "")
+    raw_assets = payload.get("assets") or []
+    assets = _release_assets(raw_assets)
+    result["assets"] = assets
+    preferred = _preferred_asset(assets)
+    if preferred:
+        result["asset_url"] = preferred.get("url", "")
 
     result["status"] = "ok" if compare_versions(current_version, latest) < 0 else "up_to_date"
     return result
+
+
+def _release_assets(raw_assets) -> list[dict]:
+    if not isinstance(raw_assets, list):
+        return []
+    assets = []
+    for item in raw_assets:
+        if not isinstance(item, dict):
+            continue
+        url = str(item.get("browser_download_url") or "")
+        name = str(item.get("name") or "")
+        if not url or not name:
+            continue
+        assets.append(
+            {
+                "name": name,
+                "url": url,
+                "size": item.get("size") or 0,
+                "content_type": str(item.get("content_type") or ""),
+            }
+        )
+    return assets
+
+
+def _preferred_asset(assets: list[dict]) -> dict:
+    if not assets:
+        return {}
+    system = platform.system().lower()
+    if system == "windows":
+        keywords = ("windows", "win", ".exe")
+    elif system == "darwin":
+        keywords = ("macos", "mac", ".dmg", ".pkg", ".app")
+    else:
+        keywords = ("linux",)
+
+    def score(asset: dict) -> tuple[int, int]:
+        name = str(asset.get("name") or "").lower()
+        platform_score = 1 if any(keyword in name for keyword in keywords) else 0
+        package_score = 1 if name.endswith((".zip", ".exe", ".dmg", ".pkg")) else 0
+        return (platform_score, package_score)
+
+    return max(assets, key=score)
 
 
 def compare_versions(a: str, b: str) -> int:

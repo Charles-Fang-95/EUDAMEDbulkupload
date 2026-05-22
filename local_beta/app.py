@@ -21,6 +21,7 @@ from .constants import (
 from .exporter import BetaXMLExporter
 from .importer import WorkbookImporter, parse_json_array
 from .storage import Repository
+from .template_migrator import migrate_workbook
 from .update_checker import check_latest_release
 from .views import (
     basic_detail,
@@ -30,6 +31,7 @@ from .views import (
     history_page,
     import_page,
     library_page,
+    migrate_template_page,
     page,
     set_lang,
     t,
@@ -120,6 +122,10 @@ class App:
             return self.respond_html(request, import_page())
         if request.command == "POST" and path == "/import":
             return self.handle_import(request)
+        if request.command == "GET" and path == "/migrate-template":
+            return self.respond_html(request, migrate_template_page())
+        if request.command == "POST" and path == "/migrate-template":
+            return self.handle_migrate_template(request)
         if request.command == "GET" and path == "/library":
             filters = self._filters_from_query(query)
             records = self.repository.list_udis(**filters)
@@ -218,6 +224,27 @@ class App:
         if error_count:
             return self.respond_html(request, import_page(t("导入完成，但发现错误，请先处理后再导出。", "Import finished, but errors were found — please fix them before exporting."), result, "warning"))
         return self.respond_html(request, import_page(t("导入完成。", "Import finished."), result, "success"))
+
+    def handle_migrate_template(self, request: BaseHTTPRequestHandler):
+        body = self.read_body(request)
+        _, files = parse_multipart(request.headers, body)
+        file_part = files.get("workbook")
+        if not file_part:
+            return self.respond_html(
+                request,
+                migrate_template_page(t("请选择一个 Excel 文件。", "Please choose an Excel file."), message_level="error"),
+                HTTPStatus.BAD_REQUEST,
+            )
+        upload_path = UPLOAD_DIR / Path(file_part["filename"]).name
+        upload_path.write_bytes(file_part["content"])
+        result = migrate_workbook(upload_path, EXPORT_DIR)
+        if not result.get("ok"):
+            message = "；".join(result.get("errors") or [t("迁移失败。", "Migration failed.")])
+            return self.respond_html(request, migrate_template_page(message, result, "error"), HTTPStatus.BAD_REQUEST)
+        warnings = result.get("warnings") or []
+        if warnings:
+            return self.respond_html(request, migrate_template_page(t("迁移完成，但需要检查提示。", "Migration finished, but warnings need review."), result, "warning"))
+        return self.respond_html(request, migrate_template_page(t("迁移完成。", "Migration finished."), result, "success"))
 
     def handle_basic_update(self, request: BaseHTTPRequestHandler, record_id: int):
         record = self.repository.get_basic(record_id)
@@ -391,6 +418,8 @@ class App:
             return "text/csv; charset=utf-8"
         if suffix == ".html":
             return "text/html; charset=utf-8"
+        if suffix == ".xlsx":
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         return "application/xml; charset=utf-8"
 
     def read_form(self, request: BaseHTTPRequestHandler):

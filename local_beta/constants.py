@@ -33,9 +33,9 @@ BULK_UPLOAD_LIMIT_SOURCE = (
 
 # 工具自身版本与最近更新日期（页脚展示，由维护者更新）
 # TOOL_VERSION 是语义化版本号，用于「检查更新」比对；TOOL_VERSION_LABEL 给人看，可带中文修饰。
-TOOL_VERSION = "0.4.1"
-TOOL_VERSION_LABEL = "0.4.1 · 内测版"
-TOOL_UPDATED = "2026-05-21"
+TOOL_VERSION = "0.4.2"
+TOOL_VERSION_LABEL = "0.4.2 · 内测版"
+TOOL_UPDATED = "2026-05-22"
 
 # 检查更新：GitHub Releases API + 人类页面入口；留空时帮助页显示「未配置更新源」。
 RELEASES_API_URL = "https://api.github.com/repos/Charles-Fang-95/EUDAMEDbulkupload/releases/latest"

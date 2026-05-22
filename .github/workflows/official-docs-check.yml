@@ -1,0 +1,90 @@
+name: Official EUDAMED Docs Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 1"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-official-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check official EUDAMED documentation
+        run: python3 scripts/check_official_updates.py --output-dir official-update-report
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-update-report
+          path: official-update-report
+
+      - name: Create or update issue when official docs changed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summaryPath = 'official-update-report/official_update_report.json';
+            if (!fs.existsSync(summaryPath)) {
+              core.warning('No official_update_report.json was generated.');
+              return;
+            }
+            const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+            if (!summary.changed) {
+              core.info('No official documentation changes detected.');
+              return;
+            }
+            const title = 'EUDAMED official documentation update detected';
+            const bodyPath = 'official-update-report/official_update_report.md';
+            const body = fs.existsSync(bodyPath)
+              ? fs.readFileSync(bodyPath, 'utf8')
+              : 'Official EUDAMED documentation changed. Please review the workflow artifact.';
+            for (const label of [
+              { name: 'official-docs', color: '0E8A16', description: 'Official EUDAMED documentation monitoring' },
+              { name: 'needs-review', color: 'FBCA04', description: 'Requires manual review' },
+            ]) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label,
+                });
+              } catch (error) {
+                if (error.status !== 422) throw error;
+              }
+            }
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'official-docs',
+              per_page: 20,
+            });
+            const issue = existing.data.find(item => item.title === title);
+            if (issue) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['official-docs', 'needs-review'],
+              });
+            }

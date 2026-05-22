@@ -2,6 +2,15 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.4.2 - 2026-05-22
+
+- 修正 GitHub Releases API 返回 404 时的提示：显示“仓库尚未发布版本”，不再误判为断网。
+- 更新 template 特殊下拉值说明：`ANY` language、`CW999`、`SHC099`、`EL`、`EUDAMED`、`IFA`。
+- 标注当前收集但尚未输出 XML 的复杂字段，避免用户误以为填写后一定提交到 EUDAMED。
+- 新增 GitHub Actions 官方文档/XSD 更新监控脚本，发现官方资料变化时生成报告并创建 issue。
+- 新增 Data Dictionary 字段映射审计报告，作为后续补充 XML 字段输出的依据。
+- 新增网页端“迁移模板”工具：把旧版/已填写的 EUDAMED template 搬到当前 v2.4 模板，并生成 Migration Report。
+
 ## 0.4.1 - 2026-05-21
 
 - 更新 Trade Name 语言规则：`UDI - Trade Name Language` 和 `Trade Names` sheet 的 `Language` 下拉允许 `ANY`，符合官方 `LanguageEnum`。

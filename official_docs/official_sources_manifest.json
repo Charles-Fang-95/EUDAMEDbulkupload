@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-05-22",
+  "expected_xsd_version": "3.0.30",
+  "sources": {
+    "xsd_schemas": {
+      "label": "XSD schemas.zip",
+      "local_path": "official_docs/XSD_schemas_production_3.0.30.zip",
+      "sha256": "e3c7621a69340b1ad01d375994a6df6a131073626e2a4ae01048e0ffa04b1c3b",
+      "size": 133565
+    },
+    "data_dictionary": {
+      "label": "UDI Devices - data dictionary.xlsx",
+      "local_path": "official_docs/UDI_Devices_data_dictionary.xlsx",
+      "sha256": "5a9fb37b618c173e2b097c1ac4d78213a33b9d1f74cae3d47bad1190ac3d7bb0",
+      "size": 137871
+    },
+    "business_rules": {
+      "label": "UDI Devices - business rules.pdf",
+      "local_path": "official_docs/UDI_Devices_business_rules.pdf",
+      "sha256": "344fd158c2bc3a51b5a122e155bd01e12c2018eb7daa32a5512d5edd63ad9526",
+      "size": 822918
+    },
+    "services_definition": {
+      "label": "DTX for EOs - services definition.pdf",
+      "local_path": "official_docs/DTX_for_EOs_services_definition.pdf",
+      "sha256": "1f66c9819a63203711c9cc2a39d30ea379927b65e4c6f304694d7b9fba65de0f",
+      "size": 947381
+    }
+  },
+  "enum_baseline": {
+    "language_count": 28,
+    "country_count": 32,
+    "issuing_entity_count": 5,
+    "storage_condition_count": 33,
+    "critical_warning_count": 423
+  }
+}

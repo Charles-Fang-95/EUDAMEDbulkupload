@@ -30,8 +30,8 @@
 
 1. 打开仓库页面，进入 `Releases`。
 2. 点击 `Draft a new release`。
-3. 创建 tag，例如 `v0.4.1`。tag 需要和 `TOOL_VERSION` 对齐。
-4. Release title 写 `v0.4.1 - 内测版`。
+3. 创建 tag，例如 `v0.4.2`。tag 需要和 `TOOL_VERSION` 对齐。
+4. Release title 写 `v0.4.2 - 内测版`。
 5. Release notes 粘贴 `CHANGELOG.md` 中对应版本的内容。
 6. 上传二进制附件，例如：
    - `EUDAMED_Local_Beta_Windows.zip`
@@ -39,6 +39,15 @@
    - `EUDAMED_Template_v2.4.xlsx`（可选，方便用户单独下载模板）
 7. 内测阶段可勾选 `Set as a pre-release`；稳定后取消。
 8. 发布后确认 Release 页面能看到附件下载链接。
+
+建议附件命名保持稳定。GitHub 支持 latest release 固定下载地址：
+
+```text
+https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest
+https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest/download/EUDAMED_Local_Beta_Windows.zip
+```
+
+如果每次 Windows 包都叫 `EUDAMED_Local_Beta_Windows.zip`，这个直链不会随版本号变化，适合发给非技术用户。
 
 ## 4. 配置工具内“检查更新”
 
@@ -50,6 +59,10 @@ RELEASES_PAGE_URL = "https://github.com/<你的账号>/<仓库名>/releases"
 ```
 
 工具会读取 latest release 的 `tag_name`，与本地 `TOOL_VERSION` 比较；如有新版本，会在帮助页显示下载/发布页入口。
+
+如果 Release 上传了多个附件，帮助页会列出全部附件，并优先高亮当前系统更可能需要的安装包。Windows 用户通常应下载 `EUDAMED_Local_Beta_Windows.zip`。
+
+如果仓库还没有任何 GitHub Release，帮助页会显示“仓库尚未发布版本”。这不是断网；需要先创建 tag + Release + 上传 ZIP，检查更新才会变成可用。
 
 ## 5. 中国大陆下载风险
 
@@ -68,5 +81,13 @@ GitHub Releases 可以直接分发，但中国大陆网络访问 GitHub、GitHub
 
 - 默认数据目录：程序旁边的 `local_beta_data/`
 - 如使用环境变量：`EUDAMED_DATA_DIR`
+
+推荐给用户的升级说明：
+
+1. 打开工具的帮助页，点击“检查更新”。
+2. 如果提示有新版本，下载 `EUDAMED_Local_Beta_Windows.zip`。
+3. 关闭当前工具。
+4. 解压新版 ZIP 到新目录，或覆盖原程序目录；不要删除 `local_beta_data/`。
+5. 启动新版工具，确认帮助页版本号已更新。
 
 生成 XML 不等于 EUDAMED 上传成功；升级工具不会自动改变本地记录的提交状态。

@@ -231,6 +231,7 @@ def page(title: str, body: str, active_path: str = "") -> str:
     ]
     secondary_items = [
         ("/xsd-version", t("XSD 版本", "XSD Version")),
+        ("/migrate-template", t("迁移模板", "Migrate Template")),
         ("/download-template", t("下载模板", "Download Template")),
         ("/help", t("帮助", "Help")),
     ]
@@ -465,6 +466,59 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
     {details}
     """
     return page(t("导入 Excel", "Import Excel"), body, "/import")
+
+
+def migrate_template_page(message: str = "", result: dict | None = None, message_level: str = "notice") -> str:
+    alert = alert_block(message, message_level)
+    result_html = ""
+    if result:
+        report = result.get("report") or {}
+        copied = report.get("copied_rows") or {}
+        unmapped = report.get("unmapped_headers") or {}
+        copied_rows = "".join(
+            f"<tr><td>{esc(sheet)}</td><td>{esc(count)}</td></tr>"
+            for sheet, count in sorted(copied.items())
+        ) or f"<tr><td colspan='2'>{t('没有自动搬迁的数据行', 'No rows were automatically migrated')}</td></tr>"
+        unmapped_rows = "".join(
+            f"<tr><td>{esc(sheet)}</td><td>{esc(', '.join(headers))}</td></tr>"
+            for sheet, headers in sorted(unmapped.items())
+            if headers
+        ) or f"<tr><td colspan='2'>{t('无', 'None')}</td></tr>"
+        download = ""
+        if result.get("output_filename"):
+            download = f'<p><a class="button primary" href="/download/{esc(result["output_filename"])}">{t("下载迁移后的新版模板", "Download migrated current template")}</a></p>'
+        result_html = f"""
+        <section class="panel">
+          <h2>{t('迁移结果', 'Migration result')}</h2>
+          {download}
+          <p class="muted">{t('识别模式', 'Detected mode')}: {esc(report.get('mode', ''))}</p>
+          <div class="grid columns">
+            <article>
+              <h3>{t('已搬迁行数', 'Migrated rows')}</h3>
+              <div class="table-wrap"><table><thead><tr><th>Sheet</th><th>{t('行数', 'Rows')}</th></tr></thead><tbody>{copied_rows}</tbody></table></div>
+            </article>
+            <article>
+              <h3>{t('未自动映射字段', 'Unmapped source headers')}</h3>
+              <div class="table-wrap"><table><thead><tr><th>Sheet</th><th>{t('字段', 'Headers')}</th></tr></thead><tbody>{unmapped_rows}</tbody></table></div>
+            </article>
+          </div>
+          <p class="muted">{t('迁移工具只复制能明确匹配的字段；客户自定义字段不会被猜测映射。下载后请先检查 Migration Report sheet，再导入系统。', 'The migrator copies only clearly matched fields. Custom customer columns are not guessed. Check the Migration Report sheet before importing the result.')}</p>
+        </section>
+        """
+    body = f"""
+    <section class="panel narrow">
+      <h1>{t('迁移到当前模板', 'Migrate to current template')}</h1>
+      <p>{t('用于把旧版 EUDAMED template 或客户已填写的 v2.4 文件搬到当前最新版 v2.4 模板，保留数据并更新说明、下拉和帮助页。', 'Use this to move an older EUDAMED template or a filled v2.4 workbook into the latest current v2.4 template, preserving data while refreshing notes, validations and help sheets.')}</p>
+      <p class="muted">{t('支持 .xlsx。旧 .xls 请先用 Excel/WPS 另存为 .xlsx。完全自定义客户清单会生成映射报告，但不会强行猜字段。', 'Supports .xlsx. Save old .xls files as .xlsx first in Excel/WPS. Fully custom customer lists produce a mapping report, but fields are not guessed.')}</p>
+      {alert}
+      <form action="/migrate-template" method="post" enctype="multipart/form-data" class="stack">
+        <input type="file" name="workbook" accept=".xlsx" required>
+        <button class="button primary" type="submit">{t('生成新版模板', 'Generate current template')}</button>
+      </form>
+    </section>
+    {result_html}
+    """
+    return page(t("迁移模板", "Migrate Template"), body, "/migrate-template")
 
 
 def _import_change_row(item: dict) -> str:
@@ -938,6 +992,7 @@ def update_check_block(check_result: dict | None) -> str:
     latest = check_result.get("latest_version", "")
     page_url = check_result.get("html_url") or RELEASES_PAGE_URL
     asset = check_result.get("asset_url", "")
+    assets = check_result.get("assets") or []
     published = check_result.get("published_at", "")
     body = check_result.get("body", "")
     error = check_result.get("error", "")
@@ -948,8 +1003,8 @@ def update_check_block(check_result: dict | None) -> str:
         details = t("最新版本", "Latest version") + f": <strong>{esc(latest)}</strong>"
         if published:
             details += f' · {esc(t("发布于", "released"))} {esc(display_time(published) or published)}'
-        download_links = []
-        if asset:
+        download_links = _release_download_links(assets, asset)
+        if not download_links and asset:
             download_links.append(f'<a class="button primary" href="{esc(asset)}" target="_blank" rel="noopener">{esc(t("下载新版安装包", "Download package"))}</a>')
         if page_url:
             download_links.append(f'<a class="button" href="{esc(page_url)}" target="_blank" rel="noopener">{esc(t("打开发布页", "Open release page"))}</a>')
@@ -982,6 +1037,18 @@ def update_check_block(check_result: dict | None) -> str:
         </div>
         {current_label}
         """
+    if status == "no_release":
+        link = ""
+        if page_url:
+            link = f'<a class="button" href="{esc(page_url)}" target="_blank" rel="noopener">{esc(t("打开发布页", "Open releases page"))}</a>'
+        return f"""
+        <div class="alert notice">
+          <strong>{esc(t("仓库尚未发布版本", "No release has been published yet"))}</strong>
+          <p>{esc(t("GitHub 仓库已配置，但还没有创建 tag + Release + 上传 ZIP；第一次发布完成后，用户才能在这里检查更新。", "The GitHub repository is configured, but no tag + Release + ZIP asset has been published yet. Users can check updates here after the first release is published."))}</p>
+          {link}
+        </div>
+        {current_label}
+        """
     if status == "offline":
         return f"""
         <div class="alert error">
@@ -999,6 +1066,34 @@ def update_check_block(check_result: dict | None) -> str:
     </div>
     {current_label}
     """
+
+
+def _release_download_links(assets: list[dict], preferred_url: str) -> list[str]:
+    links = []
+    for item in assets[:8]:
+        url = item.get("url", "")
+        name = item.get("name", "") or t("下载附件", "Download asset")
+        size = _format_size(item.get("size", 0))
+        label = f"{name} ({size})" if size else name
+        klass = "button primary" if url == preferred_url else "button"
+        links.append(f'<a class="{klass}" href="{esc(url)}" target="_blank" rel="noopener">{esc(label)}</a>')
+    return links
+
+
+def _format_size(size) -> str:
+    try:
+        value = int(size)
+    except (TypeError, ValueError):
+        return ""
+    if value <= 0:
+        return ""
+    units = ["B", "KB", "MB", "GB"]
+    amount = float(value)
+    for unit in units:
+        if amount < 1024 or unit == units[-1]:
+            return f"{amount:.1f} {unit}" if unit != "B" else f"{int(amount)} B"
+        amount /= 1024
+    return ""
 
 
 def _qr_slot(filename: str, label: str) -> str:

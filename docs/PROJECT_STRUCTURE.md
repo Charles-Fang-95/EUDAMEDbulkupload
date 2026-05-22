@@ -35,7 +35,7 @@
 | `official_docs/DTX_for_EOs_services_definition.pdf` | DTX service definition |
 | `official_docs/EOs_XML_samples.zip` | 官方 XML samples |
 
-当前工具声明和本地 XSD 版本应保持 `3.0.28`。
+当前工具声明和本地 XSD 版本应保持 `3.0.30`。
 
 ## 4. 测试样例区
 
@@ -72,3 +72,46 @@
 - 官方 XSD 版本说明
 
 不应让普通用户直接接触 `local_beta/`、`EUDAMED_TOOL_v2/`、`official_docs/unpacked/` 这些内部目录。
+
+> 面向用户的简介、下载、更新、使用说明已统一放到根目录 [`README.md`](../README.md)；本文件只保留维护者视角。
+
+## 7. Windows 测试包
+
+macOS 不能可靠直接生成 Windows `.exe`。要给企业发 Windows 内测包，请在 Windows 10/11 或 Windows 虚拟机中运行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\packaging\windows\build_windows_exe.ps1
+```
+
+生成结果在 `dist\EUDAMED_Local_Beta_Windows.zip`。发送 ZIP，不要只发送单个 `.exe`。
+
+## 8. EUDAMED XSD 更新处理
+
+EUDAMED 官方会随平台版本更新 XSD。工具导出 XML 时会读取本地 `official_docs/unpacked/xsd_production/service/Message/MessageType.xsd` 里的 fixed version，而不只依赖代码常量。更新流程：
+
+1. 从 EUDAMED Technical documentation 下载最新 `XSD schemas.zip`。
+2. 替换 `official_docs/XSD_schemas_production.zip`，并解压覆盖 `official_docs/unpacked/xsd_production/`。
+3. 运行 `python3 -m local_beta.build_unified_template` 重新生成模板枚举下拉。
+4. 运行 `python3 -m compileall local_beta`。
+5. 用样例导出 XML，并用新版 `official_docs/unpacked/xsd_production/service/Message.xsd` 校验。
+6. 更新 `local_beta/constants.py` 的 `SCHEMA_VERSION` / `TOOL_VERSION` / `TOOL_UPDATED` 与 `CHANGELOG.md`，重建 Windows/Mac 包发给用户；已发出的包不会自动获得新 XSD。
+
+发包与「检查更新」配置详见 [`GITHUB_RELEASE_PROCESS.md`](GITHUB_RELEASE_PROCESS.md)。
+
+## 9. 不要随意删除
+
+- `local_beta/`
+- `run_local_beta.py`
+- `EUDAMED_Template_v2.4.xlsx`
+- `EUDAMED_TOOL_v2/lib/`、`EUDAMED_TOOL_v2/validator.py`
+- `official_docs/unpacked/`、`official_docs/XSD_schemas_production.zip`
+- `local_beta_data/eudamed_beta.db`（用户数据，删除即清空本地库）
+
+## 10. 可归档但不影响核心运行
+
+- 根目录与 `EUDAMED_TOOL_v2/` 下的历史 `eudamed_report_*.html/json`
+- 旧模板：`EUDAMED_Template_v2.3.xlsx`、`EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2*.xlsx`
+- `__pycache__/`、`.DS_Store`
+
+归档前先复制到外部备份目录，不要直接删除客户原始样例。

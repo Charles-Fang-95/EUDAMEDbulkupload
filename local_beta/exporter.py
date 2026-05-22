@@ -365,9 +365,13 @@ class BetaXMLExporter:
         device_groups = []
         for basic_code in sorted(grouped):
             rows = grouped[basic_code]
-            first_chunk = rows[:BULK_UPLOAD_ENTITY_LIMIT]
+            # 官方 DTX: 一个 Device = [1..1] BasicUDI + [1..1] UDIDIData，且同一个 Basic 在一次
+            # DEVICE.POST 里只能创建一次。因此每个 Basic 只把【第 1 个】UDI-DI 放进 DEVICE.POST
+            # （随 Basic 一起创建），该 Basic 其余所有 UDI-DI 一律走 UDI_DI.POST（与数量无关），
+            # 否则重复的 Basic 会被 EUDAMED 拒为 "already exists"。
+            first_chunk = rows[:1]
             device_groups.append((basic_code, first_chunk))
-            for chunk in self._chunks(rows[BULK_UPLOAD_ENTITY_LIMIT:], BULK_UPLOAD_ENTITY_LIMIT):
+            for chunk in self._chunks(rows[1:], BULK_UPLOAD_ENTITY_LIMIT):
                 udi_post_batches.append(
                     self._batch(
                         sequence=0,
