@@ -79,10 +79,19 @@ jobs:
 
       - name: Extract release notes from CHANGELOG
         shell: bash
+        env:
+          V: ${{ steps.ver.outputs.version }}
+          PYTHONIOENCODING: utf-8  # Windows runner stdout 默认是 cp1252，遇到 CHANGELOG 中文会崩
         run: |
           set -euo pipefail
           python - <<'PY'
-          import re, os
+          import os, re, sys
+          # 双保险：强制 stdout/stderr 走 utf-8
+          try:
+              sys.stdout.reconfigure(encoding="utf-8")
+              sys.stderr.reconfigure(encoding="utf-8")
+          except Exception:
+              pass
           version = os.environ["V"]
           text = open("CHANGELOG.md", encoding="utf-8").read()
           # 抓取 `## <version> ...` 这一节，直到下一个 `## ` 或文档结束
@@ -93,16 +102,19 @@ jobs:
               raise SystemExit(f"未在 CHANGELOG.md 抓到 {version} 章节")
           with open("release_notes.md", "w", encoding="utf-8") as f:
               f.write(body + "\n")
-          print(body)
+          # 不要 print 中文到 stdout：Windows runner 默认 cp1252，即使设了 PYTHONIOENCODING
+          # 也避免再踩同样的坑。release_notes.md 后续会被 gh release 用上。
+          print(f"OK: wrote release_notes.md ({len(body)} chars) for version {version}")
           PY
-        env:
-          V: ${{ steps.ver.outputs.version }}
 
-      - name: Install PyInstaller
+      - name: Install build dependencies
         shell: powershell
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pyinstaller
+          # PyInstaller 在构建期对源码做静态导入分析；若 openpyxl 不在 site-packages，
+          # importer.py 的 `import openpyxl` 会被识别为 missing module，frozen exe 启动即崩。
+          # vendored 的 EUDAMED_TOOL_v2/lib 通过 --add-data 打入用于运行时回退，这里仍需 pip 装供分析阶段使用。
+          python -m pip install pyinstaller openpyxl et_xmlfile
 
       - name: Build Windows package
         shell: powershell
