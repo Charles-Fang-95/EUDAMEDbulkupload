@@ -30,6 +30,7 @@ RELATED_SHEET_ALIASES = {
     "Storage Conditions": ["Storage Conditions"],
     "CMR Substances": ["CMR Substances"],
     "Trade Names": ["Trade Names"],
+    "Device Certificates": ["Device Certificates"],
 }
 
 PACKAGE_HEADER_ALIASES = {

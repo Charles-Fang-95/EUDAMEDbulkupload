@@ -9,6 +9,7 @@ COMMON_DEVICE_XSD = XSD_BASE / "Device" / "CommonDeviceType.xsd"
 COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
+LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
 
 
 def _col(
@@ -135,6 +136,42 @@ def _xsd_issuing_entity_values() -> list[str]:
     return ordered
 
 
+_CERTIFICATE_TYPE_FALLBACK = [
+    "IVDR_PRODUCTION_QUALITY_ASSURANCE",
+    "IVDR_QUALITY_MANAGEMENT_SYSTEM",
+    "IVDR_TECHNICAL_DOCUMENTATION",
+    "IVDR_TYPE_EXAMINATION",
+    "MDR_PRODUCT_VERIFICATION",
+    "MDR_QUALITY_ASSURANCE",
+    "MDR_QUALITY_MANAGEMENT_SYSTEM",
+    "MDR_TECHNICAL_DOCUMENTATION",
+    "MDR_TYPE_EXAMINATION",
+    "MDD_II_EX_4",
+    "MDD_II_4",
+    "MDD_III",
+    "MDD_IV",
+    "MDD_V",
+    "MDD_VI",
+    "AIMDD_II_EX_4",
+    "AIMDD_II_4",
+    "AIMDD_III",
+    "AIMDD_IV",
+    "AIMDD_V",
+    "IVDD_III_6",
+    "IVDD_IV_EX_4_6",
+    "IVDD_IV_4",
+    "IVDD_IV_6",
+    "IVDD_V",
+    "IVDD_VI",
+    "IVDD_VII_EX_5",
+    "IVDD_VII_5",
+]
+
+
+def _certificate_type_values() -> list[str]:
+    return _xsd_simple_enum(LINK_XSD, "GenericCertificateTypeEnum") or list(_CERTIFICATE_TYPE_FALLBACK)
+
+
 MAIN_COLUMNS = [
     _col("Meta", "Local - Record ID", "meta", "record_id", False, None, "用户自定义行号或内部编码，仅供本地追踪。", "ROW-001", "自由文本"),
     _col("Meta", "Basic - Current Version", "meta", "basic_version", False, None, "更新 Basic_UDI.PATCH 时填写 EUDAMED 当前版本号；新上传留空。", "", "数字或文本"),
@@ -169,7 +206,6 @@ MAIN_COLUMNS = [
     _col("Basic", "Basic - Reagent", "basic", "Reagent", False, "boolean", "IVDR 下是否为试剂。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Presence of Medicinal Substance", "basic", "Presence of Medicinal Substance", False, "boolean", "待审计字段：当前 XML 不单独输出；目前导出的是 Basic - Medicinal Product Device。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Basic", "Basic - Is Suture/Staple/Filling/Brace (IIb Implant)", "basic", "Is Suture/Staple/Filling/Brace (IIb Implant)", False, None, "IIb 植入物特殊情形。仅适用时填写 TRUE/FALSE。", "", "文本 / TRUE / FALSE", "mdr_mdd"),
-    _col("Basic", "Basic - Certificate Number", "basic", "Certificate Number", False, None, "证书编号本身不足以生成官方 certificate link；当前 XML 暂不输出，待字段映射审计后再实现。", "", "文本"),
     _col("Meta", "UDI - Current Version", "meta", "udi_version", False, None, "更新 UDI_DI.PATCH 时填写 EUDAMED 当前版本号；新上传留空。", "", "数字或文本"),
     _col("UDI", "UDI - UDI-DI Code*", "udi", "UDI-DI Code", True, None, "具体 UDI-DI 的唯一代码。", "06942495390010", "8-50 位字母数字"),
     _col("UDI", "UDI - UDI-DI Issuing Entity*", "udi", "UDI-DI Issuing Entity", True, "issuing_entity", "UDI-DI 签发机构。普通 UDI 通常按实际发码机构选择 GS1/HIBCC/ICCBBA/IFA；EUDAMED 通常用于 EUDAMED DI 等 legacy 场景。", "GS1", "下拉选择"),
@@ -277,6 +313,17 @@ RELATED_SHEETS = OrderedDict(
                 _related_col("Substance Name", "Substance Name", False, None, "物质名称。", "Formaldehyde", "文本"),
             ],
         },
+        "Device Certificates": {
+            "target": "Device Certificates",
+            "columns": [
+                _related_col("Basic UDI-DI Code*", "Basic UDI-DI Code", True, None, "关联主表中的 Basic UDI-DI Code。需要 NB validation / product certificate 覆盖的 Basic UDI-DI 填写。", "BASIC001234", "文本"),
+                _related_col("Certificate Type*", "Certificate Type", True, "certificate_type", "官方 GenericCertificateTypeEnum，例如 MDR_TYPE_EXAMINATION、MDR_TECHNICAL_DOCUMENTATION、MDD_III。", "MDR_TYPE_EXAMINATION", "下拉选择"),
+                _related_col("Notified Body ID*", "Notified Body ID", True, None, "签发 product certificate 的公告机构 NANDO ID / NB Actor Code，例如 0483。", "0483", "文本"),
+                _related_col("Certificate Number", "Certificate Number", False, None, "Product certificate 编号。Regulation certificate 如可取得建议填写；Legacy 证书通常需要填写。", "CE-123456", "文本"),
+                _related_col("Revision Number", "Revision Number", False, None, "证书 revision number。没有则留空。", "1", "文本"),
+                _related_col("Expiry Date", "Expiry Date", False, None, "证书有效期截止日期。没有则留空；Legacy 指令证书通常需要填写。", "2028-12-31", "YYYY-MM-DD"),
+            ],
+        },
     }
 )
 
@@ -310,6 +357,7 @@ ENUM_SOURCES = OrderedDict(
         "country_code": _xsd_country_values(),
         "storage_condition": _xsd_enum_values("StorageHandlingConditionEnum", "SHC099"),
         "critical_warning": _xsd_enum_values("CriticalWarningEnum", "CW999"),
+        "certificate_type": _certificate_type_values(),
     }
 )
 

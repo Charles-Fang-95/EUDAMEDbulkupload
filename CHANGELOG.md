@@ -2,6 +2,14 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.5.0 - 2026-05-25
+
+- 新增 `Device Certificates` sheet，按 Basic UDI-DI 采集 product certificate 信息。
+- 支持在 `DEVICE.POST` / `Basic_UDI.PATCH` 的 Basic UDI-DI XML 中输出 `deviceCertificateLinks`。
+- 新增高风险 / legacy 证书信息预检 warning：MDR Class III/部分 IIb、IVDR D/C/部分 B、MDD/AIMDD/IVDD 无证书信息时提示人工确认。
+- 移除主表孤立的 `Basic - Certificate Number` 字段，避免误导为单一证书号即可提交。
+- 模板、README 和网页导出指引增加 NB / product certificate validation 说明。
+
 ## 0.4.2 - 2026-05-22
 
 - 修正 GitHub Releases API 返回 404 时的提示：显示“仓库尚未发布版本”，不再误判为断网。

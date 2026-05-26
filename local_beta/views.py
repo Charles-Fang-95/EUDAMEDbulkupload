@@ -53,10 +53,10 @@ SUPPORTED_SERVICES = {
         "label": "Upload of Legacy / Regulation Device / SPP ( Basic UDI and UDI-DI / Master UDI-DI )",
         "scope": "新上传 Legacy Device / Regulation Device / SPP 的 Basic UDI-DI + UDI-DI / Master UDI-DI，可一次选择多条 UDI-DI。MDD/AIMDD/IVDD 会按 Legacy EUDI 结构输出。",
         "scope_en": "New upload of Legacy Device / Regulation Device / SPP Basic UDI-DI + UDI-DI / Master UDI-DI; multiple UDI-DIs can be selected at once. MDD/AIMDD/IVDD are exported using the Legacy EUDI structure.",
-        "requires": "Basic 和 UDI-DI 必填字段、Reference Number、市场信息；不需要现有 EUDAMED version。新上传时可随 UDI-DI 一起输出 container package。",
-        "requires_en": "Mandatory Basic and UDI-DI fields, Reference Number and market info; no existing EUDAMED version needed. Container packages can be exported together with the UDI-DI.",
-        "after": "在 EUDAMED 选择该 bulk upload service 后上传 XML。MDR/IVDR 输出 Regulation Device XML；MDD/AIMDD/IVDD 输出 Legacy Device / EUDI XML。上传成功后请保存官方 response；本地不会自动标记为已提交。",
-        "after_en": "In EUDAMED, pick this bulk upload service and upload the XML. MDR/IVDR are exported as Regulation Device XML; MDD/AIMDD/IVDD are exported as Legacy Device / EUDI XML. Keep the official response after a successful upload; this tool does not mark records as submitted automatically.",
+        "requires": "Basic 和 UDI-DI 必填字段、Reference Number、市场信息；不需要现有 EUDAMED version。新上传时可随 UDI-DI 一起输出 container package；触发 NB / product certificate validation 的器械请填写 Device Certificates。",
+        "requires_en": "Mandatory Basic and UDI-DI fields, Reference Number and market info; no existing EUDAMED version needed. Container packages can be exported together with the UDI-DI. Devices triggering NB / product certificate validation should include Device Certificates.",
+        "after": "在 EUDAMED 选择该 bulk upload service 后上传 XML。MDR/IVDR 输出 Regulation Device XML；MDD/AIMDD/IVDD 输出 Legacy Device / EUDI XML。如 XML 含证书信息，后续可能需要 NB 在 Certificates module 确认。上传成功后请保存官方 response；本地不会自动标记为已提交。",
+        "after_en": "In EUDAMED, pick this bulk upload service and upload the XML. MDR/IVDR are exported as Regulation Device XML; MDD/AIMDD/IVDD are exported as Legacy Device / EUDI XML. If certificate information is included, the NB may need to confirm it in the Certificates module. Keep the official response after a successful upload; this tool does not mark records as submitted automatically.",
     },
     "UDI_DI.POST": {
         "label": "Upload of UDI-DI / Master UDI-DI for existing Basic UDI-DI",
@@ -608,7 +608,13 @@ def _advanced_json_block(sections: list[tuple[str, str, int, str]]) -> str:
 def basic_detail(record: dict, message: str = "", message_level: str = "notice") -> str:
     form_fields = "".join(field_input(field, record["payload"].get(field, "")) for field in BASIC_FIELDS)
     cmr_json = json.dumps(record["cmr_rows"], ensure_ascii=False, indent=2)
-    advanced = _advanced_json_block([("cmr_json", "CMR Substances JSON", 8, cmr_json)])
+    cert_json = json.dumps(record.get("cert_rows", []), ensure_ascii=False, indent=2)
+    advanced = _advanced_json_block(
+        [
+            ("cmr_json", "CMR Substances JSON", 8, cmr_json),
+            ("cert_json", "Device Certificates JSON", 8, cert_json),
+        ]
+    )
     body = f"""
     <section class="panel">
       <h1>{t('Basic UDI-DI 详情', 'Basic UDI-DI detail')}</h1>

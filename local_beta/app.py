@@ -256,12 +256,14 @@ class App:
             payload[field] = form.get(f"field_{field}", [""])[0]
         try:
             cmr_rows = parse_json_array(form.get("cmr_json", [""])[0])
+            cert_rows = parse_json_array(form.get("cert_json", [""])[0])
         except ValueError as exc:
             return self.respond_html(request, basic_detail(record, f"{t('保存失败','Save failed')}: {exc}", "error"), HTTPStatus.BAD_REQUEST)
         self.repository.update_basic(
             record_id=record_id,
             payload=payload,
             cmr_rows=cmr_rows,
+            cert_rows=cert_rows,
             version=form.get("version", [""])[0],
             state=form.get("state", ["draft"])[0],
             notes=form.get("notes", [""])[0],

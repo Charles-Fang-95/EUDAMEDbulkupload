@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.4.2**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.4.2**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.5.0**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.5.0**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -78,7 +78,7 @@ http://127.0.0.1:8765
 - **两个主录入表**：`MDR_MDD`（医疗器械）、`IVDR_IVDD`（体外诊断）。
   - 第 1 行 = 字段名，第 2 行 = 中文说明，第 3 行 = 示例（前三行已锁定，请勿改）。
   - **正式数据从第 4 行开始填**。
-- **6 个明细表**：`Trade Names`、`Market Info`、`Package Info`、`Critical Warnings`、`Storage Conditions`、`CMR Substances`，通过 `UDI-DI Code` / `Basic UDI-DI Code` 与主表关联。
+- **7 个明细表**：`Trade Names`、`Market Info`、`Package Info`、`Device Certificates`、`Critical Warnings`、`Storage Conditions`、`CMR Substances`，通过 `UDI-DI Code` / `Basic UDI-DI Code` 与主表关联。
 - 下拉选项（语言、国家、签发机构、储存 / 警告类型等）直接来自官方 XSD，会随 XSD 升级自动更新。
 
 **关键填写规则：**
@@ -86,19 +86,20 @@ http://127.0.0.1:8765
 - 希腊用官方代码 **`EL`**，不是 `GR`。
 - `Market Info`：同一个 UDI-DI 可以填多个上市国家，但 `Originally Placed on Market`（首个投放成员国）**必须且只能有一个 `TRUE`**，其余填 `FALSE`。
 - 多语言 / 多个商品名请用 `Trade Names` 明细表；主表的 Trade Name 只是快捷输入。
+- 触发 MDR Art. 29(3) / IVDR Art. 26(2) 或 legacy 指令证书场景时，请在 `Device Certificates` 明细表填写 product certificate 信息；工具会输出 `deviceCertificateLinks`，但 NB 确认仍发生在 EUDAMED 官方流程中。
 
 ## 注意事项
 
 - **非官方软件**，与欧盟委员会 / EUDAMED 无关联；按「现状」提供，不保证生成的 XML 一定符合 EUDAMED 要求；**数据准确性与合规责任由使用者承担**。正式提交前请务必在 EUDAMED Playground（测试环境）验收：<https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/>
 - **DTX 规则（重要）**：一次 `DEVICE.POST` 里，每个 Basic UDI-DI 只能创建一次（随它的第 1 个 UDI-DI 一起）；同一个 Basic 下的其余 UDI-DI 必须走 `UDI_DI.POST` 追加。工具已自动这样拆分；若重复在 DEVICE.POST 里带同一个 Basic，EUDAMED 会报「already exists」。
-- 部分官方字段当前**只收集、暂不输出到 XML**（如 eIFU URL、Certificate Number、Public Email 等）。填了不等于已提交。完整清单见 [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md)。
+- 部分官方字段当前**只收集、暂不输出到 XML**（如 eIFU URL、Public Email 等）。填了不等于已提交。完整清单见 [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md)。
 - `PATCH`（更新）类 XML 为内测逻辑，更新前务必先在 TEST 环境验收。
 - 迁移工具只接受 `.xlsx`；旧 `.xls` 请先用 Excel / WPS 另存为 `.xlsx`。客户自定义布局不会被瞎猜，未识别的列会写进 Migration Report。
 - 数据默认只保存在本机 `local_beta_data/`；工具**没有登录权限控制**，请勿在共享电脑上保存敏感数据。
 
 ## 版本历史
 
-当前 **0.4.2 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.5.0 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -192,19 +193,20 @@ Structure of `EUDAMED_Template_v2.4.xlsx`:
 - Use the official code **`EL`** for Greece, not `GR`.
 - `Market Info`: one UDI-DI may have several market countries, but `Originally Placed on Market` **must have exactly one `TRUE`**; the rest should be `FALSE`.
 - For multiple / multilingual trade names, use the `Trade Names` sheet; the main-sheet Trade Name is only a shortcut.
+- For MDR Art. 29(3) / IVDR Art. 26(2) or legacy directive certificate scenarios, fill product certificate information in `Device Certificates`; the tool writes `deviceCertificateLinks`, while NB confirmation still happens in the official EUDAMED flow.
 
 ## Important notes
 
 - **Unofficial software**, not affiliated with the European Commission / EUDAMED; provided "as is" with no warranty that the generated XML fully meets EUDAMED requirements; **the user is responsible for data accuracy and compliance**. Always validate in the EUDAMED Playground (test) before any production submission: <https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/>
 - **DTX rule (important)**: within one `DEVICE.POST`, each Basic UDI-DI can be created only once (together with its first UDI-DI); the remaining UDI-DIs of that Basic must be added via `UDI_DI.POST`. The tool splits this automatically; repeating the same Basic inside one DEVICE.POST makes EUDAMED return "already exists".
-- Some official fields are currently **collected but not yet written to XML** (e.g. eIFU URL, Certificate Number, Public Email). Filling them does not mean they were submitted. Full list: [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md).
+- Some official fields are currently **collected but not yet written to XML** (e.g. eIFU URL, Public Email). Filling them does not mean they were submitted. Full list: [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md).
 - `PATCH` (update) XML is beta logic — always validate in the TEST environment before updating.
 - The migration tool accepts `.xlsx` only; convert old `.xls` to `.xlsx` first. Customer custom layouts are never guessed; unmapped columns go into the Migration Report.
 - Data is stored only on your machine under `local_beta_data/`; the tool has **no login / access control**, so do not keep sensitive data on a shared computer.
 
 ## Version history
 
-Current **0.4.2 / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.5.0 / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

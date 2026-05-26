@@ -1,0 +1,152 @@
+name: Release
+
+# 触发方式有两种：
+#   1) 网页 Actions 页点 "Run workflow"，填版本号（推荐：纯网页确认，零本地终端）。
+#   2) 推一个 v 开头的 tag（如 git tag v0.5.0 && git push origin v0.5.0）。
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号（不带 v 前缀，如 0.5.0），必须与 local_beta/constants.py 的 TOOL_VERSION 和 CHANGELOG.md 顶部一致'
+        required: true
+        type: string
+      prerelease:
+        description: '是否标记为 pre-release（内测期建议 true）'
+        required: false
+        type: boolean
+        default: true
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write  # 用 GITHUB_TOKEN 创建 Release / tag / 上传附件
+
+jobs:
+  build-and-release:
+    name: Build Windows package and publish Release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 取全部历史，便于 tag 触发时定位
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Resolve version
+        id: ver
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+            PRERELEASE="${{ inputs.prerelease }}"
+          else
+            # tag push: refs/tags/vX.Y.Z -> X.Y.Z
+            VERSION="${GITHUB_REF_NAME#v}"
+            PRERELEASE="true"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $VERSION (prerelease=$PRERELEASE)"
+
+      - name: Validate version matches code and CHANGELOG
+        shell: bash
+        run: |
+          set -euo pipefail
+          V="${{ steps.ver.outputs.version }}"
+          # 1) TOOL_VERSION
+          CODE_VER=$(python -c "import re; t=open('local_beta/constants.py',encoding='utf-8').read(); m=re.search(r'TOOL_VERSION\s*=\s*\"([^\"]+)\"',t); print(m.group(1))")
+          echo "constants.py TOOL_VERSION = $CODE_VER"
+          if [ "$CODE_VER" != "$V" ]; then
+            echo "::error::TOOL_VERSION ($CODE_VER) 与发布版本号 ($V) 不一致。请先更新 local_beta/constants.py 再发版。"
+            exit 1
+          fi
+          # 2) CHANGELOG 顶部章节
+          if ! grep -qE "^## $V( |$|[[:space:]]*-)" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md 中找不到 '## $V ...' 章节。请先在 CHANGELOG 顶部添加 $V 的变更说明。"
+            exit 1
+          fi
+          echo "Version checks passed."
+
+      - name: Extract release notes from CHANGELOG
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re, os
+          version = os.environ["V"]
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          # 抓取 `## <version> ...` 这一节，直到下一个 `## ` 或文档结束
+          pattern = r"^## " + re.escape(version) + r"\b.*?(?=^## |\Z)"
+          m = re.search(pattern, text, re.S | re.M)
+          body = m.group(0).strip() if m else ""
+          if not body:
+              raise SystemExit(f"未在 CHANGELOG.md 抓到 {version} 章节")
+          with open("release_notes.md", "w", encoding="utf-8") as f:
+              f.write(body + "\n")
+          print(body)
+          PY
+        env:
+          V: ${{ steps.ver.outputs.version }}
+
+      - name: Install PyInstaller
+        shell: powershell
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller
+
+      - name: Build Windows package
+        shell: powershell
+        run: |
+          .\packaging\windows\build_windows_exe.ps1 -SkipVenv
+
+      - name: Verify build artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "dist/EUDAMED_Local_Beta_Windows.zip" || { echo "::error::Windows ZIP 未生成"; exit 1; }
+          test -f "EUDAMED_Template_v2.4.xlsx" || { echo "::error::模板 xlsx 缺失"; exit 1; }
+          ls -la dist/
+
+      - name: Create or update GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          PRERELEASE: ${{ steps.ver.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          TITLE="$TAG"
+          PRE_FLAG=""
+          if [ "$PRERELEASE" = "true" ]; then PRE_FLAG="--prerelease"; fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG 已存在 → 更新 notes 并 clobber 上传附件。"
+            gh release edit "$TAG" --notes-file release_notes.md --title "$TITLE" $PRE_FLAG
+            gh release upload "$TAG" \
+              "dist/EUDAMED_Local_Beta_Windows.zip" \
+              "EUDAMED_Template_v2.4.xlsx" \
+              --clobber
+          else
+            # 不带 --target 时，workflow_dispatch 会在当前 commit 上自动创建 tag
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --notes-file release_notes.md \
+              $PRE_FLAG \
+              --target "${{ github.sha }}" \
+              "dist/EUDAMED_Local_Beta_Windows.zip" \
+              "EUDAMED_Template_v2.4.xlsx"
+          fi
+
+          echo "Release URL:"
+          gh release view "$TAG" --json url -q .url

@@ -299,6 +299,7 @@ class BetaXMLExporter:
                             self._validate_authorised_representative(errors, basic["basic_code"], basic_data)
                             if not basic_data.get("Risk Class"):
                                 errors.append(f"Basic UDI-DI {basic['basic_code']} 缺少 Risk Class。")
+                            self._certificate_warning_if_needed(warnings, basic)
                 if service_type == "UDI_DI.PATCH" and not item["version"]:
                     errors.append(f"UDI-DI {item['udi_code']} 缺少当前版本号，无法导出更新 XML。")
         else:
@@ -315,6 +316,7 @@ class BetaXMLExporter:
                 self._validate_authorised_representative(errors, item["basic_code"], payload)
                 if not payload.get("Risk Class"):
                     errors.append(f"Basic UDI-DI {item['basic_code']} 缺少 Risk Class。")
+                self._certificate_warning_if_needed(warnings, item)
                 if not item["version"]:
                     errors.append(f"Basic UDI-DI {item['basic_code']} 缺少当前版本号，无法导出更新 XML。")
         result = {"service_type": service_type, "errors": errors, "warnings": warnings, "batches": []}
@@ -333,6 +335,37 @@ class BetaXMLExporter:
                     "本次包含跨 service 顺序导出：请先上传对应 DEVICE.POST 并确认 EUDAMED 成功，再上传依赖的 UDI_DI.POST。"
                 )
         return result
+
+    def _certificate_warning_if_needed(self, warnings: list[str], basic: dict):
+        if basic.get("cert_rows"):
+            return
+        payload = basic.get("payload") or {}
+        if not self._may_require_certificate_info(payload):
+            return
+        warnings.append(
+            f"Basic UDI-DI {basic.get('basic_code')} 可能触发 EUDAMED NB / certificate validation，"
+            "但未填写 Device Certificates。请确认是否需要 product certificate 信息；如需要，"
+            "请在模板 Device Certificates sheet 填写 Certificate Type、Notified Body ID 等字段。"
+        )
+
+    def _may_require_certificate_info(self, payload: dict) -> bool:
+        legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
+        risk = str(payload.get("Risk Class") or "").strip()
+        if legislation in {"MDD", "AIMDD", "IVDD"}:
+            return True
+        if legislation == "MDR":
+            if risk == "Class III":
+                return True
+            if risk == "Class IIb":
+                implantable = self._is_true(payload.get("Implantable"))
+                exception = self._is_true(payload.get("Is Suture/Staple/Filling/Brace (IIb Implant)"))
+                return (not implantable) or (implantable and exception)
+        if legislation == "IVDR":
+            if risk in {"Class C", "Class D"}:
+                return True
+            if risk == "Class B":
+                return self._is_true(payload.get("Self-Testing (IVDR)")) or self._is_true(payload.get("Near Patient Testing (IVDR)"))
+        return False
 
     def plan_export_batches(self, service_type: str, records: list[dict]) -> list[dict]:
         if service_type == "DEVICE.POST":
@@ -665,9 +698,9 @@ class BetaXMLExporter:
         device.set(qn("xsi", "type"), f"device:{profile}DeviceType")
         if profile in {"MDEU", "IVDEU"}:
             device.append(self._build_device_udi_node(item, profile, include_version=False))
-            device.append(self._build_device_basic_node(basic["payload"], basic["cmr_rows"], include_version=False))
+            device.append(self._build_device_basic_node(basic["payload"], basic["cmr_rows"], basic.get("cert_rows", []), include_version=False))
             return device
-        device.append(self._build_device_basic_node(basic["payload"], basic["cmr_rows"], include_version=False))
+        device.append(self._build_device_basic_node(basic["payload"], basic["cmr_rows"], basic.get("cert_rows", []), include_version=False))
         device.append(self._build_device_udi_node(item, profile, include_version=False))
         return device
 
@@ -675,7 +708,7 @@ class BetaXMLExporter:
         profile = self._profile(basic["payload"])
         node = ET.Element(qn("device", "BasicUDI"))
         node.set(qn("xsi", "type"), self._basic_patch_type(profile))
-        self._build_basic_body(node, basic["payload"], basic["cmr_rows"], profile, include_version=True, version=basic["version"])
+        self._build_basic_body(node, basic["payload"], basic["cmr_rows"], basic.get("cert_rows", []), profile, include_version=True, version=basic["version"])
         return node
 
     def _build_udi_data_node(self, item: dict, include_version: bool):
@@ -685,14 +718,14 @@ class BetaXMLExporter:
         self._build_udi_body(node, item, profile, include_version=include_version)
         return node
 
-    def _build_device_basic_node(self, data: dict, cmr_rows: list[dict], include_version: bool):
+    def _build_device_basic_node(self, data: dict, cmr_rows: list[dict], cert_rows: list[dict], include_version: bool):
         profile = self._profile(data)
         legacy_tags = {"MDEU": "MDEUDI", "IVDEU": "IVDEUDI"}
         tag = legacy_tags.get(profile) or ("PRBasicUDI" if profile == "PR" else f"{profile}BasicUDI")
         node = ET.Element(qn("device", tag))
         if profile in {"MDR", "IVDR"}:
             node.set(qn("xsi", "type"), f"device:{profile}BasicUDIType")
-        self._build_basic_body(node, data, cmr_rows, profile, include_version=include_version)
+        self._build_basic_body(node, data, cmr_rows, cert_rows, profile, include_version=include_version)
         return node
 
     def _build_device_udi_node(self, item: dict, profile: str, include_version: bool):
@@ -709,6 +742,7 @@ class BetaXMLExporter:
         parent: ET.Element,
         data: dict,
         cmr_rows: list[dict],
+        cert_rows: list[dict],
         profile: str,
         include_version: bool,
         version: str = "",
@@ -740,6 +774,7 @@ class BetaXMLExporter:
         self._text(parent, "basicudi", "ARActorCode", data.get("Authorised Representative SRN"))
         self._bool(parent, "basicudi", "humanTissuesCells", data.get("Presence of Human Tissues"))
         self._text(parent, "basicudi", "MFActorCode", data.get("Manufacturer SRN"))
+        self._append_device_certificates(parent, cert_rows)
 
         if profile in {"IVDR", "IVDEU"}:
             self._text(parent, "basicudi", "specialDevice", data.get("Special Device Type"))
@@ -766,6 +801,19 @@ class BetaXMLExporter:
         self._bool(parent, "commondi", "reusable", data.get("Reusable Surgical Instrument"))
         if profile == "MDEU":
             self._text(parent, "eudi", "applicableLegislation", data.get("Applicable Legislation"))
+
+    def _append_device_certificates(self, parent: ET.Element, rows: list[dict]):
+        rows = [row for row in (rows or []) if row.get("Certificate Type") and row.get("Notified Body ID")]
+        if not rows:
+            return
+        container = ET.SubElement(parent, qn("basicudi", "deviceCertificateLinks"))
+        for row in rows:
+            link = ET.SubElement(container, qn("links", "deviceCertificateLink"))
+            self._text(link, "links", "certificateNumber", row.get("Certificate Number"))
+            self._text(link, "links", "expiryDate", row.get("Expiry Date"))
+            self._text(link, "links", "NBActorCode", row.get("Notified Body ID"))
+            self._text(link, "links", "certificateRevisionNumber", row.get("Revision Number"))
+            self._text(link, "links", "certificateType", self._enum_code(row.get("Certificate Type")))
 
     def _build_udi_body(self, parent: ET.Element, item: dict, profile: str, include_version: bool):
         data = item["payload"]

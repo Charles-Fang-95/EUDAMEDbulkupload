@@ -27,6 +27,7 @@ BUSINESS_SHEETS = [
     "Storage Conditions",
     "CMR Substances",
     "Package Information",
+    "Device Certificates",
 ]
 DATA_START_ROW = 4
 FORMAT_RISK_FIELDS = {
@@ -96,6 +97,7 @@ class WorkbookImporter:
         storage_map = defaultdict(list)
         package_map = defaultdict(list)
         cmr_map = defaultdict(list)
+        cert_map = defaultdict(list)
         trade_name_map = defaultdict(list)
 
         for row in parsed.get("Trade Names", []):
@@ -110,6 +112,8 @@ class WorkbookImporter:
             package_map[row.get("UDI-DI Code", "")].append(row)
         for row in parsed.get("CMR Substances", []):
             cmr_map[row.get("Basic UDI-DI Code", "")].append(row)
+        for row in parsed.get("Device Certificates", []):
+            cert_map[row.get("Basic UDI-DI Code", "")].append(row)
 
         self._merge_trade_name_shortcuts(parsed, trade_name_map)
         validator = DataValidator(parsed)
@@ -130,6 +134,7 @@ class WorkbookImporter:
                 row_number=row.get("_row_number", 0),
                 payload=self._clean_row(row),
                 cmr_rows=[self._clean_row(item) for item in cmr_map.get(basic_code, [])],
+                cert_rows=[self._clean_row(item) for item in cert_map.get(basic_code, [])],
                 version=import_meta["basic_versions"].get(basic_code, ""),
             )
             if change:
@@ -273,7 +278,7 @@ class WorkbookImporter:
                 item = schema_by_header.get(header)
                 if item:
                     self._collect_format_risks(ws, row_idx, headers.index(header) + 1, item["field"], value, format_warnings)
-                    if item.get("validation") in {"critical_warning", "storage_condition"}:
+                    if item.get("validation") in {"critical_warning", "storage_condition", "certificate_type"}:
                         value = self._enum_code(value)
                     row_data[item["field"]] = value
             if any(value not in ("", None) for value in row_data.values()):
@@ -339,6 +344,7 @@ class WorkbookImporter:
             "trade_name_count": len(parsed.get("Trade Names", [])),
             "cmr_count": len(parsed.get("CMR Substances", [])),
             "package_count": len(parsed.get("Package Information", [])),
+            "certificate_count": len(parsed.get("Device Certificates", [])),
         }
 
     def _change_summary(self, changes: list[dict]) -> dict:
@@ -400,7 +406,9 @@ class WorkbookImporter:
         udi_codes = {row.get("UDI-DI Code", "") for row in parsed.get("UDI-DI", [])}
         storage_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("storage_condition", [])}
         warning_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("critical_warning", [])}
+        certificate_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("certificate_type", [])}
         language_any_codes = set(ENUM_SOURCES.get("language_any", []))
+        basic_codes = {str(row.get("Basic UDI-DI Code", "")).strip() for row in parsed.get("Basic UDI-DI", [])}
 
         for row in parsed.get("Trade Names", []):
             udi_code = str(row.get("UDI-DI Code", "")).strip()
@@ -443,7 +451,27 @@ class WorkbookImporter:
                 errors.append(self._validation_error(row, "Storage Conditions", "Language", language, "SHC099 - OTHER 必须选择具体语言，不能为 ANY。"))
         self._validate_market_rules(parsed, errors)
         self._validate_package_rules(parsed, errors, udi_codes)
+        self._validate_certificate_rules(parsed, errors, basic_codes, certificate_codes)
         return errors
+
+    def _validate_certificate_rules(self, parsed: dict, errors: list[dict], basic_codes: set[str], certificate_codes: set[str]):
+        for row in parsed.get("Device Certificates", []):
+            basic_code = str(row.get("Basic UDI-DI Code", "")).strip()
+            certificate_type = str(row.get("Certificate Type", "")).strip()
+            nb_actor = str(row.get("Notified Body ID", "")).strip()
+            expiry = str(row.get("Expiry Date", "")).strip()
+            if not basic_code:
+                errors.append(self._validation_error(row, "Device Certificates", "Basic UDI-DI Code", "", "Device Certificates 行缺少 Basic UDI-DI Code。"))
+            elif basic_code not in basic_codes:
+                errors.append(self._validation_error(row, "Device Certificates", "Basic UDI-DI Code", basic_code, "Device Certificates 引用的 Basic UDI-DI Code 不存在于主表。"))
+            if not certificate_type:
+                errors.append(self._validation_error(row, "Device Certificates", "Certificate Type", "", "Device Certificates 行缺少 Certificate Type。"))
+            elif certificate_type not in certificate_codes:
+                errors.append(self._validation_error(row, "Device Certificates", "Certificate Type", certificate_type, "Certificate Type 不在官方 GenericCertificateTypeEnum 中。"))
+            if not nb_actor:
+                errors.append(self._validation_error(row, "Device Certificates", "Notified Body ID", "", "Device Certificates 行缺少 Notified Body ID。"))
+            if expiry and not re.match(r"^\d{4}-\d{2}-\d{2}$", expiry):
+                errors.append(self._validation_error(row, "Device Certificates", "Expiry Date", expiry, "Expiry Date 必须使用 YYYY-MM-DD 格式。"))
 
     def _validate_market_rules(self, parsed: dict, errors: list[dict]):
         udi_rows = {str(row.get("UDI-DI Code", "")).strip(): row for row in parsed.get("UDI-DI", [])}

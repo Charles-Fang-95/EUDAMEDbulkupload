@@ -68,6 +68,7 @@ class Repository:
                     row_number INTEGER,
                     payload_json TEXT NOT NULL,
                     cmr_json TEXT NOT NULL DEFAULT '[]',
+                    cert_json TEXT NOT NULL DEFAULT '[]',
                     version TEXT NOT NULL DEFAULT '',
                     state TEXT NOT NULL DEFAULT 'draft',
                     notes TEXT NOT NULL DEFAULT '',
@@ -128,6 +129,8 @@ class Repository:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} TEXT NOT NULL DEFAULT ''")
         if table == "udi_records" and "trade_names_json" not in existing:
             conn.execute("ALTER TABLE udi_records ADD COLUMN trade_names_json TEXT NOT NULL DEFAULT '[]'")
+        if table == "basic_records" and "cert_json" not in existing:
+            conn.execute("ALTER TABLE basic_records ADD COLUMN cert_json TEXT NOT NULL DEFAULT '[]'")
         conn.execute(
             f"""
             UPDATE {table}
@@ -156,24 +159,33 @@ class Repository:
                 (json.dumps(validation, ensure_ascii=False), import_id),
             )
 
-    def upsert_basic(self, import_id: int, row_number: int, payload: dict, cmr_rows: list[dict], version: str = "") -> dict | None:
+    def upsert_basic(
+        self,
+        import_id: int,
+        row_number: int,
+        payload: dict,
+        cmr_rows: list[dict],
+        cert_rows: list[dict] | None = None,
+        version: str = "",
+    ) -> dict | None:
         now = utc_now()
         basic_code = str(payload.get("Basic UDI-DI Code", "") or "").strip()
         if not basic_code:
             return None
         payload_json = _json(payload)
         cmr_json = _json(cmr_rows)
+        cert_json = _json(cert_rows or [])
         with self.connect() as conn:
             existing = conn.execute("SELECT * FROM basic_records WHERE basic_code = ?", (basic_code,)).fetchone()
             if existing is None:
                 cursor = conn.execute(
                     """
                     INSERT INTO basic_records
-                    (basic_code, import_id, row_number, payload_json, cmr_json, version, state, created_at, updated_at,
+                    (basic_code, import_id, row_number, payload_json, cmr_json, cert_json, version, state, created_at, updated_at,
                      first_imported_at, last_imported_at, last_changed_at, last_change_type)
-                    VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, 'created')
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, 'created')
                     """,
-                    (basic_code, import_id, row_number, payload_json, cmr_json, version, now, now, now, now, now),
+                    (basic_code, import_id, row_number, payload_json, cmr_json, cert_json, version, now, now, now, now, now),
                 )
                 change = self._record_import_change(
                     conn, import_id, "basic", basic_code, "", int(cursor.lastrowid), row_number, "created", ["record"]
@@ -186,9 +198,10 @@ class Repository:
                 {
                     "payload_json": payload_json,
                     "cmr_json": cmr_json,
+                    "cert_json": cert_json,
                     "version": effective_version,
                 },
-                {"payload_json": "fields", "cmr_json": "CMR Substances", "version": "version"},
+                {"payload_json": "fields", "cmr_json": "CMR Substances", "cert_json": "Device Certificates", "version": "version"},
             )
             action = "updated" if changed_fields else "unchanged"
             next_state = self._state_after_import(existing["state"], action)
@@ -196,7 +209,7 @@ class Repository:
                 conn.execute(
                     """
                     UPDATE basic_records
-                    SET import_id = ?, row_number = ?, payload_json = ?, cmr_json = ?, version = ?,
+                    SET import_id = ?, row_number = ?, payload_json = ?, cmr_json = ?, cert_json = ?, version = ?,
                         state = ?, updated_at = ?, last_imported_at = ?, last_changed_at = ?, last_change_type = ?
                     WHERE id = ?
                     """,
@@ -205,6 +218,7 @@ class Repository:
                         row_number,
                         payload_json,
                         cmr_json,
+                        cert_json,
                         effective_version,
                         next_state,
                         now,
@@ -582,19 +596,20 @@ class Repository:
             ).fetchall()
         return [self._row_to_basic_dict(row) for row in rows]
 
-    def update_basic(self, record_id: int, payload: dict, cmr_rows: list[dict], version: str, state: str, notes: str):
+    def update_basic(self, record_id: int, payload: dict, cmr_rows: list[dict], cert_rows: list[dict], version: str, state: str, notes: str):
         now = utc_now()
         with self.connect() as conn:
             conn.execute(
                 """
                 UPDATE basic_records
-                SET payload_json = ?, cmr_json = ?, version = ?, state = ?, notes = ?,
+                SET payload_json = ?, cmr_json = ?, cert_json = ?, version = ?, state = ?, notes = ?,
                     updated_at = ?, last_changed_at = ?, last_change_type = 'updated'
                 WHERE id = ?
                 """,
                 (
                     _json(payload),
                     _json(cmr_rows),
+                    _json(cert_rows),
                     version,
                     state,
                     notes,
@@ -726,6 +741,7 @@ class Repository:
             "row_number": row["row_number"],
             "payload": payload,
             "cmr_rows": json.loads(row["cmr_json"]),
+            "cert_rows": json.loads(row["cert_json"]) if "cert_json" in row.keys() else [],
             "version": row["version"],
             "state": row["state"],
             "notes": row["notes"],
