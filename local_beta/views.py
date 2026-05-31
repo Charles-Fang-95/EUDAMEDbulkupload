@@ -318,6 +318,60 @@ def page(title: str, body: str, active_path: str = "") -> str:
     }}
     return true;
   }}
+  function saveExportQuery(query) {{
+    try {{
+      if (query) sessionStorage.setItem('eudamed_export_query', query);
+    }} catch (err) {{}}
+  }}
+  function loadExportQuery() {{
+    try {{
+      return sessionStorage.getItem('eudamed_export_query') || '';
+    }} catch (err) {{
+      return '';
+    }}
+  }}
+  function addExportHidden(form, name, value) {{
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    input.className = 'js-export-state';
+    form.appendChild(input);
+  }}
+  function copyCurrentExportState(form) {{
+    if (!form || window.location.pathname !== '/export') return;
+    if ((form.getAttribute('method') || 'get').toLowerCase() !== 'get') return;
+    if ((form.getAttribute('action') || '/export') !== '/export') return;
+    form.querySelectorAll('.js-export-state').forEach(function (node) {{ node.remove(); }});
+    var exportForm = document.getElementById('export-form');
+    if (!exportForm || form.id === 'export-form') return;
+    var mode = exportForm.querySelector('input[name=selection_mode]:checked');
+    if (mode) addExportHidden(form, 'selection_mode', mode.value);
+    exportForm.querySelectorAll('input[name=record_ids]:checked').forEach(function (box) {{
+      addExportHidden(form, 'record_ids', box.value);
+    }});
+  }}
+  function updateExportNavLinks() {{
+    var saved = loadExportQuery();
+    if (!saved) return;
+    document.querySelectorAll('a[href="/export"]').forEach(function (link) {{
+      link.setAttribute('href', '/export?' + saved);
+    }});
+  }}
+  function restoreExportPageIfNeeded() {{
+    if (window.location.pathname !== '/export') return false;
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('service_type')) {{
+      saveExportQuery(params.toString());
+      return false;
+    }}
+    var saved = loadExportQuery();
+    if (saved) {{
+      window.location.replace('/export?' + saved);
+      return true;
+    }}
+    return false;
+  }}
   function syncExportUrl(formId) {{
     if (formId !== 'export-form') return;
     var form = document.getElementById(formId);
@@ -335,6 +389,7 @@ def page(title: str, body: str, active_path: str = "") -> str:
     var mode = form.querySelector('input[name=selection_mode]:checked');
     if (mode) params.set('selection_mode', mode.value);
     var query = params.toString();
+    saveExportQuery(query);
     history.replaceState(null, '', '/export' + (query ? '?' + query : ''));
   }}
   document.addEventListener('change', function (event) {{
@@ -345,10 +400,16 @@ def page(title: str, body: str, active_path: str = "") -> str:
       syncExportUrl(form.id);
     }}
   }});
+  document.addEventListener('submit', function (event) {{
+    copyCurrentExportState(event.target);
+  }});
   document.addEventListener('DOMContentLoaded', function () {{
+    if (restoreExportPageIfNeeded()) return;
+    updateExportNavLinks();
     updateSelectedCount('library-export');
     updateSelectedCount('export-form');
-  }}
+    syncExportUrl('export-form');
+  }});
   </script>
 </body>
 </html>"""
