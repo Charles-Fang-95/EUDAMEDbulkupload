@@ -2,19 +2,19 @@ name: Release
 
 # 触发方式有两种：
 #   1) 网页 Actions 页点 "Run workflow"，填版本号（推荐：纯网页确认，零本地终端）。
-#   2) 推一个 v 开头的 tag（如 git tag v0.5.0 && git push origin v0.5.0）。
+#   2) 推一个 v 开头的 tag（如 git tag v0.7.0 && git push origin v0.7.0）。
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: '版本号（不带 v 前缀，如 0.5.0），必须与 local_beta/constants.py 的 TOOL_VERSION 和 CHANGELOG.md 顶部一致'
+        description: '版本号（不带 v 前缀，如 0.7.0），必须与 local_beta/constants.py 的 TOOL_VERSION 和 CHANGELOG.md 顶部一致'
         required: true
         type: string
       prerelease:
-        description: '是否标记为 pre-release（内测期建议 true）'
+        description: '是否标记为 pre-release'
         required: false
         type: boolean
-        default: true
+        default: false
   push:
     tags:
       - 'v*'
@@ -51,7 +51,7 @@ jobs:
           else
             # tag push: refs/tags/vX.Y.Z -> X.Y.Z
             VERSION="${GITHUB_REF_NAME#v}"
-            PRERELEASE="true"
+            PRERELEASE="false"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
@@ -100,6 +100,20 @@ jobs:
           body = m.group(0).strip() if m else ""
           if not body:
               raise SystemExit(f"未在 CHANGELOG.md 抓到 {version} 章节")
+          guide = """## How to download and use
+
+1. Download `EUDAMED_Local_Beta_Windows.zip` from the assets below.
+2. Unzip it to a local folder, then run the launcher inside the folder.
+3. Your local data is stored separately under `local_beta_data/`; replacing the tool package does not delete your database or exports.
+4. Download `EUDAMED_Template_v2.4.xlsx` if you need the latest template.
+
+中文说明：
+1. 在下方 Assets 下载 `EUDAMED_Local_Beta_Windows.zip`。
+2. 解压到本地文件夹，运行其中的启动程序。
+3. 本地数据默认保存在 `local_beta_data/`，替换新版程序不会删除数据库或导出文件。
+4. 如需最新版模板，请同时下载 `EUDAMED_Template_v2.4.xlsx`。
+"""
+          body = guide.strip() + "\n\n" + body
           with open("release_notes.md", "w", encoding="utf-8") as f:
               f.write(body + "\n")
           # 不要 print 中文到 stdout：Windows runner 默认 cp1252，即使设了 PYTHONIOENCODING

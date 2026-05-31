@@ -22,6 +22,7 @@ NS = {
     "udidi": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1",
     "commondi": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1",
     "lsn": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1",
+    "mktinfo": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/v1",
     "marketinfo": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1",
     "links": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1",
     "eudi": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDI/v1",
@@ -144,6 +145,10 @@ class BetaXMLExporter:
         service_type = batch["service_type"]
         if service_type == "Basic_UDI.PATCH":
             return self._build_basic_patch(records)
+        if service_type == "MARKET_INFO.PATCH":
+            return self._build_market_info_patch(records)
+        if service_type == "PACKAGE_UDI.PATCH":
+            return self._build_package_udi_patch(records)
         if service_type == "UDI_DI.PATCH":
             return self._build_udi_patch(records)
         if service_type == "UDI_DI.POST":
@@ -250,7 +255,7 @@ class BetaXMLExporter:
             errors.append("请至少选择一条记录。")
 
         selected_records = []
-        if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH"}:
+        if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "MARKET_INFO.PATCH", "PACKAGE_UDI.PATCH"}:
             udis = self.repository.get_udis_by_ids(record_ids)
             selected_records = udis
             if len(udis) != len(record_ids):
@@ -261,31 +266,35 @@ class BetaXMLExporter:
                 basic_payload = item.get("basic_payload") or {}
                 if not payload.get("UDI-DI Code"):
                     errors.append(f"记录 #{item['id']} 缺少 UDI-DI Code。")
-                if not payload.get("Parent Basic UDI-DI"):
-                    errors.append(f"UDI-DI {item['udi_code']} 缺少 Parent Basic UDI-DI。")
-                if not payload.get("Device Status"):
-                    errors.append(f"UDI-DI {item['udi_code']} 缺少 Device Status。")
-                if not (payload.get("Nomenclature Code") or basic_payload.get("EMDN Code")):
-                    errors.append(f"UDI-DI {item['udi_code']} 缺少 Nomenclature Code / EMDN Code。")
-                if not payload.get("Reference Number"):
-                    errors.append(f"UDI-DI {item['udi_code']} 缺少 Reference Number。")
-                status = payload.get("Device Status", "")
-                if status == "On the EU market":
-                    if not item["market_rows"]:
-                        errors.append(
-                            f"UDI-DI {item['udi_code']} 为 On the EU market，缺少 Market Info。"
-                        )
-                    else:
-                        first_market_count = sum(
-                            1 for row in item["market_rows"]
-                            if self._is_true(row.get("Originally Placed on Market"))
-                        )
-                        if first_market_count != 1:
+                if not payload.get("UDI-DI Issuing Entity"):
+                    errors.append(f"UDI-DI {item['udi_code']} 缺少 UDI-DI Issuing Entity。")
+                if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH"}:
+                    if not payload.get("Parent Basic UDI-DI"):
+                        errors.append(f"UDI-DI {item['udi_code']} 缺少 Parent Basic UDI-DI。")
+                    if not payload.get("Device Status"):
+                        errors.append(f"UDI-DI {item['udi_code']} 缺少 Device Status。")
+                    if not (payload.get("Nomenclature Code") or basic_payload.get("EMDN Code")):
+                        errors.append(f"UDI-DI {item['udi_code']} 缺少 Nomenclature Code / EMDN Code。")
+                    if not payload.get("Reference Number"):
+                        errors.append(f"UDI-DI {item['udi_code']} 缺少 Reference Number。")
+                    status = payload.get("Device Status", "")
+                    if status == "On the EU market":
+                        if not item["market_rows"]:
                             errors.append(
-                                f"UDI-DI {item['udi_code']} 为 On the EU market，"
-                                "Market Info 中 Originally Placed on Market 必须且只能有一条 TRUE。"
+                                f"UDI-DI {item['udi_code']} 为 On the EU market，缺少 Market Info。"
                             )
-                self._validate_package_rows(errors, item)
+                        else:
+                            self._validate_market_rows(errors, item)
+                    self._validate_package_rows(errors, item)
+                if service_type == "MARKET_INFO.PATCH":
+                    self._validate_market_rows(errors, item, require_rows=True)
+                if service_type == "PACKAGE_UDI.PATCH":
+                    if not payload.get("Device Status"):
+                        errors.append(f"UDI-DI {item['udi_code']} 缺少 Device Status，无法生成 Package UDI status。")
+                    if not item.get("package_rows"):
+                        errors.append(f"UDI-DI {item['udi_code']} 没有 Package Info，无法生成 PACKAGE_UDI.PATCH。")
+                    else:
+                        self._validate_package_rows(errors, item)
                 if service_type == "DEVICE.POST":
                     basic = self.repository.get_basic_by_code(item["basic_code"])
                     if not basic:
@@ -319,7 +328,19 @@ class BetaXMLExporter:
                 self._certificate_warning_if_needed(warnings, item)
                 if not item["version"]:
                     errors.append(f"Basic UDI-DI {item['basic_code']} 缺少当前版本号，无法导出更新 XML。")
-        result = {"service_type": service_type, "errors": errors, "warnings": warnings, "batches": []}
+        entity_type = "basic" if service_type == "Basic_UDI.PATCH" else "udi"
+        selected_codes = [
+            str((item.get("basic_code") if entity_type == "basic" else item.get("udi_code")) or "").strip()
+            for item in selected_records
+        ]
+        result = {
+            "service_type": service_type,
+            "errors": errors,
+            "warnings": warnings,
+            "batches": [],
+            "freshness_summary": self.repository.export_freshness_summary(entity_type, selected_codes),
+        }
+        self._append_consistency_warnings(warnings, service_type, selected_records)
         if not errors:
             result["batches"] = self.plan_export_batches(service_type, selected_records)
             batch_codes = [code for batch in result["batches"] for code in batch["codes"]]
@@ -337,16 +358,61 @@ class BetaXMLExporter:
         return result
 
     def _certificate_warning_if_needed(self, warnings: list[str], basic: dict):
-        if basic.get("cert_rows"):
-            return
         payload = basic.get("payload") or {}
-        if not self._may_require_certificate_info(payload):
+        cert_rows = basic.get("cert_rows") or []
+        may_require = self._may_require_certificate_info(payload)
+        if not may_require and not cert_rows:
             return
-        warnings.append(
-            f"Basic UDI-DI {basic.get('basic_code')} 可能触发 EUDAMED NB / certificate validation，"
-            "但未填写 Device Certificates。请确认是否需要 product certificate 信息；如需要，"
-            "请在模板 Device Certificates sheet 填写 Certificate Type、Notified Body ID 等字段。"
-        )
+        if not cert_rows:
+            warnings.append(
+                f"Basic UDI-DI {basic.get('basic_code')} 可能触发 EUDAMED NB / certificate validation，"
+                "但未填写 Device Certificates。请确认是否需要 product certificate 信息；如需要，"
+                "请在模板 Device Certificates sheet 填写 Certificate Type、Notified Body ID 等字段。"
+            )
+            return
+        # 方案 A：只检查【跨法规】证书（法规内部的 class→证书类型匹配规则模糊、易误报，交给用户判断）。
+        # 例如 MDR 器械挂了 MDD/AIMDD/IVDD/IVDR 体系的证书类型 → 几乎肯定填错了法规。
+        legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
+        if legislation not in self._CERT_LEGISLATIONS:
+            return
+        actual = sorted({self._certificate_type(row) for row in cert_rows if self._certificate_type(row)})
+        mismatched = sorted({
+            cert_type for cert_type in actual
+            if self._certificate_legislation(cert_type) in self._CERT_LEGISLATIONS
+            and self._certificate_legislation(cert_type) != legislation
+        })
+        if mismatched:
+            warnings.append(
+                f"Basic UDI-DI {basic.get('basic_code')} 的 Applicable Legislation 为 {legislation}，"
+                f"但 Device Certificates 中存在其他法规体系的 Certificate Type：{', '.join(mismatched)}。"
+                "请核对证书是否填错了法规。"
+            )
+
+    def _append_consistency_warnings(self, warnings: list[str], service_type: str, selected_records: list[dict]):
+        if not selected_records:
+            return
+        if service_type == "Basic_UDI.PATCH":
+            only_codes = {"basic": [item.get("basic_code", "") for item in selected_records], "udi": []}
+        else:
+            only_codes = {
+                "basic": [item.get("basic_code", "") for item in selected_records],
+                "udi": [item.get("udi_code", "") for item in selected_records],
+            }
+        for finding in self.repository.consistency_findings(only_codes=only_codes):
+            prefix = "提示" if finding.get("severity") == "info" else "警告"
+            warnings.append(f"{prefix} · {finding.get('message', '')}")
+
+    # 证书类型枚举的前缀法规家族（来自官方 CertificateTypeEnum），用于跨法规检测。
+    _CERT_LEGISLATIONS = frozenset({"MDR", "IVDR", "MDD", "AIMDD", "IVDD"})
+
+    def _certificate_type(self, row: dict) -> str:
+        value = str(row.get("Certificate Type") or "").strip()
+        return value.split(" - ", 1)[0].strip() if " - " in value else value
+
+    def _certificate_legislation(self, cert_type: str) -> str:
+        """从 Certificate Type 枚举值（如 MDR_TYPE_EXAMINATION）取法规家族前缀（MDR）。"""
+        value = str(cert_type or "").strip().upper()
+        return value.split("_", 1)[0] if value else ""
 
     def _may_require_certificate_info(self, payload: dict) -> bool:
         legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
@@ -380,13 +446,20 @@ class BetaXMLExporter:
                 self._batch(
                     sequence=len(batches) + 1,
                     service_type=service_type,
-                    payload_entity="device:BasicUDI" if service_type == "Basic_UDI.PATCH" else "device:UDIDIData",
+                    payload_entity=self._payload_entity(service_type),
                     records=chunk,
                     dependency="无业务依赖，顺序仅用于核对。",
                     dependency_en="No business dependency; order is for tracking only.",
                 )
             )
         return batches
+
+    def _payload_entity(self, service_type: str) -> str:
+        return {
+            "Basic_UDI.PATCH": "device:BasicUDI",
+            "MARKET_INFO.PATCH": "mktinfo:DTXMarketInfo",
+            "PACKAGE_UDI.PATCH": "device:DTXPackageUDI",
+        }.get(service_type, "device:UDIDIData")
 
     def _plan_device_post_batches(self, records: list[dict]) -> list[dict]:
         grouped = {}
@@ -535,6 +608,23 @@ class BetaXMLExporter:
                 reported_cycles.add(cycle_key)
                 errors.append(f"UDI-DI {udi_code} 的 Package Info 存在循环包含关系：{' -> '.join(cycle)}。")
 
+    def _validate_market_rows(self, errors: list[str], item: dict, require_rows: bool = False):
+        rows = item.get("market_rows") or []
+        udi_code = item.get("udi_code") or item.get("payload", {}).get("UDI-DI Code", "")
+        if require_rows and not rows:
+            errors.append(f"UDI-DI {udi_code} 没有 Market Info，无法生成 MARKET_INFO.PATCH。")
+            return
+        if not rows:
+            return
+        first_market_count = sum(
+            1 for row in rows
+            if self._is_true(row.get("Originally Placed on Market"))
+        )
+        if first_market_count != 1:
+            errors.append(
+                f"UDI-DI {udi_code} 的 Market Info 中 Originally Placed on Market 必须且只能有一条 TRUE。"
+            )
+
     def _positive_integer(self, value) -> bool:
         try:
             return int(str(value).strip()) > 0
@@ -607,6 +697,30 @@ class BetaXMLExporter:
         sender_code = self._sender_code_from_udi_rows(udis)
         return self._build_push_message(
             recipient_service_id="UDI_DI",
+            recipient_operation="PATCH",
+            payload_nodes=payload_nodes,
+            sender_code=sender_code,
+            sender_service_id="REPLY_SERVICE",
+            sender_operation="GET",
+        )
+
+    def _build_market_info_patch(self, udis: list[dict]):
+        payload_nodes = [self._build_market_info_node(item) for item in udis]
+        sender_code = self._sender_code_from_udi_rows(udis)
+        return self._build_push_message(
+            recipient_service_id="MARKET_INFO",
+            recipient_operation="PATCH",
+            payload_nodes=payload_nodes,
+            sender_code=sender_code,
+            sender_service_id="REPLY_SERVICE",
+            sender_operation="GET",
+        )
+
+    def _build_package_udi_patch(self, udis: list[dict]):
+        payload_nodes = [self._build_package_udi_node(item) for item in udis]
+        sender_code = self._sender_code_from_udi_rows(udis)
+        return self._build_push_message(
+            recipient_service_id="PACKAGE_UDI",
             recipient_operation="PATCH",
             payload_nodes=payload_nodes,
             sender_code=sender_code,
@@ -716,6 +830,32 @@ class BetaXMLExporter:
         node = ET.Element(qn("device", "UDIDIData"))
         node.set(qn("xsi", "type"), self._udi_data_type(profile))
         self._build_udi_body(node, item, profile, include_version=include_version)
+        return node
+
+    def _build_market_info_node(self, item: dict):
+        payload = item["payload"]
+        node = ET.Element(qn("mktinfo", "DTXMarketInfo"))
+        self._append_identifier(
+            node,
+            "marketinfo",
+            "uDIDIIdentifier",
+            payload.get("UDI-DI Code"),
+            payload.get("UDI-DI Issuing Entity"),
+        )
+        self._append_market_information(node, item.get("market_rows") or [], container_prefix="marketinfo")
+        return node
+
+    def _build_package_udi_node(self, item: dict):
+        payload = item["payload"]
+        node = ET.Element(qn("device", "DTXPackageUDI"))
+        self._append_identifier(
+            node,
+            "udidi",
+            "udiIdentifier",
+            payload.get("UDI-DI Code"),
+            payload.get("UDI-DI Issuing Entity"),
+        )
+        self._append_packages(node, item.get("package_rows") or [], payload)
         return node
 
     def _build_device_basic_node(self, data: dict, cmr_rows: list[dict], cert_rows: list[dict], include_version: bool):
@@ -944,10 +1084,10 @@ class BetaXMLExporter:
             return (language or "EN").upper()
         return "ANY"
 
-    def _append_market_information(self, parent: ET.Element, market_rows: list[dict]):
+    def _append_market_information(self, parent: ET.Element, market_rows: list[dict], container_prefix: str = "udidi"):
         if not market_rows:
             return
-        node = ET.SubElement(parent, qn("udidi", "marketInfos"))
+        node = ET.SubElement(parent, qn(container_prefix, "marketInfos"))
         for row in market_rows:
             item = ET.SubElement(node, qn("marketinfo", "marketInfo"))
             self._text(item, "marketinfo", "country", self._country_code(row.get("Country Code")))

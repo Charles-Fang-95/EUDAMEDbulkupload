@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.5.0**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.5.0**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.7.0**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.7.0**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -14,7 +14,7 @@
 > 下载 Excel 模板 → 填写 → 导入本地工具 → 自动校验 / 管理 → 按官方 service 生成 bulk upload XML → 上传到 EUDAMED。
 
 - 支持 **MDR / IVDR**（Regulation Device）和 **MDD / AIMDD / IVDD**（Legacy Device / EUDI）。
-- 支持 4 类官方 service：`DEVICE.POST`、`UDI_DI.POST`、`Basic_UDI.PATCH`、`UDI_DI.PATCH`。
+- 支持 6 类官方 service：`DEVICE.POST`、`UDI_DI.POST`、`Basic_UDI.PATCH`、`UDI_DI.PATCH`、`MARKET_INFO.PATCH`、`PACKAGE_UDI.PATCH`。
 - 自动处理官方 **300 条/XML** 上限：超出时自动拆成多个 XML，并打包成 ZIP 附带上传顺序清单（manifest）。
 - 数据只存在你自己的电脑上（本地 SQLite）。
 
@@ -31,6 +31,14 @@
 到 GitHub Releases 页面下载最新 ZIP（含 Windows 包），解压后运行：
 
 - 最新版本：<https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest>
+
+Windows 用户建议按这个顺序操作：
+
+1. 打开上面的 Releases 页面。
+2. 在 `Assets` 中下载 `EUDAMED_Local_Beta_Windows.zip`。
+3. 右键 ZIP → 全部解压 / Extract All，不要直接在压缩包里运行。
+4. 进入解压后的文件夹，双击启动程序。
+5. 浏览器会打开本地地址 `http://127.0.0.1:8765`；如果没有自动打开，请手动复制这个地址到浏览器。
 
 > 注：需要作者先在 GitHub 发布 Release，上面的下载链接才会有内容。如果页面是空的，说明还没发布正式包，请先用方式 B，或联系作者。
 
@@ -83,7 +91,6 @@ http://127.0.0.1:8765
 
 **关键填写规则：**
 - 编码类字段（UDI / GTIN、Basic UDI-DI、Package UDI-DI、Reference、SRN、EMDN）必须按**文本**维护，避免 Excel / WPS 把它变成科学计数法或丢掉前导 0。
-- 希腊用官方代码 **`EL`**，不是 `GR`。
 - `Market Info`：同一个 UDI-DI 可以填多个上市国家，但 `Originally Placed on Market`（首个投放成员国）**必须且只能有一个 `TRUE`**，其余填 `FALSE`。
 - 多语言 / 多个商品名请用 `Trade Names` 明细表；主表的 Trade Name 只是快捷输入。
 - 触发 MDR Art. 29(3) / IVDR Art. 26(2) 或 legacy 指令证书场景时，请在 `Device Certificates` 明细表填写 product certificate 信息；工具会输出 `deviceCertificateLinks`，但 NB 确认仍发生在 EUDAMED 官方流程中。
@@ -93,13 +100,11 @@ http://127.0.0.1:8765
 - **非官方软件**，与欧盟委员会 / EUDAMED 无关联；按「现状」提供，不保证生成的 XML 一定符合 EUDAMED 要求；**数据准确性与合规责任由使用者承担**。正式提交前请务必在 EUDAMED Playground（测试环境）验收：<https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/>
 - **DTX 规则（重要）**：一次 `DEVICE.POST` 里，每个 Basic UDI-DI 只能创建一次（随它的第 1 个 UDI-DI 一起）；同一个 Basic 下的其余 UDI-DI 必须走 `UDI_DI.POST` 追加。工具已自动这样拆分；若重复在 DEVICE.POST 里带同一个 Basic，EUDAMED 会报「already exists」。
 - 部分官方字段当前**只收集、暂不输出到 XML**（如 eIFU URL、Public Email 等）。填了不等于已提交。完整清单见 [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md)。
-- `PATCH`（更新）类 XML 为内测逻辑，更新前务必先在 TEST 环境验收。
-- 迁移工具只接受 `.xlsx`；旧 `.xls` 请先用 Excel / WPS 另存为 `.xlsx`。客户自定义布局不会被瞎猜，未识别的列会写进 Migration Report。
 - 数据默认只保存在本机 `local_beta_data/`；工具**没有登录权限控制**，请勿在共享电脑上保存敏感数据。
 
 ## 版本历史
 
-当前 **0.5.0 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.7.0 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -121,7 +126,7 @@ This is a **local web tool** that helps medical device companies turn EUDAMED de
 > Download the Excel template → fill it in → import into the tool → automatic validation / management → generate bulk-upload XML per official service → upload to EUDAMED.
 
 - Supports **MDR / IVDR** (Regulation Device) and **MDD / AIMDD / IVDD** (Legacy Device / EUDI).
-- Supports the 4 official services: `DEVICE.POST`, `UDI_DI.POST`, `Basic_UDI.PATCH`, `UDI_DI.PATCH`.
+- Supports the 6 official services: `DEVICE.POST`, `UDI_DI.POST`, `Basic_UDI.PATCH`, `UDI_DI.PATCH`, `MARKET_INFO.PATCH`, `PACKAGE_UDI.PATCH`.
 - Handles the official **300-entities-per-XML** limit automatically: oversized jobs are split into multiple XML files and packed into a ZIP with an upload-order manifest.
 - Data stays only on your own computer (local SQLite).
 
@@ -138,6 +143,14 @@ Built for company **Regulatory Affairs (RA)** staff — no programming needed. T
 Download the latest ZIP (with the Windows package) from GitHub Releases and unzip:
 
 - Latest release: <https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest>
+
+Recommended Windows steps:
+
+1. Open the Releases page above.
+2. Under `Assets`, download `EUDAMED_Local_Beta_Windows.zip`.
+3. Right-click the ZIP and choose Extract All; do not run it from inside the compressed folder.
+4. Open the extracted folder and double-click the launcher.
+5. The browser should open `http://127.0.0.1:8765`; if it does not, copy this address into your browser manually.
 
 > Note: the author must publish a GitHub Release first for that link to contain anything. If the page is empty, no official package has been published yet — use Option B or contact the author.
 
@@ -185,12 +198,11 @@ Structure of `EUDAMED_Template_v2.4.xlsx`:
 - **Two main entry sheets**: `MDR_MDD` (medical devices), `IVDR_IVDD` (in-vitro diagnostics).
   - Row 1 = field name, Row 2 = description, Row 3 = example (first three rows are locked — do not edit).
   - **Real data starts at Row 4.**
-- **Six detail sheets**: `Trade Names`, `Market Info`, `Package Info`, `Critical Warnings`, `Storage Conditions`, `CMR Substances`, linked to the main sheets via `UDI-DI Code` / `Basic UDI-DI Code`.
+- **Seven detail sheets**: `Trade Names`, `Market Info`, `Package Info`, `Device Certificates`, `Critical Warnings`, `Storage Conditions`, `CMR Substances`, linked to the main sheets via `UDI-DI Code` / `Basic UDI-DI Code`.
 - Dropdown options (languages, countries, issuing entities, storage / warning types, etc.) come straight from the official XSD and update automatically when the XSD is upgraded.
 
 **Key rules:**
 - Code fields (UDI / GTIN, Basic UDI-DI, Package UDI-DI, Reference, SRN, EMDN) must be kept as **text**, to avoid Excel / WPS turning them into scientific notation or dropping leading zeros.
-- Use the official code **`EL`** for Greece, not `GR`.
 - `Market Info`: one UDI-DI may have several market countries, but `Originally Placed on Market` **must have exactly one `TRUE`**; the rest should be `FALSE`.
 - For multiple / multilingual trade names, use the `Trade Names` sheet; the main-sheet Trade Name is only a shortcut.
 - For MDR Art. 29(3) / IVDR Art. 26(2) or legacy directive certificate scenarios, fill product certificate information in `Device Certificates`; the tool writes `deviceCertificateLinks`, while NB confirmation still happens in the official EUDAMED flow.
@@ -200,13 +212,11 @@ Structure of `EUDAMED_Template_v2.4.xlsx`:
 - **Unofficial software**, not affiliated with the European Commission / EUDAMED; provided "as is" with no warranty that the generated XML fully meets EUDAMED requirements; **the user is responsible for data accuracy and compliance**. Always validate in the EUDAMED Playground (test) before any production submission: <https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/>
 - **DTX rule (important)**: within one `DEVICE.POST`, each Basic UDI-DI can be created only once (together with its first UDI-DI); the remaining UDI-DIs of that Basic must be added via `UDI_DI.POST`. The tool splits this automatically; repeating the same Basic inside one DEVICE.POST makes EUDAMED return "already exists".
 - Some official fields are currently **collected but not yet written to XML** (e.g. eIFU URL, Public Email). Filling them does not mean they were submitted. Full list: [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md).
-- `PATCH` (update) XML is beta logic — always validate in the TEST environment before updating.
-- The migration tool accepts `.xlsx` only; convert old `.xls` to `.xlsx` first. Customer custom layouts are never guessed; unmapped columns go into the Migration Report.
 - Data is stored only on your machine under `local_beta_data/`; the tool has **no login / access control**, so do not keep sensitive data on a shared computer.
 
 ## Version history
 
-Current **0.5.0 / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.7.0 / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

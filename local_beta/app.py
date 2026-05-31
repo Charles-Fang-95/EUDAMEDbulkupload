@@ -135,7 +135,9 @@ class App:
             record = self.repository.get_basic_by_code(basic_code)
             if not record:
                 return self.respond_html(request, page(t("未找到","Not found"), f"<section class='panel'><h1>{t('未找到 Basic UDI-DI','Basic UDI-DI not found')}</h1></section>"), HTTPStatus.NOT_FOUND)
-            return self.respond_html(request, basic_detail(record))
+            freshness = self.repository.export_freshness("basic", [record["basic_code"]]).get(record["basic_code"], {})
+            changes = self.repository.get_record_import_changes("basic", record["basic_code"])
+            return self.respond_html(request, basic_detail(record, freshness=freshness, changes=changes))
         if request.command == "GET" and path.startswith("/basic/"):
             record_id = self._parse_int_id(path)
             if record_id is None:
@@ -143,7 +145,9 @@ class App:
             record = self.repository.get_basic(record_id)
             if not record:
                 return self.not_found(request, t("未找到 Basic UDI-DI","Basic UDI-DI not found"))
-            return self.respond_html(request, basic_detail(record))
+            freshness = self.repository.export_freshness("basic", [record["basic_code"]]).get(record["basic_code"], {})
+            changes = self.repository.get_record_import_changes("basic", record["basic_code"])
+            return self.respond_html(request, basic_detail(record, freshness=freshness, changes=changes))
         if request.command == "POST" and path.startswith("/basic/"):
             record_id = self._parse_int_id(path)
             if record_id is None:
@@ -156,7 +160,9 @@ class App:
             record = self.repository.get_udi(record_id)
             if not record:
                 return self.not_found(request, t("未找到 UDI-DI","UDI-DI not found"))
-            return self.respond_html(request, udi_detail(record))
+            freshness = self.repository.export_freshness("udi", [record["udi_code"]]).get(record["udi_code"], {})
+            changes = self.repository.get_record_import_changes("udi", record["udi_code"])
+            return self.respond_html(request, udi_detail(record, freshness=freshness, changes=changes))
         if request.command == "POST" and path.startswith("/udi/"):
             record_id = self._parse_int_id(path)
             if record_id is None:
@@ -164,12 +170,13 @@ class App:
             return self.handle_udi_update(request, record_id)
         if request.command == "GET" and path == "/export":
             service_type = query.get("service_type", [""])[0]
+            selection_mode = query.get("selection_mode", ["selected"])[0]
             filters = self._filters_from_query(query)
             xsd_report = build_xsd_version_report(check_online=False)
             if not service_type:
                 return self.respond_html(
                     request,
-                    export_page("", [], None, filters, xsd_report, 0, [], self._srn_options()),
+                    export_page("", [], None, filters, xsd_report, 0, [], self._srn_options(), selection_mode),
                 )
             entity_type = self._entity_type_for_service(service_type)
             records = (
@@ -185,12 +192,13 @@ class App:
                     filters["legislation"],
                     filters["change_type"],
                     filters["srn"],
+                    filters["freshness_filter"],
                 )
             )
             selected_ids, _ = self._parse_record_ids(query.get("record_ids", []))
             return self.respond_html(
                 request,
-                export_page(service_type, records, None, filters, xsd_report, total_filtered, selected_ids, self._srn_options()),
+                export_page(service_type, records, None, filters, xsd_report, total_filtered, selected_ids, self._srn_options(), selection_mode),
             )
         if request.command == "POST" and path == "/export":
             return self.handle_export(request)
@@ -269,7 +277,9 @@ class App:
             notes=form.get("notes", [""])[0],
         )
         updated = self.repository.get_basic(record_id)
-        return self.respond_html(request, basic_detail(updated, t("保存成功。","Saved."), "success"))
+        freshness = self.repository.export_freshness("basic", [updated["basic_code"]]).get(updated["basic_code"], {}) if updated else {}
+        changes = self.repository.get_record_import_changes("basic", updated["basic_code"]) if updated else []
+        return self.respond_html(request, basic_detail(updated, t("保存成功。","Saved."), "success", freshness, changes))
 
     def handle_udi_update(self, request: BaseHTTPRequestHandler, record_id: int):
         record = self.repository.get_udi(record_id)
@@ -300,21 +310,24 @@ class App:
             notes=form.get("notes", [""])[0],
         )
         updated = self.repository.get_udi(record_id)
-        return self.respond_html(request, udi_detail(updated, t("保存成功。","Saved."), "success"))
+        freshness = self.repository.export_freshness("udi", [updated["udi_code"]]).get(updated["udi_code"], {}) if updated else {}
+        changes = self.repository.get_record_import_changes("udi", updated["udi_code"]) if updated else []
+        return self.respond_html(request, udi_detail(updated, t("保存成功。","Saved."), "success", freshness, changes))
 
     def handle_export(self, request: BaseHTTPRequestHandler):
         form = self.read_form(request)
         service_type = form.get("service_type", [""])[0]
+        selection_mode = form.get("selection_mode", ["selected"])[0]
         filters = self._filters_from_form(form)
         xsd_report = build_xsd_version_report(check_online=False)
         if not service_type:
             return self.respond_html(
                 request,
-                export_page("", [], None, filters, xsd_report, 0, [], self._srn_options()),
+                export_page("", [], None, filters, xsd_report, 0, [], self._srn_options(), selection_mode),
             )
         entity_type = self._entity_type_for_service(service_type)
         invalid_ids = []
-        if form.get("selection_mode", ["selected"])[0] == "filtered":
+        if selection_mode == "filtered":
             record_ids = self.repository.get_filtered_ids(
                 entity_type,
                 filters["query"],
@@ -322,6 +335,7 @@ class App:
                 filters["legislation"],
                 filters["change_type"],
                 filters["srn"],
+                filters["freshness_filter"],
             )
         else:
             record_ids, invalid_ids = self._parse_record_ids(form.get("record_ids", []))
@@ -334,7 +348,7 @@ class App:
                 result["warnings"].append(
                     f"{t('忽略了无效记录 ID', 'Ignored invalid record IDs')}: {', '.join(invalid_ids)}"
                 )
-            result["selection_mode"] = form.get("selection_mode", ["selected"])[0]
+            result["selection_mode"] = selection_mode
             result["selected_count"] = len(record_ids)
             result["action"] = action
 
@@ -351,9 +365,10 @@ class App:
                 filters["legislation"],
                 filters["change_type"],
                 filters["srn"],
+                filters["freshness_filter"],
             )
         )
-        return self.respond_html(request, export_page(service_type, records, result, filters, xsd_report, total_filtered, record_ids, self._srn_options()))
+        return self.respond_html(request, export_page(service_type, records, result, filters, xsd_report, total_filtered, record_ids, self._srn_options(), selection_mode))
 
     def _filters_from_query(self, query: dict) -> dict:
         return {
@@ -362,6 +377,7 @@ class App:
             "legislation": query.get("legislation", [""])[0],
             "change_type": query.get("change_type", [""])[0],
             "srn": query.get("srn", [""])[0],
+            "freshness_filter": query.get("freshness_filter", [""])[0],
         }
 
     def _filters_from_form(self, form: dict) -> dict:
@@ -371,6 +387,7 @@ class App:
             "legislation": form.get("legislation", [""])[0],
             "change_type": form.get("change_type", [""])[0],
             "srn": form.get("srn", [""])[0],
+            "freshness_filter": form.get("freshness_filter", [""])[0],
         }
 
     def _entity_type_for_service(self, service_type: str) -> str:

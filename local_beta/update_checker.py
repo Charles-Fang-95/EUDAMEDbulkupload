@@ -18,6 +18,7 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
     返回 dict（永不抛异常）：
       status: "ok"          有新版本可下载
               "up_to_date"  本地已是最新
+              "local_newer"  本地版本高于 GitHub 最新发布版本
               "unconfigured" RELEASES_API_URL 留空
               "no_release"   仓库存在但尚未发布 GitHub Release
               "offline"     联网失败 / 超时
@@ -26,6 +27,7 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
       html_url: 用户可点开看 release 的页面
       asset_url: 第一个 asset 的下载直链（可能为空）
       assets: release 中所有 asset 的 name/url/size 列表
+      prerelease: 是否 GitHub pre-release
       published_at: ISO 时间串
       body: release notes 全文（裁剪由调用方决定）
       error: 失败时的简要描述
@@ -36,6 +38,7 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
         "html_url": "",
         "asset_url": "",
         "assets": [],
+        "prerelease": False,
         "published_at": "",
         "body": "",
         "error": "",
@@ -43,28 +46,26 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
     if not api_url:
         return result
 
-    try:
-        request = urllib.request.Request(
-            api_url,
-            headers={"Accept": "application/vnd.github+json", "User-Agent": "eudamed-local-beta"},
-        )
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload = json.loads(response.read().decode("utf-8", errors="ignore"))
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            result["status"] = "no_release"
-            result["error"] = "GitHub 仓库尚未发布 Release。"
+    payload, error_status, error_text = _fetch_json(api_url, timeout)
+    if error_status == "not_found":
+        fallback_url = _fallback_releases_url(api_url)
+        if fallback_url:
+            payload, error_status, error_text = _fetch_json(fallback_url, timeout)
+            if isinstance(payload, list):
+                payload = payload[0] if payload else None
+                if payload is None:
+                    error_status = "no_release"
+                    error_text = "GitHub 仓库尚未发布 Release。"
         else:
-            result["status"] = "error"
-            result["error"] = f"GitHub API HTTP {exc.code}: {exc.reason}"
+            error_status = "no_release"
+            error_text = "GitHub 仓库尚未发布 Release。"
+    if error_status:
+        result["status"] = "no_release" if error_status == "not_found" else error_status
+        result["error"] = error_text
         return result
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        result["status"] = "offline"
-        result["error"] = str(exc)
-        return result
-    except (ValueError, json.JSONDecodeError) as exc:
+    if not isinstance(payload, dict):
         result["status"] = "error"
-        result["error"] = f"JSON 解析失败: {exc}"
+        result["error"] = "GitHub API 返回值不是 release 对象。"
         return result
 
     tag = str(payload.get("tag_name") or payload.get("name") or "").strip()
@@ -78,6 +79,7 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
     result["html_url"] = str(payload.get("html_url") or "")
     result["published_at"] = str(payload.get("published_at") or "")
     result["body"] = str(payload.get("body") or "")
+    result["prerelease"] = bool(payload.get("prerelease"))
     raw_assets = payload.get("assets") or []
     assets = _release_assets(raw_assets)
     result["assets"] = assets
@@ -85,8 +87,39 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
     if preferred:
         result["asset_url"] = preferred.get("url", "")
 
-    result["status"] = "ok" if compare_versions(current_version, latest) < 0 else "up_to_date"
+    comparison = compare_versions(current_version, latest)
+    if comparison < 0:
+        result["status"] = "ok"
+    elif comparison == 0:
+        result["status"] = "up_to_date"
+    else:
+        result["status"] = "local_newer"
     return result
+
+
+def _fetch_json(url: str, timeout: int):
+    try:
+        request = urllib.request.Request(
+            url,
+            headers={"Accept": "application/vnd.github+json", "User-Agent": "eudamed-local-beta"},
+        )
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8", errors="ignore")), "", ""
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            return None, "not_found", "GitHub 仓库尚未发布 Release。"
+        return None, "error", f"GitHub API HTTP {exc.code}: {exc.reason}"
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        return None, "offline", str(exc)
+    except (ValueError, json.JSONDecodeError) as exc:
+        return None, "error", f"JSON 解析失败: {exc}"
+
+
+def _fallback_releases_url(api_url: str) -> str:
+    marker = "/releases/latest"
+    if marker not in api_url:
+        return ""
+    return api_url.replace(marker, "/releases?per_page=1")
 
 
 def _release_assets(raw_assets) -> list[dict]:

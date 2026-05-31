@@ -178,6 +178,11 @@ textarea {
   color: white;
 }
 
+.button.secondary, button.secondary {
+  background: rgba(212, 156, 52, 0.18);
+  color: #8a5d0c;
+}
+
 .button:hover, button:hover {
   box-shadow: 0 6px 16px rgba(32, 32, 27, 0.12);
   transform: translateY(-1px);
@@ -270,6 +275,16 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .change-updated { background: rgba(212, 156, 52, 0.18); color: #8a5d0c; }
 .change-unchanged { background: rgba(110, 106, 96, 0.14); color: var(--muted); }
 .change-existing, .muted-badge { background: rgba(110, 106, 96, 0.12); color: var(--muted); }
+.freshness-never_exported { background: rgba(38, 102, 176, 0.14); color: #2666b0; }
+.freshness-changed_since_export { background: rgba(212, 156, 52, 0.2); color: #8a5d0c; }
+.freshness-up_to_date { background: rgba(110, 106, 96, 0.14); color: var(--muted); }
+
+.panel.inset {
+  background: rgba(25, 77, 68, 0.035);
+  border: 1px solid rgba(25, 77, 68, 0.12);
+  border-radius: 14px;
+  padding: 1rem;
+}
 
 .steps, .xsd-strip, .selection-bar, .toolbar {
   display: flex;

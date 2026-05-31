@@ -156,8 +156,10 @@ class WorkbookImporter:
                 changes.append(change)
 
         market_warnings = self._market_change_warnings(changes)
-        if market_warnings:
+        consistency_warnings = self._consistency_warnings(changes)
+        if market_warnings or consistency_warnings:
             validation["warnings"].extend(market_warnings)
+            validation["warnings"].extend(consistency_warnings)
             self.repository.update_import_validation(import_id, validation)
 
         return {
@@ -203,6 +205,28 @@ class WorkbookImporter:
                     "warning_type": "market_information_updated",
                     "message": "检测到该 UDI-DI 的市场信息发生变化。国家/市场信息错误应优先通过 EUDAMED update/create new version 修正，不应默认删除 UDI-DI 重建。",
                     "suggestion": "只有当 UDI-DI、器械身份或 Basic UDI-DI 关联本身错误且无法更新纠正时，才考虑 discard/逻辑删除并重新注册。",
+                }
+            )
+        return warnings
+
+    def _consistency_warnings(self, changes: list[dict]) -> list[dict]:
+        if not changes:
+            return []
+        warnings = []
+        only_codes = {
+            "basic": [item.get("code", "") for item in changes if item.get("entity_type") == "basic"],
+            "udi": [item.get("code", "") for item in changes if item.get("entity_type") == "udi"],
+        }
+        for finding in self.repository.consistency_findings(only_codes=only_codes):
+            warnings.append(
+                {
+                    "sheet": "Repository",
+                    "row": "",
+                    "field": finding.get("type", ""),
+                    "value": ", ".join(finding.get("codes") or []),
+                    "warning_type": finding.get("type", "consistency"),
+                    "message": finding.get("message", ""),
+                    "suggestion": "这是跨记录一致性提示，不会阻止导入；请在导出前核对是否属于真实业务差异。",
                 }
             )
         return warnings

@@ -2,6 +2,29 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.7.0 - 2026-05-31
+
+- 新增 `MARKET_INFO.PATCH` service，支持为已注册 UDI-DI 独立更新市场国家、开始/结束日期和首次投放成员国。
+- 新增 `PACKAGE_UDI.PATCH` service，支持为已注册 UDI-DI 独立更新 container package / 包装层级结构。
+- 导出页 service 下拉和帮助指引开放 Update market information、Update container package，并保留 Update product original manufacturer 为暂未开放。
+- 两个新增 PATCH service 复用现有 300 条拆分、ZIP manifest 和导出历史逻辑；不要求 EUDAMED version 字段。
+
+## 0.6.1 - 2026-05-31
+
+- 优化产品库 freshness 过滤，避免重复全表扫描。
+- 改进产品库导出入口：先选择 service，再明确导出勾选记录或全部筛选结果。
+- 导出页通过 URL 保留勾选记录和筛选模式，刷新后不丢选择。
+- 合并帮助页下载/更新与检查更新区块，并修正本地版本高于 GitHub release 时的提示。
+- 错误反馈说明增加 EUDAMED response XML 附件要求。
+
+## 0.6.0 - 2026-05-31
+
+- 新增跨记录一致性提示：Manufacturer SRN、Reference Number、EMDN/Risk Class、父子 Basic/UDI 关系出现可疑漂移时给出 warning/info。
+- 新增导出新鲜度：区分从未导出、导出后有更新、已导出且未变化，并支持产品库按导出状态筛选。
+- 增强证书预检：已填写 Device Certificates 时，检查 Certificate Type 是否明显匹配当前法规和风险等级。
+- 详情页新增单条记录导入变更历史，便于追溯某条 Basic UDI-DI / UDI-DI 是在哪次 Excel 导入中新增或更新。
+- 帮助页新增 Windows 下载/更新说明、EUDAMED bulk upload 操作步骤和邮件错误报告入口；检查更新支持 GitHub prerelease fallback。
+
 ## 0.5.0 - 2026-05-25
 
 - 新增 `Device Certificates` sheet，按 Basic UDI-DI 采集 product certificate 信息。

@@ -31,6 +31,14 @@ def _json(value) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def _json_list(raw: str) -> list:
+    try:
+        value = json.loads(raw or "[]")
+    except json.JSONDecodeError:
+        return []
+    return value if isinstance(value, list) else []
+
+
 class Repository:
     def __init__(self, db_path=DB_PATH):
         self.db_path = db_path
@@ -446,6 +454,7 @@ class Repository:
         legislation: str = "",
         change_type: str = "",
         srn: str = "",
+        freshness_filter: str = "",
         limit: int | None = 200,
     ) -> list[dict]:
         sql = """
@@ -477,12 +486,14 @@ class Repository:
             sql += " AND json_extract(b.payload_json, '$.\"Manufacturer SRN\"') = ?"
             params.append(srn)
         sql += " ORDER BY u.updated_at DESC, u.id DESC"
-        if limit is not None:
+        if limit is not None and not freshness_filter:
             sql += " LIMIT ?"
             params.append(limit)
         with self.connect() as conn:
             rows = conn.execute(sql, params).fetchall()
-        return [self._row_to_udi_dict(row) for row in rows]
+        records = [self._row_to_udi_dict(row) for row in rows]
+        records = self._filter_by_freshness("udi", records, freshness_filter)
+        return records[:limit] if limit is not None and freshness_filter else records
 
     def list_basics(
         self,
@@ -491,6 +502,7 @@ class Repository:
         legislation: str = "",
         change_type: str = "",
         srn: str = "",
+        freshness_filter: str = "",
         limit: int | None = 200,
     ) -> list[dict]:
         sql = "SELECT * FROM basic_records WHERE 1=1"
@@ -512,12 +524,14 @@ class Repository:
             sql += " AND json_extract(payload_json, '$.\"Manufacturer SRN\"') = ?"
             params.append(srn)
         sql += " ORDER BY updated_at DESC, id DESC"
-        if limit is not None:
+        if limit is not None and not freshness_filter:
             sql += " LIMIT ?"
             params.append(limit)
         with self.connect() as conn:
             rows = conn.execute(sql, params).fetchall()
-        return [self._row_to_basic_dict(row) for row in rows]
+        records = [self._row_to_basic_dict(row) for row in rows]
+        records = self._filter_by_freshness("basic", records, freshness_filter)
+        return records[:limit] if limit is not None and freshness_filter else records
 
     def get_filtered_ids(
         self,
@@ -527,13 +541,24 @@ class Repository:
         legislation: str = "",
         change_type: str = "",
         srn: str = "",
+        freshness_filter: str = "",
     ) -> list[int]:
         records = (
-            self.list_basics(query, state, legislation, change_type, srn, limit=None)
+            self.list_basics(query, state, legislation, change_type, srn, freshness_filter, limit=None)
             if entity_type == "basic"
-            else self.list_udis(query, state, legislation, change_type, srn, limit=None)
+            else self.list_udis(query, state, legislation, change_type, srn, freshness_filter, limit=None)
         )
         return [int(item["id"]) for item in records]
+
+    def _filter_by_freshness(self, entity_type: str, records: list[dict], freshness_filter: str) -> list[dict]:
+        freshness_filter = str(freshness_filter or "").strip()
+        if not freshness_filter:
+            return records
+        freshness = self._freshness_for_records(entity_type, records)
+        return [
+            item for item in records
+            if freshness.get(str((item.get("basic_code") if entity_type == "basic" else item.get("udi_code")) or "").strip(), {}).get("status") == freshness_filter
+        ]
 
     def manufacturer_srn_summary(self) -> list[dict]:
         sql = """
@@ -556,6 +581,210 @@ class Repository:
             }
             for row in rows
         ]
+
+    def consistency_findings(self, srn_filter: str = "", only_codes: dict | None = None) -> list[dict]:
+        """跨记录一致性提示。只做 warning/info，不阻断导出。"""
+        basic_records = self.list_basics(srn=srn_filter, limit=None)
+        udi_records = self.list_udis(srn=srn_filter, limit=None)
+        selected_basic = set(str(code).strip() for code in (only_codes or {}).get("basic", []) if str(code).strip())
+        selected_udi = set(str(code).strip() for code in (only_codes or {}).get("udi", []) if str(code).strip())
+        findings: list[dict] = []
+
+        def in_scope(codes: list[str], entity_type: str) -> bool:
+            if not selected_basic and not selected_udi:
+                return True
+            selected = selected_basic if entity_type == "basic" else selected_udi
+            return bool(set(codes) & selected)
+
+        by_srn: dict[str, list[dict]] = {}
+        for item in basic_records:
+            srn = str((item.get("payload") or {}).get("Manufacturer SRN") or "").strip()
+            if srn:
+                by_srn.setdefault(srn, []).append(item)
+        for srn, rows in by_srn.items():
+            names = sorted({str((row.get("payload") or {}).get("Device Name/Model") or "").strip() for row in rows if str((row.get("payload") or {}).get("Device Name/Model") or "").strip()})
+            ars = sorted({str((row.get("payload") or {}).get("Authorised Representative SRN") or "").strip() for row in rows if str((row.get("payload") or {}).get("Authorised Representative SRN") or "").strip()})
+            codes = [row["basic_code"] for row in rows]
+            if (len(names) > 1 or len(ars) > 1) and in_scope(codes, "basic"):
+                findings.append({
+                    "type": "srn_drift",
+                    "severity": "warning",
+                    "codes": codes,
+                    "message": f"同一 Manufacturer SRN {srn} 下出现多个 Device Name/Model 或 Authorised Representative SRN，请确认是否属于同一 actor 的正常多产品数据。",
+                    "message_en": f"Manufacturer SRN {srn} has multiple Device Name/Model or Authorised Representative SRN values. Confirm whether this is expected for the same actor.",
+                    "detail": {"srn": srn, "device_names": names, "authorised_representatives": ars},
+                })
+
+        reference_map: dict[str, list[dict]] = {}
+        for item in udi_records:
+            reference = str((item.get("payload") or {}).get("Reference Number") or "").strip()
+            if reference:
+                reference_map.setdefault(reference, []).append(item)
+        for reference, rows in reference_map.items():
+            codes = [row["udi_code"] for row in rows]
+            if len(codes) > 1 and in_scope(codes, "udi"):
+                findings.append({
+                    "type": "reference_reuse",
+                    "severity": "warning",
+                    "codes": codes,
+                    "message": f"Reference Number {reference} 被多个 UDI-DI 使用，请确认是否为真实共用 reference。",
+                    "message_en": f"Reference Number {reference} is used by multiple UDI-DIs. Confirm whether this reuse is intentional.",
+                    "detail": {"reference": reference},
+                })
+
+        emdn_map: dict[str, list[dict]] = {}
+        for item in basic_records:
+            emdn = str((item.get("payload") or {}).get("EMDN Code") or "").strip()
+            if emdn:
+                emdn_map.setdefault(emdn, []).append(item)
+        for emdn, rows in emdn_map.items():
+            risks = sorted({str((row.get("payload") or {}).get("Risk Class") or "").strip() for row in rows if str((row.get("payload") or {}).get("Risk Class") or "").strip()})
+            codes = [row["basic_code"] for row in rows]
+            if len(risks) > 1 and in_scope(codes, "basic"):
+                findings.append({
+                    "type": "emdn_risk_split",
+                    "severity": "info",
+                    "codes": codes,
+                    "message": f"同一 EMDN Code {emdn} 下出现多个 Risk Class。该情况可能合理，但建议确认分类依据。",
+                    "message_en": f"EMDN Code {emdn} appears with multiple Risk Classes. This may be valid, but classification should be checked.",
+                    "detail": {"emdn": emdn, "risk_classes": risks},
+                })
+
+        basic_by_code = {item["basic_code"]: item for item in basic_records}
+        for udi in udi_records:
+            payload = udi.get("payload") or {}
+            basic = basic_by_code.get(udi.get("basic_code"))
+            if not basic:
+                continue
+            basic_payload = basic.get("payload") or {}
+            drift = []
+            for field in ("Manufacturer SRN", "Authorised Representative SRN"):
+                udi_value = str(payload.get(field) or "").strip()
+                basic_value = str(basic_payload.get(field) or "").strip()
+                if udi_value and basic_value and udi_value != basic_value:
+                    drift.append(field)
+            if drift and in_scope([udi["udi_code"]], "udi"):
+                findings.append({
+                    "type": "basic_member_drift",
+                    "severity": "warning",
+                    "codes": [udi["udi_code"]],
+                    "message": f"UDI-DI {udi['udi_code']} 的 {', '.join(drift)} 与父 Basic UDI-DI 不一致，请核对父子关系。",
+                    "message_en": f"UDI-DI {udi['udi_code']} has {', '.join(drift)} values inconsistent with its parent Basic UDI-DI. Check the linkage.",
+                    "detail": {"basic_code": udi.get("basic_code"), "fields": drift},
+                })
+        return findings
+
+    def export_freshness(self, entity_type: str, codes: list[str]) -> dict:
+        requested = [str(code or "").strip() for code in codes if str(code or "").strip()]
+        if not requested:
+            return {}
+        records_by_code = self._records_by_codes(entity_type, requested)
+        result = self._freshness_for_records(
+            entity_type,
+            [records_by_code[code] for code in requested if code in records_by_code],
+        )
+        for code in requested:
+            result.setdefault(
+                code,
+                {
+                    "status": "never_exported",
+                    "last_exported_at": "",
+                    "last_changed_at": "",
+                },
+            )
+        return result
+
+    def export_freshness_summary(self, entity_type: str, codes: list[str]) -> dict:
+        values = self.export_freshness(entity_type, codes).values()
+        summary = {"never_exported": 0, "changed_since_export": 0, "up_to_date": 0}
+        for item in values:
+            status = item.get("status")
+            if status in summary:
+                summary[status] += 1
+        return summary
+
+    def _freshness_for_records(self, entity_type: str, records: list[dict]) -> dict:
+        codes = [
+            str((item.get("basic_code") if entity_type == "basic" else item.get("udi_code")) or "").strip()
+            for item in records
+            if str((item.get("basic_code") if entity_type == "basic" else item.get("udi_code")) or "").strip()
+        ]
+        if not codes:
+            return {}
+        last_export_by_code = self._last_export_by_code(entity_type, set(codes))
+        result = {}
+        for item in records:
+            code = str((item.get("basic_code") if entity_type == "basic" else item.get("udi_code")) or "").strip()
+            if not code:
+                continue
+            last_exported_at = last_export_by_code.get(code, "")
+            last_changed_at = item.get("last_changed_at", "")
+            if not last_exported_at:
+                status = "never_exported"
+            elif last_changed_at and last_changed_at > last_exported_at:
+                status = "changed_since_export"
+            else:
+                status = "up_to_date"
+            result[code] = {
+                "status": status,
+                "last_exported_at": last_exported_at,
+                "last_changed_at": last_changed_at,
+            }
+        return result
+
+    def _last_export_by_code(self, entity_type: str, requested_codes: set[str]) -> dict:
+        last_export_by_code = {code: "" for code in requested_codes}
+        udi_to_basic = {}
+        with self.connect() as conn:
+            if entity_type == "basic" and requested_codes:
+                placeholders = ",".join("?" for _ in requested_codes)
+                udi_rows = conn.execute(
+                    f"SELECT udi_code, basic_code FROM udi_records WHERE basic_code IN ({placeholders})",
+                    list(requested_codes),
+                ).fetchall()
+                udi_to_basic = {row["udi_code"]: row["basic_code"] for row in udi_rows}
+            rows = conn.execute(
+                "SELECT code_list_json, created_at FROM export_jobs ORDER BY created_at"
+            ).fetchall()
+        for row in rows:
+            for code in self._parse_code_list(row["code_list_json"]):
+                if code in requested_codes:
+                    last_export_by_code[code] = row["created_at"]
+                if entity_type == "basic" and udi_to_basic.get(code) in requested_codes:
+                    last_export_by_code[udi_to_basic[code]] = row["created_at"]
+        return last_export_by_code
+
+    def _records_by_codes(self, entity_type: str, codes: list[str]) -> dict:
+        unique_codes = list(dict.fromkeys(str(code or "").strip() for code in codes if str(code or "").strip()))
+        if not unique_codes:
+            return {}
+        placeholders = ",".join("?" for _ in unique_codes)
+        with self.connect() as conn:
+            if entity_type == "basic":
+                rows = conn.execute(
+                    f"SELECT * FROM basic_records WHERE basic_code IN ({placeholders})",
+                    unique_codes,
+                ).fetchall()
+                return {row["basic_code"]: self._row_to_basic_dict(row) for row in rows}
+            rows = conn.execute(
+                f"""
+                SELECT u.*, b.payload_json AS basic_payload_json
+                FROM udi_records u
+                LEFT JOIN basic_records b ON b.basic_code = u.basic_code
+                WHERE u.udi_code IN ({placeholders})
+                """,
+                unique_codes,
+            ).fetchall()
+            return {row["udi_code"]: self._row_to_udi_dict(row) for row in rows}
+
+    def _parse_code_list(self, raw: str) -> list[str]:
+        try:
+            data = json.loads(raw or "[]")
+        except json.JSONDecodeError:
+            return []
+        if not isinstance(data, list):
+            return []
+        return [str(item or "").strip() for item in data if str(item or "").strip()]
 
     def get_basic(self, record_id: int) -> dict | None:
         with self.connect() as conn:
@@ -725,7 +954,38 @@ class Repository:
                 "record_id": row["record_id"],
                 "row_number": row["row_number"],
                 "action": row["action"],
-                "changed_fields": json.loads(row["changed_fields_json"]),
+                "changed_fields": _json_list(row["changed_fields_json"]),
+                "created_at": row["created_at"],
+            }
+            for row in rows
+        ]
+
+    def get_record_import_changes(self, entity_type: str, code: str, limit: int = 100) -> list[dict]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT c.*, i.filename, i.imported_at
+                FROM import_changes c
+                LEFT JOIN imports i ON i.id = c.import_id
+                WHERE c.entity_type = ? AND c.code = ?
+                ORDER BY c.id DESC
+                LIMIT ?
+                """,
+                (entity_type, code, limit),
+            ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "import_id": row["import_id"],
+                "filename": row["filename"] or "",
+                "imported_at": row["imported_at"] or row["created_at"],
+                "entity_type": row["entity_type"],
+                "code": row["code"],
+                "related_code": row["related_code"],
+                "record_id": row["record_id"],
+                "row_number": row["row_number"],
+                "action": row["action"],
+                "changed_fields": _json_list(row["changed_fields_json"]),
                 "created_at": row["created_at"],
             }
             for row in rows

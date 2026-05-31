@@ -33,9 +33,9 @@ BULK_UPLOAD_LIMIT_SOURCE = (
 
 # 工具自身版本与最近更新日期（页脚展示，由维护者更新）
 # TOOL_VERSION 是语义化版本号，用于「检查更新」比对；TOOL_VERSION_LABEL 给人看，可带中文修饰。
-TOOL_VERSION = "0.5.0"
-TOOL_VERSION_LABEL = "0.5.0 · 内测版"
-TOOL_UPDATED = "2026-05-25"
+TOOL_VERSION = "0.7.0"
+TOOL_VERSION_LABEL = "0.7.0 · 内测版"
+TOOL_UPDATED = "2026-05-31"
 
 # 检查更新：GitHub Releases API + 人类页面入口；留空时帮助页显示「未配置更新源」。
 RELEASES_API_URL = "https://api.github.com/repos/Charles-Fang-95/EUDAMEDbulkupload/releases/latest"
@@ -49,12 +49,16 @@ COPYRIGHT_HOLDER = "Xiongfei Fang"
 EUDAMED_PLAYGROUND_URL = "https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/"
 EUDAMED_PRODUCTION_URL = "https://webgate.ec.europa.eu/eudamed/landing-page#/"
 EUDAMED_PLAYGROUND_HELP_URL = "https://webgate.ec.europa.eu/eudamed-play-help/en/getting-started/eudamed-environments.html"
+EUDAMED_BULK_UPLOAD_HELP_URL = "https://webgate.ec.europa.eu/eudamed-help/en/data-exchange/bulk-uploading-downloading/bulk-upload.html"
+SUPPORT_EMAIL = "qecslan@hotmail.com"
 
 SERVICE_LABELS = {
     "DEVICE.POST": "Upload of Legacy / Regulation Device / SPP ( Basic UDI and UDI-DI / Master UDI-DI )",
     "UDI_DI.POST": "Upload of UDI-DI / Master UDI-DI for existing Basic UDI-DI",
     "Basic_UDI.PATCH": "Update Basic UDI",
     "UDI_DI.PATCH": "Update of UDI-DI / Master UDI-DI",
+    "MARKET_INFO.PATCH": "Update Market Information (countries / availability dates)",
+    "PACKAGE_UDI.PATCH": "Update Container Package (packaging structure)",
 }
 
 BASIC_FIELDS = [
