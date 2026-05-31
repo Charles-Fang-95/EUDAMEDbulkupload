@@ -100,19 +100,20 @@ jobs:
           body = m.group(0).strip() if m else ""
           if not body:
               raise SystemExit(f"未在 CHANGELOG.md 抓到 {version} 章节")
-          guide = """## How to download and use
-
-1. Download `EUDAMED_Local_Beta_Windows.zip` from the assets below.
-2. Unzip it to a local folder, then run the launcher inside the folder.
-3. Your local data is stored separately under `local_beta_data/`; replacing the tool package does not delete your database or exports.
-4. Download `EUDAMED_Template_v2.4.xlsx` if you need the latest template.
-
-中文说明：
-1. 在下方 Assets 下载 `EUDAMED_Local_Beta_Windows.zip`。
-2. 解压到本地文件夹，运行其中的启动程序。
-3. 本地数据默认保存在 `local_beta_data/`，替换新版程序不会删除数据库或导出文件。
-4. 如需最新版模板，请同时下载 `EUDAMED_Template_v2.4.xlsx`。
-"""
+          guide = "\n".join([
+              "## How to download and use",
+              "",
+              "1. Download `EUDAMED_Local_Beta_Windows.zip` from the assets below.",
+              "2. Unzip it to a local folder, then run the launcher inside the folder.",
+              "3. Your local data is stored separately under `local_beta_data/`; replacing the tool package does not delete your database or exports.",
+              "4. Download `EUDAMED_Template_v2.4.xlsx` if you need the latest template.",
+              "",
+              "中文说明：",
+              "1. 在下方 Assets 下载 `EUDAMED_Local_Beta_Windows.zip`。",
+              "2. 解压到本地文件夹，运行其中的启动程序。",
+              "3. 本地数据默认保存在 `local_beta_data/`，替换新版程序不会删除数据库或导出文件。",
+              "4. 如需最新版模板，请同时下载 `EUDAMED_Template_v2.4.xlsx`。",
+          ])
           body = guide.strip() + "\n\n" + body
           with open("release_notes.md", "w", encoding="utf-8") as f:
               f.write(body + "\n")
