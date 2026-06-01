@@ -16,6 +16,7 @@ from .constants import (
     EUDAMED_PLAYGROUND_URL,
     EUDAMED_BULK_UPLOAD_HELP_URL,
     EUDAMED_PRODUCTION_URL,
+    GITEE_RELEASES_PAGE_URL,
     RELEASES_API_URL,
     RELEASES_PAGE_URL,
     SCHEMA_VERSION,
@@ -1124,11 +1125,15 @@ def download_update_help_block(check_result: dict | None = None) -> str:
       <h3>{t('下载与更新工具', 'Download and update the tool')}</h3>
       {update_section}
       <ol>
-        <li>{t('打开 GitHub Releases 页面，下载最新的 Windows ZIP 或模板附件。', 'Open the GitHub Releases page and download the latest Windows ZIP or template asset.')}</li>
+        <li>{t('优先使用 GitHub Releases；如果 GitHub 访问慢或失败，使用 Gitee 国内镜像。', 'Use GitHub Releases first; if GitHub is slow or unavailable, use the Gitee mirror.')}</li>
+        <li>{t('下载最新的 Windows ZIP 或模板附件。', 'Download the latest Windows ZIP or template asset.')}</li>
         <li>{t('解压 ZIP 后运行其中的启动程序；旧版本不用卸载，但建议先关闭正在运行的工具。', 'Unzip it and run the launcher inside; no uninstall is needed, but close the old tool first.')}</li>
         <li>{t('本地数据默认在 local_beta_data，不会因为替换新版程序而被覆盖。', 'Local data is stored under local_beta_data by default and is not overwritten by replacing the program.')}</li>
       </ol>
-      <p><a class="button" href="{esc(RELEASES_PAGE_URL)}" target="_blank" rel="noopener">{t('打开 Releases 页面', 'Open Releases page')}</a></p>
+      <p>
+        <a class="button" href="{esc(RELEASES_PAGE_URL)}" target="_blank" rel="noopener">GitHub Releases</a>
+        <a class="button" href="{esc(GITEE_RELEASES_PAGE_URL)}" target="_blank" rel="noopener">Gitee Releases</a>
+      </p>
     </div>
     """
 
@@ -1263,6 +1268,14 @@ def update_check_block(check_result: dict | None) -> str:
     body = check_result.get("body", "")
     error = check_result.get("error", "")
     prerelease = bool(check_result.get("prerelease"))
+    source = check_result.get("source") or "github"
+    source_name = "Gitee" if source == "gitee" else "GitHub"
+    fallback_error = check_result.get("fallback_error") or ""
+    fallback_note = (
+        f'<p class="muted">{esc(t("GitHub 检查失败，已自动使用 Gitee 镜像结果。", "GitHub check failed; showing Gitee mirror result instead."))} {esc(fallback_error)}</p>'
+        if source == "gitee" and fallback_error
+        else ""
+    )
     prerelease_badge = f' <span class="badge muted-badge">{esc(t("Beta / 内测", "Beta / prerelease"))}</span>' if prerelease else ""
 
     if status == "ok":
@@ -1271,6 +1284,7 @@ def update_check_block(check_result: dict | None) -> str:
         details = t("最新版本", "Latest version") + f": <strong>{esc(latest)}</strong>{prerelease_badge}"
         if published:
             details += f' · {esc(t("发布于", "released"))} {esc(display_time(published) or published)}'
+        details += f' · {esc(t("来源", "Source"))}: <strong>{esc(source_name)}</strong>'
         download_links = _release_download_links(assets, asset)
         if not download_links and asset:
             download_links.append(f'<a class="button primary" href="{esc(asset)}" target="_blank" rel="noopener">{esc(t("下载新版安装包", "Download package"))}</a>')
@@ -1286,6 +1300,7 @@ def update_check_block(check_result: dict | None) -> str:
           <strong>{esc(title)}</strong>
           <p>{details}</p>
           {''.join(download_links)}
+          {fallback_note}
           {notes}
         </div>
         {current_label}
@@ -1294,15 +1309,17 @@ def update_check_block(check_result: dict | None) -> str:
         return f"""
         <div class="alert success">
           <strong>{esc(t("已是最新版本", "You are up to date"))}</strong>
-          <p>{esc(t("当前版本", "Current version"))} <strong>{esc(TOOL_VERSION_LABEL)}</strong> {esc(t("等于线上最新", "matches the latest release"))} <strong>{esc(latest)}</strong>{prerelease_badge}.</p>
+          <p>{esc(t("当前版本", "Current version"))} <strong>{esc(TOOL_VERSION_LABEL)}</strong> {esc(t("等于线上最新", "matches the latest release"))} <strong>{esc(latest)}</strong>{prerelease_badge}. {esc(t("来源", "Source"))}: <strong>{esc(source_name)}</strong></p>
+          {fallback_note}
         </div>
         """
     if status == "local_newer":
         return f"""
         <div class="alert notice">
-          <strong>{esc(t("当前本地版本高于 GitHub 最新发布版本", "Local version is newer than the latest GitHub release"))}</strong>
-          <p>{esc(t("本地版本", "Local version"))}: <strong>{esc(TOOL_VERSION_LABEL)}</strong> · GitHub: <strong>{esc(latest or t("未识别", "unknown"))}</strong></p>
+          <strong>{esc(t("当前本地版本高于线上最新发布版本", "Local version is newer than the latest online release"))}</strong>
+          <p>{esc(t("本地版本", "Local version"))}: <strong>{esc(TOOL_VERSION_LABEL)}</strong> · {esc(source_name)}: <strong>{esc(latest or t("未识别", "unknown"))}</strong></p>
           <p class="muted">{esc(t("这通常表示你正在使用开发版/内测版，尚未发布成正式 Release。", "This usually means you are using a development/beta build that has not been published as a formal Release yet."))}</p>
+          {fallback_note}
         </div>
         {current_label}
         """
@@ -1321,7 +1338,7 @@ def update_check_block(check_result: dict | None) -> str:
         return f"""
         <div class="alert notice">
           <strong>{esc(t("仓库尚未发布版本", "No release has been published yet"))}</strong>
-          <p>{esc(t("GitHub 仓库已配置，但还没有创建 tag + Release + 上传 ZIP；第一次发布完成后，用户才能在这里检查更新。", "The GitHub repository is configured, but no tag + Release + ZIP asset has been published yet. Users can check updates here after the first release is published."))}</p>
+          <p>{esc(t("仓库已配置，但还没有创建 tag + Release + 上传 ZIP；第一次发布完成后，用户才能在这里检查更新。", "The repository is configured, but no tag + Release + ZIP asset has been published yet. Users can check updates here after the first release is published."))}</p>
           {link}
         </div>
         {current_label}
@@ -1332,6 +1349,7 @@ def update_check_block(check_result: dict | None) -> str:
           <strong>{esc(t("无法联网检查", "Cannot reach update server"))}</strong>
           <p class="muted">{esc(error or t("请检查网络后重试。", "Please check your network and try again."))}</p>
           <a class="button" href="/check-update">{esc(t("重试", "Retry"))}</a>
+          <a class="button" href="{esc(GITEE_RELEASES_PAGE_URL)}" target="_blank" rel="noopener">Gitee Releases</a>
         </div>
         {current_label}
         """
@@ -1340,6 +1358,7 @@ def update_check_block(check_result: dict | None) -> str:
       <strong>{esc(t("检查失败", "Update check failed"))}</strong>
       <p class="muted">{esc(error or t("未知错误", "Unknown error"))}</p>
       <a class="button" href="/check-update">{esc(t("重试", "Retry"))}</a>
+      <a class="button" href="{esc(GITEE_RELEASES_PAGE_URL)}" target="_blank" rel="noopener">Gitee Releases</a>
     </div>
     {current_label}
     """

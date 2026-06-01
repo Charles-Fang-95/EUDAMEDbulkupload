@@ -1,6 +1,6 @@
 # GitHub / Gitee Release 发布流程
 
-本项目推荐用 GitHub Releases 作为主发布源，并同步一份到 Gitee Release 作为中国大陆下载镜像。用户不需要懂 Git，只需要从 Release 页面下载最新 ZIP；工具帮助页的“检查更新”默认读取 GitHub Releases API。
+本项目推荐用 GitHub Releases 作为主发布源，并同步一份到 Gitee Release 作为中国大陆下载镜像。用户不需要懂 Git，只需要从 Release 页面下载最新 ZIP；工具帮助页的“检查更新”优先读取 GitHub Releases API，GitHub 失败时回退到 Gitee Release API。
 
 ## 1. 仓库设置
 
@@ -84,6 +84,15 @@ RELEASES_PAGE_URL = "https://github.com/<你的账号>/<仓库名>/releases"
 
 工具会读取 latest release 的 `tag_name`，与本地 `TOOL_VERSION` 比较；如有新版本，会在帮助页显示下载/发布页入口。
 
+当前工具还配置了 Gitee 镜像：
+
+```python
+GITEE_RELEASES_API_URL = "https://gitee.com/api/v5/repos/Charles-Fang-95/EUDAMEDbulkupload/releases?per_page=1"
+GITEE_RELEASES_PAGE_URL = "https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases"
+```
+
+检查更新时优先访问 GitHub；如果 GitHub API 因网络、限流或不可达失败，会尝试读取 Gitee 最新 Release，并在帮助页标明来源。
+
 如果 Release 上传了多个附件，帮助页会列出全部附件，并优先高亮当前系统更可能需要的安装包。Windows 用户通常应下载 `EUDAMED_Local_Beta_Windows.zip`。
 
 如果仓库还没有任何 GitHub Release，帮助页会显示“仓库尚未发布版本”。这不是断网；需要先创建 tag + Release + 上传 ZIP，检查更新才会变成可用。
@@ -97,7 +106,7 @@ GitHub Releases 可以直接分发，但中国大陆网络访问 GitHub、GitHub
 - GitHub 作为主发布源和版本记录源。
 - 同步上传一份到大陆可访问镜像，例如 Gitee Release、阿里云 OSS、腾讯云 COS、蓝奏云或企业网盘。当前 workflow 已自动同步 Gitee Release。
 - Release notes 中同时写 GitHub 下载链接和国内备用下载链接。
-- 如果大量国内用户反馈“检查更新失败”，可以在工具里后续增加 `MIRROR_RELEASES_PAGE_URL` 或自托管 `latest.json`，让检查更新不依赖 GitHub API。
+- 如果大量国内用户反馈“检查更新失败”，可进一步考虑自托管 `latest.json`，让检查更新不依赖 GitHub/Gitee API。
 
 ## 7. 用户侧说明
 

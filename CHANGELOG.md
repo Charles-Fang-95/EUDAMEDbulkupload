@@ -2,6 +2,13 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.7.2 - 2026-06-01
+
+- 帮助页下载/更新区新增 Gitee Releases 国内镜像入口，用户可在 GitHub 访问失败时使用 Gitee 下载 Windows ZIP 和模板。
+- 检查更新逻辑新增 Gitee 回退：优先读取 GitHub Releases API，GitHub 网络失败、限流或不可达时自动尝试 Gitee Release API。
+- 更新结果显示来源 GitHub / Gitee；若使用 Gitee 回退，会提示 GitHub 检查失败原因。
+- 发布流程文档补充 GitHub + Gitee 双发布与检查更新回退说明。
+
 ## 0.7.1 - 2026-06-01
 
 - 修复产品库和导出任务页面的全选 / 取消勾选按钮失效问题。

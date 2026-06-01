@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 from .constants import (
     BASIC_FIELDS,
     EXPORT_DIR,
+    GITEE_RELEASES_API_URL,
     RELEASES_API_URL,
     STATIC_DIR,
     TEMPLATE_PATH,
@@ -104,7 +105,7 @@ class App:
         if request.command == "GET" and path == "/help":
             return self.respond_html(request, help_page())
         if request.command == "GET" and path == "/check-update":
-            check_result = check_latest_release(RELEASES_API_URL, TOOL_VERSION)
+            check_result = check_latest_release(RELEASES_API_URL, TOOL_VERSION, mirror_api_url=GITEE_RELEASES_API_URL)
             return self.respond_html(request, help_page(check_result=check_result))
         if request.command == "GET" and path == "/":
             xsd_report = build_xsd_version_report(check_online=False)

@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.7.1**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.7.1**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.7.2**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.7.2**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -28,9 +28,10 @@
 
 ### 方式 A：下载现成包（推荐，非技术用户）
 
-到 GitHub Releases 页面下载最新 ZIP（含 Windows 包），解压后运行：
+到 GitHub Releases 页面下载最新 ZIP（含 Windows 包），解压后运行；如果 GitHub 访问慢或失败，可使用 Gitee 国内镜像：
 
-- 最新版本：<https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest>
+- GitHub 最新版本：<https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest>
+- Gitee 国内镜像：<https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases>
 
 Windows 用户建议按这个顺序操作：
 
@@ -40,7 +41,7 @@ Windows 用户建议按这个顺序操作：
 4. 进入解压后的文件夹，双击启动程序。
 5. 浏览器会打开本地地址 `http://127.0.0.1:8765`；如果没有自动打开，请手动复制这个地址到浏览器。
 
-> 注：需要作者先在 GitHub 发布 Release，上面的下载链接才会有内容。如果页面是空的，说明还没发布正式包，请先用方式 B，或联系作者。
+> 注：需要作者先发布 Release，上面的下载链接才会有内容。如果页面是空的，说明还没发布正式包，请先用方式 B，或联系作者。
 
 ### 方式 B：从源码运行（开发者 / 暂无现成包时）
 
@@ -60,7 +61,7 @@ http://127.0.0.1:8765
 
 ## 如何更新
 
-1. 在工具的「帮助」页点 **检查更新**——它会读取 GitHub Releases，有新版会显示版本号和下载链接。
+1. 在工具的「帮助」页点 **检查更新**——它会优先读取 GitHub Releases；如果 GitHub API 访问失败，会尝试读取 Gitee 镜像 Release。
 2. 下载新 ZIP，**覆盖**到原目录（或直接运行新版 exe）。
 3. 你的数据（`local_beta_data/` 里的数据库和导出文件）**不会被覆盖**，会保留。也可以用环境变量 `EUDAMED_DATA_DIR` 把数据目录指到别处。
 
@@ -104,7 +105,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **0.7.1 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.7.2 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -140,9 +141,10 @@ Built for company **Regulatory Affairs (RA)** staff — no programming needed. T
 
 ### Option A: Download a ready package (recommended for non-technical users)
 
-Download the latest ZIP (with the Windows package) from GitHub Releases and unzip:
+Download the latest ZIP (with the Windows package) from GitHub Releases and unzip. If GitHub is slow or unavailable, use the Gitee mirror:
 
-- Latest release: <https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest>
+- GitHub latest release: <https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest>
+- Gitee mirror: <https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases>
 
 Recommended Windows steps:
 
@@ -152,7 +154,7 @@ Recommended Windows steps:
 4. Open the extracted folder and double-click the launcher.
 5. The browser should open `http://127.0.0.1:8765`; if it does not, copy this address into your browser manually.
 
-> Note: the author must publish a GitHub Release first for that link to contain anything. If the page is empty, no official package has been published yet — use Option B or contact the author.
+> Note: the author must publish a Release first for these links to contain anything. If the page is empty, no official package has been published yet — use Option B or contact the author.
 
 ### Option B: Run from source (developers / when no package exists yet)
 
@@ -172,7 +174,7 @@ http://127.0.0.1:8765
 
 ## Update
 
-1. On the tool's **Help** page, click **Check for updates** — it reads GitHub Releases and shows the new version and download link if available.
+1. On the tool's **Help** page, click **Check for updates** — it reads GitHub Releases first; if the GitHub API is unavailable, it tries the Gitee mirror release.
 2. Download the new ZIP and **overwrite** the old folder (or run the new exe).
 3. Your data (the database and exports under `local_beta_data/`) is **kept, not overwritten**. You can also point the data folder elsewhere with the `EUDAMED_DATA_DIR` environment variable.
 
@@ -216,7 +218,7 @@ Structure of `EUDAMED_Template_v2.4.xlsx`:
 
 ## Version history
 
-Current **0.7.1 / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.7.2 / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

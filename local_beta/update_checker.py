@@ -1,4 +1,4 @@
-"""检查工具是否有新版本：从 GitHub Releases API 拉最新 release。
+"""检查工具是否有新版本：从 GitHub / Gitee Releases API 拉最新 release。
 
 不做自动下载/替换；仅返回新版本元信息供帮助页展示链接。所有异常都吞掉、用 status 字段表达，
 调用方不需要 try/except。
@@ -12,15 +12,15 @@ import urllib.error
 import urllib.request
 
 
-def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -> dict:
-    """请求 GitHub Releases 最新 release，与本地版本比较。
+def check_latest_release(api_url: str, current_version: str, timeout: int = 6, mirror_api_url: str = "") -> dict:
+    """请求 GitHub Releases 最新 release；失败时可回退到 Gitee mirror。
 
     返回 dict（永不抛异常）：
       status: "ok"          有新版本可下载
               "up_to_date"  本地已是最新
-              "local_newer"  本地版本高于 GitHub 最新发布版本
+              "local_newer"  本地版本高于线上最新发布版本
               "unconfigured" RELEASES_API_URL 留空
-              "no_release"   仓库存在但尚未发布 GitHub Release
+              "no_release"   仓库存在但尚未发布 Release
               "offline"     联网失败 / 超时
               "error"       JSON 解析或字段缺失
       latest_version: 远端语义化版本（去掉前缀 v）
@@ -31,6 +31,8 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
       published_at: ISO 时间串
       body: release notes 全文（裁剪由调用方决定）
       error: 失败时的简要描述
+      source: github / gitee
+      fallback_error: GitHub 失败但 Gitee 成功时保留原始错误
     """
     result = {
         "status": "unconfigured",
@@ -42,46 +44,49 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
         "published_at": "",
         "body": "",
         "error": "",
+        "source": "",
+        "fallback_error": "",
     }
-    if not api_url:
+    if not api_url and not mirror_api_url:
         return result
 
-    payload, error_status, error_text = _fetch_json(api_url, timeout)
-    if error_status == "not_found":
-        fallback_url = _fallback_releases_url(api_url)
-        if fallback_url:
-            payload, error_status, error_text = _fetch_json(fallback_url, timeout)
-            if isinstance(payload, list):
-                payload = payload[0] if payload else None
-                if payload is None:
-                    error_status = "no_release"
-                    error_text = "GitHub 仓库尚未发布 Release。"
-        else:
-            error_status = "no_release"
-            error_text = "GitHub 仓库尚未发布 Release。"
+    primary = _load_release(api_url, timeout, "github") if api_url else (None, "unconfigured", "GitHub 更新源未配置。", "")
+    payload, error_status, error_text, source = primary
+    fallback_error = ""
+    if error_status and mirror_api_url:
+        fallback_error = error_text
+        payload, error_status, error_text, source = _load_release(mirror_api_url, timeout, "gitee")
     if error_status:
         result["status"] = "no_release" if error_status == "not_found" else error_status
         result["error"] = error_text
+        result["fallback_error"] = fallback_error
+        result["source"] = source
         return result
-    if not isinstance(payload, dict):
+    normalized = _normalize_release(payload, source)
+    if not normalized:
         result["status"] = "error"
-        result["error"] = "GitHub API 返回值不是 release 对象。"
+        result["error"] = f"{source or 'Release'} API 返回值不是 release 对象。"
+        result["fallback_error"] = fallback_error
+        result["source"] = source
         return result
 
-    tag = str(payload.get("tag_name") or payload.get("name") or "").strip()
+    tag = normalized["tag"]
     if not tag:
         result["status"] = "error"
         result["error"] = "release 缺少 tag_name"
+        result["fallback_error"] = fallback_error
+        result["source"] = source
         return result
 
     latest = tag.lstrip("vV").strip()
     result["latest_version"] = latest
-    result["html_url"] = str(payload.get("html_url") or "")
-    result["published_at"] = str(payload.get("published_at") or "")
-    result["body"] = str(payload.get("body") or "")
-    result["prerelease"] = bool(payload.get("prerelease"))
-    raw_assets = payload.get("assets") or []
-    assets = _release_assets(raw_assets)
+    result["html_url"] = normalized["html_url"]
+    result["published_at"] = normalized["published_at"]
+    result["body"] = normalized["body"]
+    result["prerelease"] = normalized["prerelease"]
+    result["source"] = source
+    result["fallback_error"] = fallback_error
+    assets = normalized["assets"]
     result["assets"] = assets
     preferred = _preferred_asset(assets)
     if preferred:
@@ -97,18 +102,38 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6) -
     return result
 
 
-def _fetch_json(url: str, timeout: int):
+def _load_release(url: str, timeout: int, source: str):
+    payload, error_status, error_text = _fetch_json(url, timeout, source)
+    if error_status == "not_found":
+        fallback_url = _fallback_releases_url(url)
+        if fallback_url:
+            payload, error_status, error_text = _fetch_json(fallback_url, timeout, source)
+        else:
+            error_status = "no_release"
+            error_text = f"{_source_label(source)} 仓库尚未发布 Release。"
+    if error_status:
+        return None, error_status, error_text, source
+    if isinstance(payload, list):
+        if not payload:
+            return None, "no_release", f"{_source_label(source)} 仓库尚未发布 Release。", source
+        payload = payload[0]
+    return payload, "", "", source
+
+
+def _fetch_json(url: str, timeout: int, source: str):
     try:
         request = urllib.request.Request(
             url,
-            headers={"Accept": "application/vnd.github+json", "User-Agent": "eudamed-local-beta"},
+            headers={"Accept": "application/json", "User-Agent": "eudamed-local-beta"},
         )
         with urllib.request.urlopen(request, timeout=timeout) as response:
             return json.loads(response.read().decode("utf-8", errors="ignore")), "", ""
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
-            return None, "not_found", "GitHub 仓库尚未发布 Release。"
-        return None, "error", f"GitHub API HTTP {exc.code}: {exc.reason}"
+            return None, "not_found", f"{_source_label(source)} 仓库尚未发布 Release。"
+        if exc.code in {403, 429}:
+            return None, "offline", f"{_source_label(source)} API HTTP {exc.code}: {exc.reason}"
+        return None, "error", f"{_source_label(source)} API HTTP {exc.code}: {exc.reason}"
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         return None, "offline", str(exc)
     except (ValueError, json.JSONDecodeError) as exc:
@@ -122,15 +147,51 @@ def _fallback_releases_url(api_url: str) -> str:
     return api_url.replace(marker, "/releases?per_page=1")
 
 
-def _release_assets(raw_assets) -> list[dict]:
+def _normalize_release(payload, source: str) -> dict:
+    if not isinstance(payload, dict):
+        return {}
+    if source == "gitee":
+        return _normalize_gitee_release(payload)
+    return _normalize_github_release(payload)
+
+
+def _normalize_github_release(payload: dict) -> dict:
+    return {
+        "tag": str(payload.get("tag_name") or payload.get("name") or "").strip(),
+        "html_url": str(payload.get("html_url") or ""),
+        "published_at": str(payload.get("published_at") or ""),
+        "body": str(payload.get("body") or ""),
+        "prerelease": bool(payload.get("prerelease")),
+        "assets": _release_assets(payload.get("assets") or [], "github"),
+    }
+
+
+def _normalize_gitee_release(payload: dict) -> dict:
+    tag = str(payload.get("tag_name") or payload.get("tag") or payload.get("name") or "").strip()
+    html_url = str(payload.get("html_url") or payload.get("url") or "")
+    if not html_url and tag:
+        html_url = f"https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases/tag/{tag}"
+    return {
+        "tag": tag,
+        "html_url": html_url,
+        "published_at": str(payload.get("published_at") or payload.get("created_at") or ""),
+        "body": str(payload.get("body") or payload.get("description") or ""),
+        "prerelease": bool(payload.get("prerelease")),
+        "assets": _release_assets(payload.get("assets") or payload.get("attach_files") or [], "gitee", tag),
+    }
+
+
+def _release_assets(raw_assets, source: str = "github", tag: str = "") -> list[dict]:
     if not isinstance(raw_assets, list):
         return []
     assets = []
     for item in raw_assets:
         if not isinstance(item, dict):
             continue
-        url = str(item.get("browser_download_url") or "")
-        name = str(item.get("name") or "")
+        name = str(item.get("name") or item.get("filename") or item.get("file_name") or "")
+        url = str(item.get("browser_download_url") or item.get("download_url") or item.get("url") or "")
+        if source == "gitee":
+            url = _normalize_gitee_asset_url(url, name, tag)
         if not url or not name:
             continue
         assets.append(
@@ -142,6 +203,18 @@ def _release_assets(raw_assets) -> list[dict]:
             }
         )
     return assets
+
+
+def _normalize_gitee_asset_url(url: str, name: str, tag: str) -> str:
+    if url.startswith("http"):
+        return url
+    if tag and name:
+        return f"https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases/download/{tag}/{name}"
+    return url
+
+
+def _source_label(source: str) -> str:
+    return "Gitee" if source == "gitee" else "GitHub"
 
 
 def _preferred_asset(assets: list[dict]) -> dict:
