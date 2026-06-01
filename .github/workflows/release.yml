@@ -177,3 +177,172 @@ jobs:
 
           echo "Release URL:"
           gh release view "$TAG" --json url -q .url
+
+      - name: Create or update Gitee Release
+        shell: bash
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: Charles-Fang-95
+          GITEE_REPO: EUDAMEDbulkupload
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          PRERELEASE: ${{ steps.ver.outputs.prerelease }}
+          TARGET_COMMITISH: main
+        run: |
+          set -euo pipefail
+          if [ -z "${GITEE_TOKEN:-}" ]; then
+            echo "::error::GITEE_TOKEN secret 未配置。请在 GitHub repo Settings → Secrets and variables → Actions 添加 GITEE_TOKEN。"
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          import mimetypes
+          import os
+          import pathlib
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          import uuid
+
+          BASE_URL = "https://gitee.com/api/v5"
+          token = os.environ["GITEE_TOKEN"]
+          owner = os.environ["GITEE_OWNER"]
+          repo = os.environ["GITEE_REPO"]
+          tag = os.environ["TAG"]
+          version = os.environ["VERSION"]
+          prerelease = os.environ.get("PRERELEASE", "false").lower() == "true"
+          target_commitish = os.environ.get("TARGET_COMMITISH", "main")
+          title = tag
+          notes = pathlib.Path("release_notes.md").read_text(encoding="utf-8")
+          assets = [
+              pathlib.Path("dist/EUDAMED_Local_Beta_Windows.zip"),
+              pathlib.Path("EUDAMED_Template_v2.4.xlsx"),
+          ]
+
+          def api_url(path, params=None):
+              merged = {"access_token": token}
+              if params:
+                  merged.update(params)
+              return f"{BASE_URL}{path}?{urllib.parse.urlencode(merged)}"
+
+          def request_json(method, path, fields=None, not_found_none=False):
+              data = None
+              headers = {"Accept": "application/json"}
+              if fields is not None:
+                  data = urllib.parse.urlencode(fields).encode("utf-8")
+                  headers["Content-Type"] = "application/x-www-form-urlencoded"
+              req = urllib.request.Request(api_url(path), data=data, method=method, headers=headers)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as resp:
+                      raw = resp.read().decode("utf-8")
+                      return json.loads(raw) if raw else {}
+              except urllib.error.HTTPError as exc:
+                  body = exc.read().decode("utf-8", errors="replace")
+                  if exc.code == 404 and not_found_none:
+                      return None
+                  raise SystemExit(f"Gitee API {method} {path} failed: HTTP {exc.code} {body}") from exc
+
+          def normalize_attachments(payload):
+              if isinstance(payload, list):
+                  return payload
+              if isinstance(payload, dict):
+                  for key in ("data", "attach_files", "files"):
+                      if isinstance(payload.get(key), list):
+                          return payload[key]
+              return []
+
+          def multipart_upload(path, file_path):
+              boundary = f"----eudamed-{uuid.uuid4().hex}"
+              filename = file_path.name
+              content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+              file_bytes = file_path.read_bytes()
+              parts = [
+                  f"--{boundary}\r\n".encode("utf-8"),
+                  f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'.encode("utf-8"),
+                  f"Content-Type: {content_type}\r\n\r\n".encode("utf-8"),
+                  file_bytes,
+                  b"\r\n",
+                  f"--{boundary}--\r\n".encode("utf-8"),
+              ]
+              body = b"".join(parts)
+              req = urllib.request.Request(
+                  api_url(path),
+                  data=body,
+                  method="POST",
+                  headers={
+                      "Accept": "application/json",
+                      "Content-Type": f"multipart/form-data; boundary={boundary}",
+                      "Content-Length": str(len(body)),
+                  },
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=120) as resp:
+                      raw = resp.read().decode("utf-8")
+                      return json.loads(raw) if raw else {}
+              except urllib.error.HTTPError as exc:
+                  body_text = exc.read().decode("utf-8", errors="replace")
+                  raise SystemExit(f"Gitee asset upload failed for {filename}: HTTP {exc.code} {body_text}") from exc
+
+          release = request_json(
+              "GET",
+              f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/tags/{urllib.parse.quote(tag)}",
+              not_found_none=True,
+          )
+          release_fields = {
+              "tag_name": tag,
+              "name": title,
+              "body": notes,
+              "target_commitish": target_commitish,
+              "prerelease": "true" if prerelease else "false",
+          }
+          if release:
+              release_id = release["id"]
+              print(f"Gitee Release {tag} exists (id={release_id}); updating metadata.")
+              release = request_json(
+                  "PATCH",
+                  f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}",
+                  {
+                      "name": title,
+                      "body": notes,
+                      "prerelease": "true" if prerelease else "false",
+                  },
+              )
+          else:
+              print(f"Creating Gitee Release {tag}.")
+              release = request_json(
+                  "POST",
+                  f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases",
+                  release_fields,
+              )
+              release_id = release["id"]
+
+          release_id = release["id"]
+          existing = normalize_attachments(
+              request_json(
+                  "GET",
+                  f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}/attach_files",
+              )
+          )
+          asset_names = {asset.name for asset in assets}
+          for item in existing:
+              name = item.get("name") or item.get("filename") or item.get("file_name")
+              attach_id = item.get("id")
+              if name in asset_names and attach_id:
+                  print(f"Deleting old Gitee asset: {name}")
+                  request_json(
+                      "DELETE",
+                      f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}/attach_files/{attach_id}",
+                  )
+
+          for asset in assets:
+              if not asset.exists():
+                  raise SystemExit(f"Missing asset for Gitee release: {asset}")
+              print(f"Uploading Gitee asset: {asset}")
+              multipart_upload(
+                  f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}/attach_files",
+                  asset,
+              )
+
+          print(f"Gitee Release synced: https://gitee.com/{owner}/{repo}/releases/tag/{tag}")
+          PY

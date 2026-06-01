@@ -1,6 +1,6 @@
-# GitHub Release 发布流程
+# GitHub / Gitee Release 发布流程
 
-本项目推荐用 GitHub Releases 分发 Windows/Mac 内测包。用户不需要懂 Git，只需要从 Release 页面下载最新 ZIP；工具帮助页的“检查更新”可以读取 GitHub Releases API。
+本项目推荐用 GitHub Releases 作为主发布源，并同步一份到 Gitee Release 作为中国大陆下载镜像。用户不需要懂 Git，只需要从 Release 页面下载最新 ZIP；工具帮助页的“检查更新”默认读取 GitHub Releases API。
 
 ## 1. 仓库设置
 
@@ -26,7 +26,31 @@
    ```
 5. 在 Windows 机器上重新构建 Windows 包，生成 `dist/EUDAMED_Local_Beta_Windows.zip`。
 
-## 3. 创建 GitHub Release
+## 3. GitHub Actions 自动发布
+
+当前仓库使用 `.github/workflows/release.yml` 自动构建 Windows ZIP，并发布到 GitHub Release 和 Gitee Release。
+
+首次使用前需要在 GitHub 仓库配置 secret：
+
+1. 打开 GitHub 仓库 `Settings -> Secrets and variables -> Actions`。
+2. 新增 repository secret：
+   ```text
+   GITEE_TOKEN
+   ```
+3. `GITEE_TOKEN` 使用 Gitee 个人访问令牌，令牌需要能管理 `Charles-Fang-95/EUDAMEDbulkupload` 的 Release。
+
+发布步骤：
+
+1. 打开 GitHub 仓库 `Actions`。
+2. 选择 `Release` workflow。
+3. 点击 `Run workflow`。
+4. `version` 填不带 `v` 的版本号，例如 `0.7.1`。该版本必须与 `local_beta/constants.py` 的 `TOOL_VERSION` 和 `CHANGELOG.md` 顶部章节一致。
+5. workflow 会生成 `dist/EUDAMED_Local_Beta_Windows.zip`，并把它和 `EUDAMED_Template_v2.4.xlsx` 上传到 GitHub Release。
+6. 同一 workflow 会调用 Gitee API 创建/更新同 tag 的 Gitee Release，并上传同名附件；重复运行会删除同名旧附件后重新上传。
+
+Gitee Release 附件限制：普通项目单个附件不能超过 100M，仓库总附件容量普通项目不能超过 1G。Windows ZIP 如果超过限制，需要改用 OSS/COS/网盘等备用下载源。
+
+## 4. 手动创建 GitHub Release（备用）
 
 1. 打开仓库页面，进入 `Releases`。
 2. 点击 `Draft a new release`。
@@ -49,7 +73,7 @@ https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest/download/EU
 
 如果每次 Windows 包都叫 `EUDAMED_Local_Beta_Windows.zip`，这个直链不会随版本号变化，适合发给非技术用户。
 
-## 4. 配置工具内“检查更新”
+## 5. 配置工具内“检查更新”
 
 发布仓库确定后，在 `local_beta/constants.py` 填入：
 
@@ -64,18 +88,18 @@ RELEASES_PAGE_URL = "https://github.com/<你的账号>/<仓库名>/releases"
 
 如果仓库还没有任何 GitHub Release，帮助页会显示“仓库尚未发布版本”。这不是断网；需要先创建 tag + Release + 上传 ZIP，检查更新才会变成可用。
 
-## 5. 中国大陆下载风险
+## 6. 中国大陆下载风险
 
 GitHub Releases 可以直接分发，但中国大陆网络访问 GitHub、GitHub API、`github.com/.../releases/download/...` 可能不稳定或速度很慢。
 
 推荐做法：
 
 - GitHub 作为主发布源和版本记录源。
-- 同步上传一份到大陆可访问镜像，例如 Gitee Release、阿里云 OSS、腾讯云 COS、蓝奏云或企业网盘。
+- 同步上传一份到大陆可访问镜像，例如 Gitee Release、阿里云 OSS、腾讯云 COS、蓝奏云或企业网盘。当前 workflow 已自动同步 Gitee Release。
 - Release notes 中同时写 GitHub 下载链接和国内备用下载链接。
 - 如果大量国内用户反馈“检查更新失败”，可以在工具里后续增加 `MIRROR_RELEASES_PAGE_URL` 或自托管 `latest.json`，让检查更新不依赖 GitHub API。
 
-## 6. 用户侧说明
+## 7. 用户侧说明
 
 用户升级时只替换程序包，不要删除本机数据目录：
 
