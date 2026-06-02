@@ -26,6 +26,11 @@ concurrency:
 permissions:
   contents: write  # 用 GITHUB_TOKEN 创建 Release / tag / 上传附件
 
+env:
+  # GitHub Actions will force JavaScript actions to Node 24 in June 2026.
+  # Opt in now so checkout/setup-python are tested under the future runtime.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-release:
     name: Build Windows package and publish Release
