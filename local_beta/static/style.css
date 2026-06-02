@@ -62,6 +62,17 @@ body {
   color: var(--accent);
 }
 
+.topbar form {
+  margin: 0;
+}
+
+.nav-exit {
+  padding: 0.45rem 0.75rem;
+  background: rgba(174, 49, 49, 0.08);
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
 a {
   color: var(--link);
   text-underline-offset: 0.18em;
@@ -70,6 +81,24 @@ a {
 .shell {
   width: min(1180px, calc(100vw - 2rem));
   margin: 1.5rem auto 3rem;
+}
+
+.sample-banner {
+  width: min(1180px, calc(100vw - 2rem));
+  margin: 1rem auto 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(212, 156, 52, 0.55);
+  border-radius: 16px;
+  background: #fff2cd;
+  color: #7c5100;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sample-banner form {
+  margin: 0;
 }
 
 .hero, .panel, .card {
@@ -106,6 +135,14 @@ a {
   font-weight: 700;
   margin: 0;
   color: var(--accent);
+}
+
+.quick-start .card p,
+.template-guide .card p {
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--muted);
 }
 
 .columns {
@@ -278,6 +315,12 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .freshness-never_exported { background: rgba(38, 102, 176, 0.14); color: #2666b0; }
 .freshness-changed_since_export { background: rgba(212, 156, 52, 0.2); color: #8a5d0c; }
 .freshness-up_to_date { background: rgba(110, 106, 96, 0.14); color: var(--muted); }
+.badge.sample { background: #ffe3a1; color: #7c5100; border: 1px solid rgba(212, 156, 52, 0.5); }
+.requirement-required { background: rgba(174, 49, 49, 0.12); color: var(--danger); }
+.requirement-conditional { background: rgba(212, 156, 52, 0.18); color: #8a5d0c; }
+.requirement-optional { background: rgba(110, 106, 96, 0.12); color: var(--muted); }
+.ack-success { background: rgba(15, 108, 92, 0.12); color: var(--accent); }
+.ack-error { background: rgba(174, 49, 49, 0.12); color: var(--danger); }
 
 .panel.inset {
   background: rgba(25, 77, 68, 0.035);
@@ -380,10 +423,55 @@ tbody tr:hover {
   background: rgba(15, 108, 92, 0.06);
 }
 
+tbody tr.row-sample,
+tbody tr.row-sample:nth-child(even) {
+  background: rgba(212, 156, 52, 0.12);
+}
+
+tbody tr.row-sample:hover {
+  background: rgba(212, 156, 52, 0.2);
+}
+
+.empty-state {
+  padding: 1rem;
+  border-radius: 12px;
+  background: #fbf7ee;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 0.9rem;
+}
+
+.feedback-builder {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 250, 239, 0.72);
+}
+
+.feedback-builder .checklist {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.9rem 0;
+}
+
+.feedback-builder .checklist label {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+}
+
+.feedback-builder .checklist input[type="checkbox"] {
+  width: auto;
+  margin-top: 0.18rem;
+}
+
+#feedback-output {
+  margin-top: 0.8rem;
+  background: #fffdf7;
 }
 
 label span {
@@ -406,6 +494,35 @@ label span {
   color: var(--muted);
 }
 
+.term-tip {
+  position: relative;
+  border-bottom: 1px dotted rgba(15, 108, 92, 0.55);
+  cursor: help;
+}
+
+.term-tip sup {
+  color: var(--accent);
+  font-weight: 800;
+  margin-left: 0.12rem;
+}
+
+.term-tip:hover::after,
+.term-tip:focus::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: 1.35em;
+  width: min(320px, 80vw);
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  background: #24312d;
+  color: #fffdf7;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .advanced-edit {
   margin: 0.5rem 0 0.25rem;
   padding: 0.5rem 0.9rem;
@@ -423,6 +540,42 @@ label span {
 .advanced-edit[open] > summary {
   margin-bottom: 0.4rem;
   border-bottom: 1px solid var(--line);
+}
+
+.sheet-guide {
+  margin: 0.8rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fbf7ee;
+}
+
+.sheet-guide > summary {
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.service-wizard {
+  margin-top: 1rem;
+}
+
+.wizard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.wizard-result {
+  margin-top: 0.9rem;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 108, 92, 0.2);
+  background: rgba(15, 108, 92, 0.08);
+}
+
+.release-sources {
+  align-items: center;
 }
 
 .simple-list {

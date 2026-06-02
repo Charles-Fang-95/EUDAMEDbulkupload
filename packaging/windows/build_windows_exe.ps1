@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipVenv
+    [switch]$SkipVenv,
+    [switch]$Console
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,16 +22,21 @@ if (-not $SkipVenv) {
 
 & $Python -m compileall local_beta
 
+$ConsoleMode = "--windowed"
+if ($Console) {
+    $ConsoleMode = "--console"
+}
+
 & $Python -m PyInstaller `
     --noconfirm `
     --clean `
     --onedir `
-    --console `
+    $ConsoleMode `
     --name EUDAMED_Local_Beta `
     --add-data "local_beta;local_beta" `
     --add-data "EUDAMED_TOOL_v2;EUDAMED_TOOL_v2" `
     --add-data "official_docs;official_docs" `
-    --add-data "EUDAMED_Template_v2.4.xlsx;." `
+    --add-data "EUDAMED_Template_v2.5.xlsx;." `
     --add-data "README.md;." `
     run_local_beta.py
 

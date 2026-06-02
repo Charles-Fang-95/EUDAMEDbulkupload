@@ -21,6 +21,7 @@ try:
         ENTRY_SHEETS,
         ENUM_SOURCES,
         RELATED_SHEETS,
+        TEMPLATE_VERSION,
         columns_for_entry_sheet,
     )
 except ImportError:
@@ -29,13 +30,14 @@ except ImportError:
         ENTRY_SHEETS,
         ENUM_SOURCES,
         RELATED_SHEETS,
+        TEMPLATE_VERSION,
         columns_for_entry_sheet,
     )
 
 
 OUTPUTS = [
-    ROOT / "EUDAMED_Template_v2.4.xlsx",
-    ROOT / "EUDAMED_TOOL_v2" / "templates" / "EUDAMED_Template_v2.4.xlsx",
+    ROOT / f"EUDAMED_Template_{TEMPLATE_VERSION}.xlsx",
+    ROOT / "EUDAMED_TOOL_v2" / "templates" / f"EUDAMED_Template_{TEMPLATE_VERSION}.xlsx",
 ]
 MAX_DATA_ROWS = 1000
 DATA_START_ROW = 4
@@ -147,7 +149,10 @@ def _build_table_sheet(ws, columns: list[dict]):
 def _description_line(item: dict) -> str:
     required = {"required": "必填", "conditional": "条件必填", "optional": "可选"}[item["requirement"]]
     fmt = f"；格式：{item['format']}" if item["format"] else ""
-    return f"{required}。{item['description']}{fmt}"
+    description = str(item["description"] or "")
+    if description.startswith(f"{required}：") or description.startswith(f"{required}/"):
+        return f"{description}{fmt}"
+    return f"{required}。{description}{fmt}"
 
 
 def _header_font(item: dict):
@@ -193,7 +198,7 @@ def _build_enums(ws):
 
 def _build_how_to_use(ws):
     lines = [
-        ("EUDAMED Template v2.4 - How to Use", HELP_TITLE),
+        (f"EUDAMED Template {TEMPLATE_VERSION} - How to Use", HELP_TITLE),
         ("1. 选择法规 sheet", HELP_HEAD),
         ("MDR/MDD 产品填写 MDR_MDD；IVDR/IVDD 产品填写 IVDR_IVDD。正式数据从第 4 行开始。", None),
         ("2. 三行表头", HELP_HEAD),
@@ -205,6 +210,7 @@ def _build_how_to_use(ws):
         ("一个 Basic UDI-DI 下有多个 UDI-DI 时，在主表重复填写 Basic 列，并逐行填写不同 UDI-DI。", None),
         ("5. 明细 sheet", HELP_HEAD),
         ("Trade Names、Market Info、Package Info、Device Certificates、Critical Warnings、Storage Conditions、CMR Substances 使用独立列填写，不再使用 | 分隔符。", None),
+        ("Package Info 不是所有产品都要填：只有存在 container package / 多层包装 DI 时才填写；没有包装层级时整张 Package Info sheet 可留空。", None),
         ("Market Info 属于 UDI-DI 层，不属于 BUDI 层；独立 Update market information service 后续实现。", None),
         ("同一 UDI-DI 可以有多个 made available 国家，但 Originally Placed on Market 必须且只能有一个 TRUE，其它国家填写 FALSE。", None),
         ("国家/市场信息填报错误时，应优先通过 EUDAMED update/create new version 纠正，不应默认删除 UDI-DI 重新注册。", None),
@@ -223,6 +229,7 @@ def _build_how_to_use(ws):
         ("Critical Warning Glossary sheet 提供完整官方 CW 枚举，便于按说明书或标签查找对应 warning。", None),
         ("10. Package Info 多层包装", HELP_HEAD),
         ("Package Info 每一行表示“一个 Package DI 包含一个 child DI”。child 可为主 UDI-DI，也可为同组下一级 Package DI。", None),
+        ("如果填写 Package Info 行，UDI-DI Code、Package UDI-DI Code、Package Issuing Entity、Quantity per Package 为条件必填。", None),
         ("Contains DI Code 留空时兼容旧填法，默认 child 为主 UDI-DI；Local - Package Level / Type 只作本地辅助说明，不输出到 XML。", None),
         ("11. 上传 service", HELP_HEAD),
         ("新建 Basic + 多个 UDI-DI 使用 DEVICE.POST；已有 Basic 追加 UDI-DI 使用 UDI_DI.POST。新上传时可随 UDI-DI 一起输出 container package。", None),
@@ -238,7 +245,8 @@ def _build_how_to_use(ws):
         ("14. 当前不输出字段", HELP_HEAD),
         ("eIFU URL、Public Email、Clinical Size、Product Designer、Purpose Other Than Medical 等字段正在做官方字段映射审计；未确认前不会静默写入 XML。", None),
         ("15. 更新 service", HELP_HEAD),
-        ("Basic_UDI.PATCH / UDI_DI.PATCH 需要填写 EUDAMED 当前 version。", None),
+        ("Basic_UDI.PATCH 需要在主表 B 列 Basic - Current Version 填写 EUDAMED 网页中的当前 Basic 版本号。", None),
+        ("UDI_DI.PATCH 需要在主表 UDI 区域的 UDI - Current Version 列填写 EUDAMED 网页中的当前 UDI-DI 版本号。", None),
         ("独立 Update container package service 暂未开放；独立 Update market information service 后续实现。", None),
         ("16. Basic Model", HELP_HEAD),
         ("如果 EUDAMED 中 Model 不适用于 BUDI，请只填 Basic - Device Name*，并留空 Basic - Device Model。", None),

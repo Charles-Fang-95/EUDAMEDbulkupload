@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.7.2**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.7.2**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.8.0**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.8.0**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -69,7 +69,7 @@ http://127.0.0.1:8765
 
 ## 工具怎么用
 
-1. **下载模板**：顶栏「下载模板」，或直接用仓库里的 `EUDAMED_Template_v2.4.xlsx`。
+1. **下载模板**：顶栏「下载模板」，或直接用仓库里的 `EUDAMED_Template_v2.5.xlsx`。
 2. **填写 Excel**：在 Excel / WPS 里填数据（填写规则见下一节）。
 3. **导入 Excel**：在「导入 Excel」页上传，系统立即校验并显示新增 / 已更新 / 错误行。
 4. **产品库**：浏览、搜索、按 Manufacturer SRN 切换不同 actor；详情页可做临时修正（正式维护建议回到 Excel）。
@@ -77,12 +77,12 @@ http://127.0.0.1:8765
 6. **上传 EUDAMED**：按页面 / manifest 指引上传。**先在 Playground TEST 环境验收**，通过后再上生产。
 
 辅助功能：
-- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.4 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
+- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.5 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
 - **XSD 版本**页：核对工具内置 XSD、本地 XSD 包、官方文档页版本是否一致。
 
 ## 模板怎么用
 
-模板 `EUDAMED_Template_v2.4.xlsx` 的结构：
+模板 `EUDAMED_Template_v2.5.xlsx` 的结构：
 
 - **两个主录入表**：`MDR_MDD`（医疗器械）、`IVDR_IVDD`（体外诊断）。
   - 第 1 行 = 字段名，第 2 行 = 中文说明，第 3 行 = 示例（前三行已锁定，请勿改）。
@@ -105,7 +105,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **0.7.2 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.8.0 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -182,7 +182,7 @@ http://127.0.0.1:8765
 
 ## Using the tool
 
-1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.4.xlsx` from the repo.
+1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.5.xlsx` from the repo.
 2. **Fill in the Excel** (rules in the next section).
 3. **Import Excel**: upload on the "Import Excel" page; it validates immediately and shows created / updated / error rows.
 4. **Product Library**: browse, search, switch actor by Manufacturer SRN; the detail page allows quick fixes (for real maintenance, go back to Excel).
@@ -190,12 +190,12 @@ http://127.0.0.1:8765
 6. **Upload to EUDAMED** following the page / manifest. **Validate in the Playground TEST environment first**, then go to production.
 
 Helpers:
-- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.4 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
+- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.5 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
 - **XSD version** page: check that the tool's built-in XSD, local XSD package, and the official documentation version are consistent.
 
 ## Using the template
 
-Structure of `EUDAMED_Template_v2.4.xlsx`:
+Structure of `EUDAMED_Template_v2.5.xlsx`:
 
 - **Two main entry sheets**: `MDR_MDD` (medical devices), `IVDR_IVDD` (in-vitro diagnostics).
   - Row 1 = field name, Row 2 = description, Row 3 = example (first three rows are locked — do not edit).
@@ -218,7 +218,7 @@ Structure of `EUDAMED_Template_v2.4.xlsx`:
 
 ## Version history
 
-Current **0.7.2 / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.8.0 / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

@@ -102,6 +102,47 @@ def check_latest_release(api_url: str, current_version: str, timeout: int = 6, m
     return result
 
 
+def release_download_links(github_api: str, gitee_api: str, timeout: int = 6) -> dict:
+    """分别读取 GitHub/Gitee 最新 release，返回 Windows ZIP 直链。
+
+    与 check_latest_release 的“主源失败后回退”不同，这里两个来源独立检查：
+    一个失败不影响另一个，方便帮助页同时给出国际/国内下载入口。
+    """
+    return {
+        "github": _download_source(github_api, timeout, "github"),
+        "gitee": _download_source(gitee_api, timeout, "gitee"),
+    }
+
+
+def _download_source(api_url: str, timeout: int, source: str) -> dict:
+    data = {
+        "version": "",
+        "zip_url": "",
+        "page_url": "",
+        "error": "",
+        "source": source,
+    }
+    if not api_url:
+        data["error"] = f"{_source_label(source)} 更新源未配置。"
+        return data
+    payload, error_status, error_text, loaded_source = _load_release(api_url, timeout, source)
+    if error_status:
+        data["error"] = error_text
+        data["page_url"] = _release_page_url(source)
+        return data
+    normalized = _normalize_release(payload, loaded_source)
+    if not normalized:
+        data["error"] = f"{_source_label(source)} API 返回值不是 release 对象。"
+        data["page_url"] = _release_page_url(source)
+        return data
+    tag = normalized.get("tag", "")
+    data["version"] = tag.lstrip("vV").strip()
+    data["page_url"] = normalized.get("html_url") or _release_page_url(source)
+    preferred = _preferred_asset(normalized.get("assets") or [])
+    data["zip_url"] = preferred.get("url", "") if preferred else ""
+    return data
+
+
 def _load_release(url: str, timeout: int, source: str):
     payload, error_status, error_text = _fetch_json(url, timeout, source)
     if error_status == "not_found":
@@ -215,6 +256,12 @@ def _normalize_gitee_asset_url(url: str, name: str, tag: str) -> str:
 
 def _source_label(source: str) -> str:
     return "Gitee" if source == "gitee" else "GitHub"
+
+
+def _release_page_url(source: str) -> str:
+    if source == "gitee":
+        return "https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases"
+    return "https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases"
 
 
 def _preferred_asset(assets: list[dict]) -> dict:

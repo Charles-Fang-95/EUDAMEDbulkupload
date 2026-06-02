@@ -36,6 +36,8 @@ Test sample/
 *.xlsx
 !EUDAMED_Template_v2.4.xlsx
 !EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.4.xlsx
+!EUDAMED_Template_v2.5.xlsx
+!EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.5.xlsx
 
 # Official source downloads kept locally; production XSD files are tracked after unpacking.
 official_docs/*.pdf

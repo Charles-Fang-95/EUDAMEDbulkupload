@@ -1,5 +1,8 @@
 import json
+import os
 import shutil
+import threading
+import webbrowser
 from email.parser import BytesParser
 from email.policy import default
 from http import HTTPStatus
@@ -23,8 +26,10 @@ from .exporter import BetaXMLExporter
 from .importer import WorkbookImporter, parse_json_array
 from .storage import Repository
 from .template_migrator import migrate_workbook
-from .update_checker import check_latest_release
+from .ack_parser import parse_acknowledgement
+from .update_checker import check_latest_release, release_download_links
 from .views import (
+    ack_page,
     basic_detail,
     dashboard,
     export_page,
@@ -35,6 +40,9 @@ from .views import (
     migrate_template_page,
     page,
     set_lang,
+    set_sample_counts,
+    shutdown_page,
+    template_guide_page,
     t,
     udi_detail,
     xsd_version_page,
@@ -100,13 +108,27 @@ class App:
         path = parsed.path
         query = parse_qs(parsed.query)
         set_lang(self._lang_from_request(request))
+        set_sample_counts(self.repository.sample_data_count())
         if request.command == "GET" and path == "/set-lang":
             return self.handle_set_lang(request, query)
         if request.command == "GET" and path == "/help":
             return self.respond_html(request, help_page())
         if request.command == "GET" and path == "/check-update":
             check_result = check_latest_release(RELEASES_API_URL, TOOL_VERSION, mirror_api_url=GITEE_RELEASES_API_URL)
+            check_result["download_sources"] = release_download_links(RELEASES_API_URL, GITEE_RELEASES_API_URL)
             return self.respond_html(request, help_page(check_result=check_result))
+        if request.command == "POST" and path == "/sample-data/load":
+            self.repository.load_sample_data()
+            return self.redirect(request, "/")
+        if request.command == "POST" and path == "/sample-data/clear":
+            next_path = self.read_form(request).get("next", ["/"])[0]
+            self.repository.clear_sample_data()
+            return self.redirect(request, next_path if next_path.startswith("/") and not next_path.startswith("//") else "/")
+        if request.command == "POST" and path == "/shutdown":
+            content = shutdown_page()
+            self.respond_html(request, content)
+            threading.Thread(target=request.server.shutdown, daemon=True).start()
+            return
         if request.command == "GET" and path == "/":
             xsd_report = build_xsd_version_report(check_online=False)
             return self.respond_html(
@@ -127,6 +149,12 @@ class App:
             return self.respond_html(request, migrate_template_page())
         if request.command == "POST" and path == "/migrate-template":
             return self.handle_migrate_template(request)
+        if request.command == "GET" and path == "/template-guide":
+            return self.respond_html(request, template_guide_page())
+        if request.command == "GET" and path == "/ack":
+            return self.respond_html(request, ack_page())
+        if request.command == "POST" and path == "/ack":
+            return self.handle_ack(request)
         if request.command == "GET" and path == "/library":
             filters = self._filters_from_query(query)
             records = self.repository.list_udis(**filters)
@@ -254,6 +282,25 @@ class App:
         if warnings:
             return self.respond_html(request, migrate_template_page(t("迁移完成，但需要检查提示。", "Migration finished, but warnings need review."), result, "warning"))
         return self.respond_html(request, migrate_template_page(t("迁移完成。", "Migration finished."), result, "success"))
+
+    def handle_ack(self, request: BaseHTTPRequestHandler):
+        body = self.read_body(request)
+        _, files = parse_multipart(request.headers, body)
+        file_part = files.get("ack_xml")
+        if not file_part:
+            return self.respond_html(
+                request,
+                ack_page(message=t("请选择一个 EUDAMED response XML。", "Please choose an EUDAMED response XML."), message_level="error"),
+                HTTPStatus.BAD_REQUEST,
+            )
+        result = parse_acknowledgement(file_part["content"], self.repository)
+        level = "error" if result.get("errors") else "success" if result.get("ok") else "warning"
+        message = (
+            t("解析完成。", "Parsed.")
+            if result.get("ok")
+            else t("无法识别该 response XML，请确认上传的是 EUDAMED 回传文件。", "Cannot recognize this response XML; make sure it is the response returned by EUDAMED.")
+        )
+        return self.respond_html(request, ack_page(result=result, message=message, message_level=level))
 
     def handle_basic_update(self, request: BaseHTTPRequestHandler, record_id: int):
         record = self.repository.get_basic(record_id)
@@ -458,6 +505,12 @@ class App:
         request.end_headers()
         request.wfile.write(data)
 
+    def redirect(self, request: BaseHTTPRequestHandler, location: str):
+        request.send_response(HTTPStatus.FOUND)
+        request.send_header("Location", location)
+        request.send_header("Content-Length", "0")
+        request.end_headers()
+
     def not_found(self, request: BaseHTTPRequestHandler, message: str):
         return self.respond_html(
             request,
@@ -505,5 +558,8 @@ class App:
 def run_server(host: str = "127.0.0.1", port: int = 8765):
     app = App()
     server = ThreadingHTTPServer((host, port), app.handler())
-    print(f"Local beta is running at http://{host}:{port}")
+    url = f"http://{host}:{port}"
+    print(f"Local beta is running at {url}")
+    if not os.environ.get("EUDAMED_NO_BROWSER") and not os.environ.get("EUDAMED_RELOAD_CHILD"):
+        threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     server.serve_forever()

@@ -12,7 +12,7 @@
 - 不要删除帮助页中的 Ko-fi、支付宝和微信支持入口。
 - 不要修改 EUDAMED XML 导出核心逻辑，除非构建失败必须修复。
 - 当前支持的 EUDAMED production XSD version 是 `3.0.30`。
-- 当前默认模板是 `EUDAMED_Template_v2.4.xlsx`。
+- 当前默认模板是 `EUDAMED_Template_v2.5.xlsx`。
 - `DEVICE.POST` 支持 Regulation Device（MDR/IVDR）、SPP，以及 Legacy Device / EUDI（MDD/AIMDD/IVDD）。不要漏测 AIMDD。
 
 ## Windows 构建命令
@@ -39,8 +39,8 @@ dist\EUDAMED_Local_Beta_Windows.zip
 2. 浏览器打开 `http://127.0.0.1:8765`。
 3. 确认首页、导入、产品库、导出、帮助页面能打开。
 4. 打开帮助页，确认 Ko-fi 链接、支付宝收款码、微信收款码存在。
-5. 下载模板，确认下载的是 `EUDAMED_Template_v2.4.xlsx`。
-6. 导入一个 v2.4 模板样例，确认无 Python traceback。
+5. 下载模板，确认下载的是 `EUDAMED_Template_v2.5.xlsx`。
+6. 导入一个 v2.5 模板样例，确认无 Python traceback。
 7. 导出 `DEVICE.POST` XML，确认 XML 版本号为 `3.0.30`，且本地 XSD 校验仍通过。
 8. 构造/复制三条 legacy 场景分别测试 `MDD`、`AIMDD`、`IVDD`，确认：
    - `MDD` 和 `AIMDD` 输出 `MDEUDeviceType` / `MDEUData` / `MDEUDI`。

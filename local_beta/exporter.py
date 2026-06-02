@@ -340,6 +340,17 @@ class BetaXMLExporter:
             "batches": [],
             "freshness_summary": self.repository.export_freshness_summary(entity_type, selected_codes),
         }
+        sample_codes = [
+            code for code, item in zip(selected_codes, selected_records)
+            if item.get("is_sample") and code
+        ]
+        if sample_codes:
+            warnings.append(
+                "本次选择包含示例数据（"
+                + ", ".join(sample_codes[:8])
+                + ("..." if len(sample_codes) > 8 else "")
+                + "）。示例数据仅供熟悉流程，请勿上传到 EUDAMED。"
+            )
         self._append_consistency_warnings(warnings, service_type, selected_records)
         if not errors:
             result["batches"] = self.plan_export_batches(service_type, selected_records)

@@ -139,6 +139,8 @@ class Repository:
             conn.execute("ALTER TABLE udi_records ADD COLUMN trade_names_json TEXT NOT NULL DEFAULT '[]'")
         if table == "basic_records" and "cert_json" not in existing:
             conn.execute("ALTER TABLE basic_records ADD COLUMN cert_json TEXT NOT NULL DEFAULT '[]'")
+        if "is_sample" not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN is_sample INTEGER NOT NULL DEFAULT 0")
         conn.execute(
             f"""
             UPDATE {table}
@@ -175,6 +177,7 @@ class Repository:
         cmr_rows: list[dict],
         cert_rows: list[dict] | None = None,
         version: str = "",
+        is_sample: int = 0,
     ) -> dict | None:
         now = utc_now()
         basic_code = str(payload.get("Basic UDI-DI Code", "") or "").strip()
@@ -190,10 +193,24 @@ class Repository:
                     """
                     INSERT INTO basic_records
                     (basic_code, import_id, row_number, payload_json, cmr_json, cert_json, version, state, created_at, updated_at,
-                     first_imported_at, last_imported_at, last_changed_at, last_change_type)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, 'created')
+                     first_imported_at, last_imported_at, last_changed_at, last_change_type, is_sample)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, 'created', ?)
                     """,
-                    (basic_code, import_id, row_number, payload_json, cmr_json, cert_json, version, now, now, now, now, now),
+                    (
+                        basic_code,
+                        import_id,
+                        row_number,
+                        payload_json,
+                        cmr_json,
+                        cert_json,
+                        version,
+                        now,
+                        now,
+                        now,
+                        now,
+                        now,
+                        1 if is_sample else 0,
+                    ),
                 )
                 change = self._record_import_change(
                     conn, import_id, "basic", basic_code, "", int(cursor.lastrowid), row_number, "created", ["record"]
@@ -208,8 +225,9 @@ class Repository:
                     "cmr_json": cmr_json,
                     "cert_json": cert_json,
                     "version": effective_version,
+                    "is_sample": 1 if is_sample else 0,
                 },
-                {"payload_json": "fields", "cmr_json": "CMR Substances", "cert_json": "Device Certificates", "version": "version"},
+                {"payload_json": "fields", "cmr_json": "CMR Substances", "cert_json": "Device Certificates", "version": "version", "is_sample": "sample flag"},
             )
             action = "updated" if changed_fields else "unchanged"
             next_state = self._state_after_import(existing["state"], action)
@@ -218,7 +236,7 @@ class Repository:
                     """
                     UPDATE basic_records
                     SET import_id = ?, row_number = ?, payload_json = ?, cmr_json = ?, cert_json = ?, version = ?,
-                        state = ?, updated_at = ?, last_imported_at = ?, last_changed_at = ?, last_change_type = ?
+                        state = ?, updated_at = ?, last_imported_at = ?, last_changed_at = ?, last_change_type = ?, is_sample = ?
                     WHERE id = ?
                     """,
                     (
@@ -233,6 +251,7 @@ class Repository:
                         now,
                         now,
                         action,
+                        1 if is_sample else 0,
                         existing["id"],
                     ),
                 )
@@ -240,10 +259,10 @@ class Repository:
                 conn.execute(
                     """
                     UPDATE basic_records
-                    SET import_id = ?, row_number = ?, last_imported_at = ?, last_change_type = ?
+                    SET import_id = ?, row_number = ?, last_imported_at = ?, last_change_type = ?, is_sample = ?
                     WHERE id = ?
                     """,
-                    (import_id, row_number, now, action, existing["id"]),
+                    (import_id, row_number, now, action, 1 if is_sample else 0, existing["id"]),
                 )
             return self._record_import_change(
                 conn, import_id, "basic", basic_code, "", existing["id"], row_number, action, changed_fields
@@ -260,6 +279,7 @@ class Repository:
         package_rows: list[dict],
         trade_name_rows: list[dict] | None = None,
         version: str = "",
+        is_sample: int = 0,
     ) -> dict | None:
         now = utc_now()
         udi_code = str(payload.get("UDI-DI Code", "") or "").strip()
@@ -280,8 +300,8 @@ class Repository:
                     INSERT INTO udi_records
                     (udi_code, basic_code, import_id, row_number, payload_json, market_json, warnings_json,
                      storage_json, package_json, trade_names_json, version, state, created_at, updated_at,
-                     first_imported_at, last_imported_at, last_changed_at, last_change_type)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, 'created')
+                     first_imported_at, last_imported_at, last_changed_at, last_change_type, is_sample)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, 'created', ?)
                     """,
                     (
                         udi_code,
@@ -300,6 +320,7 @@ class Repository:
                         now,
                         now,
                         now,
+                        1 if is_sample else 0,
                     ),
                 )
                 return self._record_import_change(
@@ -318,6 +339,7 @@ class Repository:
                     "package_json": package_json,
                     "trade_names_json": trade_names_json,
                     "version": effective_version,
+                    "is_sample": 1 if is_sample else 0,
                 },
                 {
                     "basic_code": "Parent Basic UDI-DI",
@@ -328,6 +350,7 @@ class Repository:
                     "package_json": "Package Info",
                     "trade_names_json": "Trade Names",
                     "version": "version",
+                    "is_sample": "sample flag",
                 },
             )
             action = "updated" if changed_fields else "unchanged"
@@ -338,7 +361,7 @@ class Repository:
                     UPDATE udi_records
                     SET basic_code = ?, import_id = ?, row_number = ?, payload_json = ?, market_json = ?,
                         warnings_json = ?, storage_json = ?, package_json = ?, trade_names_json = ?, version = ?, state = ?,
-                        updated_at = ?, last_imported_at = ?, last_changed_at = ?, last_change_type = ?
+                        updated_at = ?, last_imported_at = ?, last_changed_at = ?, last_change_type = ?, is_sample = ?
                     WHERE id = ?
                     """,
                     (
@@ -357,6 +380,7 @@ class Repository:
                         now,
                         now,
                         action,
+                        1 if is_sample else 0,
                         existing["id"],
                     ),
                 )
@@ -364,10 +388,10 @@ class Repository:
                 conn.execute(
                     """
                     UPDATE udi_records
-                    SET import_id = ?, row_number = ?, last_imported_at = ?, last_change_type = ?
+                    SET import_id = ?, row_number = ?, last_imported_at = ?, last_change_type = ?, is_sample = ?
                     WHERE id = ?
                     """,
-                    (import_id, row_number, now, action, existing["id"]),
+                    (import_id, row_number, now, action, 1 if is_sample else 0, existing["id"]),
                 )
             return self._record_import_change(
                 conn, import_id, "udi", udi_code, basic_code, existing["id"], row_number, action, changed_fields
@@ -427,6 +451,8 @@ class Repository:
             stats = {
                 "basic_count": conn.execute("SELECT COUNT(*) FROM basic_records").fetchone()[0],
                 "udi_count": conn.execute("SELECT COUNT(*) FROM udi_records").fetchone()[0],
+                "sample_basic_count": conn.execute("SELECT COUNT(*) FROM basic_records WHERE is_sample = 1").fetchone()[0],
+                "sample_udi_count": conn.execute("SELECT COUNT(*) FROM udi_records WHERE is_sample = 1").fetchone()[0],
                 "pending_count": conn.execute(
                     "SELECT COUNT(*) FROM udi_records WHERE state IN ('pending_update', 'draft')"
                 ).fetchone()[0],
@@ -434,6 +460,151 @@ class Repository:
                 "export_count": conn.execute("SELECT COUNT(*) FROM export_jobs").fetchone()[0],
             }
             return stats
+
+    def sample_data_count(self) -> dict:
+        with self.connect() as conn:
+            return {
+                "basic": conn.execute("SELECT COUNT(*) FROM basic_records WHERE is_sample = 1").fetchone()[0],
+                "udi": conn.execute("SELECT COUNT(*) FROM udi_records WHERE is_sample = 1").fetchone()[0],
+            }
+
+    def clear_sample_data(self) -> dict:
+        with self.connect() as conn:
+            udi_deleted = conn.execute("DELETE FROM udi_records WHERE is_sample = 1").rowcount
+            basic_deleted = conn.execute("DELETE FROM basic_records WHERE is_sample = 1").rowcount
+        return {"basic": basic_deleted, "udi": udi_deleted}
+
+    def load_sample_data(self) -> dict:
+        self.clear_sample_data()
+        import_id = self.create_import(
+            "Sample data / 示例数据",
+            {"basic_count": 1, "udi_count": 2},
+            {"errors": [], "warnings": ["示例数据仅供熟悉流程，请勿上传到 EUDAMED。"]},
+        )
+        basic_payload = {
+            "Basic UDI-DI Code": "SAMPLE-BASIC-0001",
+            "Issuing Entity": "GS1",
+            "Manufacturer SRN": "CN-MF-000000001",
+            "Risk Class": "Class IIa",
+            "Applicable Legislation": "MDR",
+            "Device Type": "Regular Device",
+            "Device Name/Model": "SAMPLE Training Device",
+            "EMDN Code": "M020101",
+            "Active Device": "FALSE",
+            "Measuring Function": "FALSE",
+            "Administer Medicine": "FALSE",
+            "Implantable": "FALSE",
+            "Reusable Surgical Instrument": "FALSE",
+            "Presence of Human Tissues": "FALSE",
+            "Presence of Animal Tissues": "FALSE",
+            "Medicinal Product Device": "FALSE",
+            "Additional Description": "Sample data only - do not submit to EUDAMED",
+            "Device Model": "",
+            "Authorised Representative SRN": "NL-AR-000000001",
+            "Special Device Type": "",
+            "Is Suture/Staple/Filling/Brace (IIb Implant)": "FALSE",
+        }
+        basic_change = self.upsert_basic(
+            import_id,
+            4,
+            basic_payload,
+            cmr_rows=[],
+            cert_rows=[],
+            version="",
+            is_sample=1,
+        )
+        base_udi_payload = {
+            "Parent Basic UDI-DI": "SAMPLE-BASIC-0001",
+            "UDI-DI Issuing Entity": "GS1",
+            "Device Status": "On the EU market",
+            "Quantity of Device": "1",
+            "Single Use Device": "TRUE",
+            "Max Number of Reuses": "0",
+            "Device Labelled as Sterile": "FALSE",
+            "Needs Sterilisation Before Use": "FALSE",
+            "Containing Latex": "FALSE",
+            "Reprocessed Single Use Device": "FALSE",
+            "Direct Marking": "FALSE",
+            "DM DI Same as UDI-DI": "TRUE",
+            "DM Issuing Entity": "GS1",
+            "Unit of Use Issuing Entity": "GS1",
+            "Secondary Issuing Entity": "GS1",
+            "Trade Name Applicable": "TRUE",
+            "Trade Name Language": "ANY",
+            "Nomenclature Code": "M020101",
+            "Nomenclature System": "EMDN",
+            "Description Language": "en",
+            "Public Website": "https://example.com/sample-device",
+            "Public Email": "",
+            "PI Lot/Batch Number": "TRUE",
+            "PI Expiration Date": "TRUE",
+            "PI Manufacturing Date": "TRUE",
+            "PI Serial Number": "FALSE",
+            "PI Software Identification": "FALSE",
+        }
+        created = [basic_change] if basic_change else []
+        sample_udis = [
+            ("SAMPLE-UDI-0001", "SAMPLE-REF-001", "Sample Training Device 10x10 cm", "Sample Trade Name A"),
+            ("SAMPLE-UDI-0002", "SAMPLE-REF-002", "Sample Training Device 20x20 cm", "Sample Trade Name B"),
+        ]
+        for index, (udi_code, reference, description, trade_name) in enumerate(sample_udis, start=5):
+            payload = dict(base_udi_payload)
+            payload.update(
+                {
+                    "UDI-DI Code": udi_code,
+                    "Reference Number": reference,
+                    "Additional Description": description,
+                    "Trade Name": trade_name,
+                }
+            )
+            change = self.upsert_udi(
+                import_id,
+                index,
+                payload,
+                market_rows=[
+                    {
+                        "UDI-DI Code": udi_code,
+                        "Country Code": "IT",
+                        "Placed on Market": "TRUE",
+                        "Start Date": "2026-01-01",
+                        "End Date": "",
+                        "Originally Placed on Market": "TRUE",
+                    }
+                ],
+                warning_rows=[],
+                storage_rows=[
+                    {
+                        "UDI-DI Code": udi_code,
+                        "Storage Condition Type": "SHC005 - Keep dry",
+                        "Language": "ANY",
+                        "Description": "",
+                    }
+                ],
+                package_rows=[
+                    {
+                        "UDI-DI Code": udi_code,
+                        "Package Level": "Outer carton",
+                        "Package Type": "Carton",
+                        "Package UDI-DI Code": f"SAMPLE-PACK-{udi_code[-4:]}",
+                        "Package Issuing Entity": "GS1",
+                        "Contains DI Code": udi_code,
+                        "Contains DI Issuing Entity": "GS1",
+                        "Quantity per Package": "10",
+                    }
+                ],
+                trade_name_rows=[
+                    {
+                        "UDI-DI Code": udi_code,
+                        "Trade Name": trade_name,
+                        "Language": "ANY",
+                    }
+                ],
+                version="",
+                is_sample=1,
+            )
+            if change:
+                created.append(change)
+        return {"import_id": import_id, "changes": created, "counts": self.sample_data_count()}
 
     def recent_imports(self, limit: int = 5) -> list[sqlite3.Row]:
         with self.connect() as conn:
@@ -801,6 +972,19 @@ class Repository:
             row = conn.execute("SELECT * FROM udi_records WHERE id = ?", (record_id,)).fetchone()
         return self._row_to_udi_dict(row) if row else None
 
+    def get_udi_by_code(self, udi_code: str) -> dict | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                """
+                SELECT u.*, b.payload_json AS basic_payload_json
+                FROM udi_records u
+                LEFT JOIN basic_records b ON b.basic_code = u.basic_code
+                WHERE u.udi_code = ?
+                """,
+                (str(udi_code or "").strip(),),
+            ).fetchone()
+        return self._row_to_udi_dict(row) if row else None
+
     def get_udis_by_ids(self, record_ids: list[int]) -> list[dict]:
         if not record_ids:
             return []
@@ -1011,6 +1195,7 @@ class Repository:
             "last_imported_at": row["last_imported_at"] if "last_imported_at" in row.keys() else row["updated_at"],
             "last_changed_at": row["last_changed_at"] if "last_changed_at" in row.keys() else row["updated_at"],
             "last_change_type": row["last_change_type"] if "last_change_type" in row.keys() else "existing",
+            "is_sample": bool(row["is_sample"]) if "is_sample" in row.keys() else False,
         }
 
     def _row_to_udi_dict(self, row: sqlite3.Row | None) -> dict | None:
@@ -1039,4 +1224,5 @@ class Repository:
             "last_imported_at": row["last_imported_at"] if "last_imported_at" in row.keys() else row["updated_at"],
             "last_changed_at": row["last_changed_at"] if "last_changed_at" in row.keys() else row["updated_at"],
             "last_change_type": row["last_change_type"] if "last_change_type" in row.keys() else "existing",
+            "is_sample": bool(row["is_sample"]) if "is_sample" in row.keys() else False,
         }

@@ -10,6 +10,7 @@ COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
+TEMPLATE_VERSION = "v2.5"
 
 
 def _col(
@@ -174,7 +175,7 @@ def _certificate_type_values() -> list[str]:
 
 MAIN_COLUMNS = [
     _col("Meta", "Local - Record ID", "meta", "record_id", False, None, "用户自定义行号或内部编码，仅供本地追踪。", "ROW-001", "自由文本"),
-    _col("Meta", "Basic - Current Version", "meta", "basic_version", False, None, "更新 Basic_UDI.PATCH 时填写 EUDAMED 当前版本号；新上传留空。", "", "数字或文本"),
+    _col("Meta", "Basic - Current Version", "meta", "basic_version", False, None, "条件必填：仅在使用 Update Basic UDI / Basic_UDI.PATCH 时填写 EUDAMED 当前版本号。该字段位于主表 B 列；新上传留空。", "", "数字或文本", requirement="conditional"),
     _col("Basic", "Basic - Basic UDI-DI Code*", "basic", "Basic UDI-DI Code", True, None, "Basic UDI-DI 的唯一代码。一个 Basic 可对应多个 UDI-DI。", "BASIC001234", "8-50 位字母数字"),
     _col("Basic", "Basic - Issuing Entity*", "basic", "Issuing Entity", True, "issuing_entity", "Basic UDI-DI 签发机构。普通 UDI 通常按实际发码机构选择 GS1/HIBCC/ICCBBA/IFA；EUDAMED 通常用于 EUDAMED DI 等 legacy 场景。", "GS1", "下拉选择"),
     _col("Basic", "Basic - Manufacturer SRN*", "basic", "Manufacturer SRN", True, None, "制造商 SRN。非欧盟/EEA 制造商必须填写授权代表 SRN。", "CN-MF-000001", "文本"),
@@ -206,7 +207,7 @@ MAIN_COLUMNS = [
     _col("Basic", "Basic - Reagent", "basic", "Reagent", False, "boolean", "IVDR 下是否为试剂。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Presence of Medicinal Substance", "basic", "Presence of Medicinal Substance", False, "boolean", "待审计字段：当前 XML 不单独输出；目前导出的是 Basic - Medicinal Product Device。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Basic", "Basic - Is Suture/Staple/Filling/Brace (IIb Implant)", "basic", "Is Suture/Staple/Filling/Brace (IIb Implant)", False, None, "IIb 植入物特殊情形。仅适用时填写 TRUE/FALSE。", "", "文本 / TRUE / FALSE", "mdr_mdd"),
-    _col("Meta", "UDI - Current Version", "meta", "udi_version", False, None, "更新 UDI_DI.PATCH 时填写 EUDAMED 当前版本号；新上传留空。", "", "数字或文本"),
+    _col("Meta", "UDI - Current Version", "meta", "udi_version", False, None, "条件必填：仅在使用 Update of UDI-DI / Master UDI-DI（UDI_DI.PATCH）时填写 EUDAMED 当前版本号；新上传留空。", "", "数字或文本", requirement="conditional"),
     _col("UDI", "UDI - UDI-DI Code*", "udi", "UDI-DI Code", True, None, "具体 UDI-DI 的唯一代码。", "06942495390010", "8-50 位字母数字"),
     _col("UDI", "UDI - UDI-DI Issuing Entity*", "udi", "UDI-DI Issuing Entity", True, "issuing_entity", "UDI-DI 签发机构。普通 UDI 通常按实际发码机构选择 GS1/HIBCC/ICCBBA/IFA；EUDAMED 通常用于 EUDAMED DI 等 legacy 场景。", "GS1", "下拉选择"),
     _col("UDI", "UDI - Device Status*", "udi", "Device Status", True, "device_status", "设备状态。On the EU market 时必须在 Market Info 填市场国家，且每个 UDI-DI 只能有一个首次投放市场国家。国家/市场信息错误应优先通过 update/create new version 修正，不应默认删除 UDI-DI 重建。", "On the EU market", "下拉选择"),
@@ -255,73 +256,73 @@ RELATED_SHEETS = OrderedDict(
         "Trade Names": {
             "target": "Trade Names",
             "columns": [
-                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "关联主表中的 UDI-DI Code。一个 UDI-DI 可填写多行 Trade Name。", "06942495390010", "文本"),
-                _related_col("Trade Name*", "Trade Name", True, None, "UDI-DI 层商品名。可同语言多名称或不同语言多名称。", "Trade name", "文本"),
-                _related_col("Language*", "Language", True, "language_any", "商品名语言。ANY 表示不限定具体语言；不会自动翻译，也不代表只能有一个 Trade Name。", "ANY", "下拉选择"),
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：主表 Trade Name 快捷列不够用、需要多语言/多个商品名时才填写本 sheet。若填写 Trade Names 行，本列必须关联主表 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Trade Name*", "Trade Name", True, None, "条件必填：若填写 Trade Names 行，本列为 UDI-DI 层商品名，必须填写；可同语言多名称或不同语言多名称。", "Trade name", "文本", requirement="conditional"),
+                _related_col("Language*", "Language", True, "language_any", "条件必填：若填写 Trade Names 行，本列为商品名语言，必须填写。ANY 表示不限定具体语言；不会自动翻译，也不代表只能有一个 Trade Name。", "ANY", "下拉选择", requirement="conditional"),
             ],
         },
         "Market Info": {
             "target": "Market Information",
             "columns": [
-                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "关联主表中的 UDI-DI Code。", "06942495390010", "文本"),
-                _related_col("Country Code*", "Country Code", True, "country_code", "UDI-DI 层 made available / 市场国家代码，不属于 BUDI 层。一个 UDI-DI 可有多个 made available 国家；希腊使用官方代码 EL，不是 GR。", "IT", "下拉选择"),
-                _related_col("Placed on Market", "Placed on Market", False, "boolean", "是否已投放市场；保留给业务核对。", "TRUE", "TRUE / FALSE"),
-                _related_col("Start Date", "Start Date", False, None, "在该国家上市开始日期。", "2026-01-01", "YYYY-MM-DD"),
-                _related_col("End Date", "End Date", False, None, "在该国家上市结束日期。", "", "YYYY-MM-DD"),
-                _related_col("Originally Placed on Market*", "Originally Placed on Market", True, "boolean", "是否首次投放市场成员国。每个 On the EU market UDI-DI 必须且只能有一条 TRUE；其它 made available 国家应填写 FALSE。国家/市场信息错误通常通过 update/create new version 修正，不应默认删除 UDI-DI 重建。", "TRUE", "TRUE / FALSE"),
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：当主表 Device Status 为 On the EU market，或使用 Update market information service 时填写 Market Info。若填写 Market Info 行，本列必须关联主表 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Country Code*", "Country Code", True, "country_code", "条件必填：若填写 Market Info 行，本列为 UDI-DI 层 made available / 市场国家代码，必须填写；希腊使用官方代码 EL，不是 GR。", "IT", "下拉选择", requirement="conditional"),
+                _related_col("Placed on Market", "Placed on Market", False, "boolean", "条件必填/业务核对：若填写 Market Info 行，建议说明该国家是否已投放市场。", "TRUE", "TRUE / FALSE", requirement="conditional"),
+                _related_col("Start Date", "Start Date", False, None, "条件必填：若该国家已投放或将投放市场，建议填写上市开始日期；无法确认时先与客户核对。", "2026-01-01", "YYYY-MM-DD", requirement="conditional"),
+                _related_col("End Date", "End Date", False, None, "条件必填：仅当该国家已经或计划停止上市时填写结束日期；仍在销售则留空。", "", "YYYY-MM-DD", requirement="conditional"),
+                _related_col("Originally Placed on Market*", "Originally Placed on Market", True, "boolean", "条件必填：若填写 Market Info，一个 On the EU market UDI-DI 必须且只能有一条 TRUE；其它 made available 国家应填写 FALSE。国家/市场信息错误通常通过 update/create new version 修正。", "TRUE", "TRUE / FALSE", requirement="conditional"),
             ],
         },
         "Package Info": {
             "target": "Package Information",
             "columns": [
-                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "关联主表中的 UDI-DI Code。", "06942495390010", "文本"),
-                _related_col("Local - Package Level", "Package Level", False, None, "本地辅助说明：包装层级，例如中盒/外箱。不会直接输出到 EUDAMED XML。", "Middle layer", "文本"),
-                _related_col("Local - Package Type", "Package Type", False, None, "本地辅助说明：包装类型，例如 box/carton/pallet。不会直接输出到 EUDAMED XML。", "Carton", "文本"),
-                _related_col("Package UDI-DI Code*", "Package UDI-DI Code", True, None, "包装层级自身的 Package UDI-DI。填写 Package Info 行时必填。", "16942495390017", "文本"),
-                _related_col("Package Issuing Entity*", "Package Issuing Entity", True, "issuing_entity", "Package UDI-DI 的签发机构。填写 Package Info 行时必填。", "GS1", "下拉选择"),
-                _related_col("Contains DI Code", "Contains DI Code", False, None, "该包装直接包含的 child DI。可填主 UDI-DI，也可填同一 UDI-DI 包装结构里的下一级 Package DI；留空则默认包含主 UDI-DI。", "06942495390010", "文本"),
-                _related_col("Contains DI Issuing Entity", "Contains DI Issuing Entity", False, "issuing_entity", "child DI 的签发机构。留空时按 child 类型自动使用主 UDI-DI 或对应 Package DI 的签发机构。", "GS1", "下拉选择"),
-                _related_col("Quantity per Package*", "Quantity per Package", True, None, "每个 Package DI 中包含 child DI 的数量，必须为正整数。", "10", "正整数"),
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：只有产品存在 container package / 多层包装 DI 时才需要填写 Package Info。若填写本 sheet 任意包装行，本列用于关联主表 UDI-DI Code，必须填写；无包装层级时整张 sheet 可留空。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Local - Package Level", "Package Level", False, None, "可选本地辅助说明：包装层级，例如中盒/外箱。不会直接输出到 EUDAMED XML。", "Middle layer", "文本"),
+                _related_col("Local - Package Type", "Package Type", False, None, "可选本地辅助说明：包装类型，例如 box/carton/pallet。不会直接输出到 EUDAMED XML。", "Carton", "文本"),
+                _related_col("Package UDI-DI Code*", "Package UDI-DI Code", True, None, "条件必填：只有存在包装 DI 时填写。若填写 Package Info 行，本列为包装层级自身的 Package UDI-DI，必须填写；无包装层级时整张 sheet 可留空。", "16942495390017", "文本", requirement="conditional"),
+                _related_col("Package Issuing Entity*", "Package Issuing Entity", True, "issuing_entity", "条件必填：若填写 Package Info 行，本列为 Package UDI-DI 的签发机构，必须填写。", "GS1", "下拉选择", requirement="conditional"),
+                _related_col("Contains DI Code", "Contains DI Code", False, None, "条件必填：该包装直接包含的 child DI。可填主 UDI-DI，也可填同一 UDI-DI 包装结构里的下一级 Package DI；留空则默认包含主 UDI-DI。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Contains DI Issuing Entity", "Contains DI Issuing Entity", False, "issuing_entity", "条件必填：child DI 的签发机构。留空时按 child 类型自动使用主 UDI-DI 或对应 Package DI 的签发机构。", "GS1", "下拉选择", requirement="conditional"),
+                _related_col("Quantity per Package*", "Quantity per Package", True, None, "条件必填：若填写 Package Info 行，本列为每个 Package DI 中包含 child DI 的数量，必须为正整数。", "10", "正整数", requirement="conditional"),
             ],
         },
         "Critical Warnings": {
             "target": "Critical Warnings",
             "columns": [
-                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "关联主表中的 UDI-DI Code。", "06942495390010", "文本"),
-                _related_col("Warning Type", "Warning Type", False, "critical_warning", "官方 CriticalWarningEnum。选择 CW999 - OTHER 时必须填写 Comment 且 Language 不能为 ANY。", "CW007 - Do not use if package is damaged", "下拉选择", requirement="conditional"),
-                _related_col("Language", "Language", False, "language_any", "说明语言。非 OTHER 且填写 Comment 时导出为 ANY；OTHER 需要具体语言。", "ANY", "下拉选择", requirement="conditional"),
-                _related_col("Comment", "Comment", False, None, "警告补充说明。CW999 - OTHER 时必填。", "Do not use if package is damaged", "文本", requirement="conditional"),
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：只有产品标签/说明书存在 critical warning 或 contraindication 时填写本 sheet。若填写 Critical Warnings 行，本列必须关联主表 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Warning Type", "Warning Type", False, "critical_warning", "条件必填：若填写 Critical Warnings 行，通常必须选择官方 CriticalWarningEnum。选择 CW999 - OTHER 时必须填写 Comment 且 Language 不能为 ANY。", "CW007 - Do not use if package is damaged", "下拉选择", requirement="conditional"),
+                _related_col("Language", "Language", False, "language_any", "条件必填：CW999 - OTHER 需要具体语言；非 OTHER 且填写 Comment 时导出为 ANY。", "ANY", "下拉选择", requirement="conditional"),
+                _related_col("Comment", "Comment", False, None, "条件必填：CW999 - OTHER 时必填；其它 warning 只有需要补充说明时填写。", "Do not use if package is damaged", "文本", requirement="conditional"),
             ],
         },
         "Storage Conditions": {
             "target": "Storage Conditions",
             "columns": [
-                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "关联主表中的 UDI-DI Code。", "06942495390010", "文本"),
-                _related_col("Storage Condition Type", "Storage Condition Type", False, "storage_condition", "官方 StorageHandlingConditionEnum。选择 SHC099 - OTHER 时必须填写 Description 且 Language 不能为 ANY。", "SHC005 - Keep dry", "下拉选择", requirement="conditional"),
-                _related_col("Language", "Language", False, "language_any", "说明语言。非 OTHER 且填写 Description 时导出为 ANY；OTHER 需要具体语言。", "ANY", "下拉选择", requirement="conditional"),
-                _related_col("Description", "Description", False, None, "储存/处理条件补充说明。SHC099 - OTHER 时必填。", "Keep dry", "文本", requirement="conditional"),
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：只有产品存在储存/处理条件时填写本 sheet。若填写 Storage Conditions 行，本列必须关联主表 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Storage Condition Type", "Storage Condition Type", False, "storage_condition", "条件必填：若填写 Storage Conditions 行，通常必须选择官方 StorageHandlingConditionEnum。选择 SHC099 - OTHER 时必须填写 Description 且 Language 不能为 ANY。", "SHC005 - Keep dry", "下拉选择", requirement="conditional"),
+                _related_col("Language", "Language", False, "language_any", "条件必填：SHC099 - OTHER 需要具体语言；非 OTHER 且填写 Description 时导出为 ANY。", "ANY", "下拉选择", requirement="conditional"),
+                _related_col("Description", "Description", False, None, "条件必填：SHC099 - OTHER 时必填；其它 storage condition 只有需要补充说明时填写。", "Keep dry", "文本", requirement="conditional"),
             ],
         },
         "CMR Substances": {
             "target": "CMR Substances",
             "columns": [
-                _related_col("Basic UDI-DI Code*", "Basic UDI-DI Code", True, None, "关联主表中的 Basic UDI-DI Code。", "BASIC001234", "文本"),
-                _related_col("Substance Type", "Substance Type", False, None, "物质类型。", "CMR 1A", "文本"),
-                _related_col("CAS Code", "CAS Code", False, None, "CAS 编码。", "50-00-0", "文本"),
-                _related_col("EC Code", "EC Code", False, None, "EC 编码。", "200-001-8", "文本"),
-                _related_col("Language", "Language", False, "language_any", "物质名称语言；不限定具体语言时可用 ANY。", "ANY", "下拉选择"),
-                _related_col("Substance Name", "Substance Name", False, None, "物质名称。", "Formaldehyde", "文本"),
+                _related_col("Basic UDI-DI Code*", "Basic UDI-DI Code", True, None, "条件必填：只有 Basic UDI-DI 涉及 CMR / endocrine disrupting substances 时填写本 sheet。若填写 CMR 行，本列必须关联主表 Basic UDI-DI Code。", "BASIC001234", "文本", requirement="conditional"),
+                _related_col("Substance Type", "Substance Type", False, None, "条件必填：若填写 CMR 行，建议填写物质类型，例如 CMR 1A/1B。", "CMR 1A", "文本", requirement="conditional"),
+                _related_col("CAS Code", "CAS Code", False, None, "条件必填：如有 CAS 编码应填写；没有时与客户确认其它识别信息。", "50-00-0", "文本", requirement="conditional"),
+                _related_col("EC Code", "EC Code", False, None, "条件必填：如有 EC 编码应填写；没有则留空。", "200-001-8", "文本", requirement="conditional"),
+                _related_col("Language", "Language", False, "language_any", "条件必填：若填写 Substance Name，本列用于说明物质名称语言；不限定具体语言时可用 ANY。", "ANY", "下拉选择", requirement="conditional"),
+                _related_col("Substance Name", "Substance Name", False, None, "条件必填：若填写 CMR 行，建议填写物质名称。", "Formaldehyde", "文本", requirement="conditional"),
             ],
         },
         "Device Certificates": {
             "target": "Device Certificates",
             "columns": [
-                _related_col("Basic UDI-DI Code*", "Basic UDI-DI Code", True, None, "关联主表中的 Basic UDI-DI Code。需要 NB validation / product certificate 覆盖的 Basic UDI-DI 填写。", "BASIC001234", "文本"),
-                _related_col("Certificate Type*", "Certificate Type", True, "certificate_type", "官方 GenericCertificateTypeEnum，例如 MDR_TYPE_EXAMINATION、MDR_TECHNICAL_DOCUMENTATION、MDD_III。", "MDR_TYPE_EXAMINATION", "下拉选择"),
-                _related_col("Notified Body ID*", "Notified Body ID", True, None, "签发 product certificate 的公告机构 NANDO ID / NB Actor Code，例如 0483。", "0483", "文本"),
-                _related_col("Certificate Number", "Certificate Number", False, None, "Product certificate 编号。Regulation certificate 如可取得建议填写；Legacy 证书通常需要填写。", "CE-123456", "文本"),
-                _related_col("Revision Number", "Revision Number", False, None, "证书 revision number。没有则留空。", "1", "文本"),
-                _related_col("Expiry Date", "Expiry Date", False, None, "证书有效期截止日期。没有则留空；Legacy 指令证书通常需要填写。", "2028-12-31", "YYYY-MM-DD"),
+                _related_col("Basic UDI-DI Code*", "Basic UDI-DI Code", True, None, "条件必填：只有需要 NB validation / product certificate 覆盖的 Basic UDI-DI 才填写本 sheet。若填写证书行，本列必须关联主表 Basic UDI-DI Code。", "BASIC001234", "文本", requirement="conditional"),
+                _related_col("Certificate Type*", "Certificate Type", True, "certificate_type", "条件必填：若填写证书行，本列必须选择官方 GenericCertificateTypeEnum，例如 MDR_TYPE_EXAMINATION、MDR_TECHNICAL_DOCUMENTATION、MDD_III。", "MDR_TYPE_EXAMINATION", "下拉选择", requirement="conditional"),
+                _related_col("Notified Body ID*", "Notified Body ID", True, None, "条件必填：若填写证书行，本列必须填写签发 product certificate 的公告机构 NANDO ID / NB Actor Code，例如 0483。", "0483", "文本", requirement="conditional"),
+                _related_col("Certificate Number", "Certificate Number", False, None, "条件必填：Legacy 指令证书通常需要填写；Regulation certificate 如可取得建议填写。", "CE-123456", "文本", requirement="conditional"),
+                _related_col("Revision Number", "Revision Number", False, None, "条件必填：证书存在 revision number 时填写；没有则留空。", "1", "文本", requirement="conditional"),
+                _related_col("Expiry Date", "Expiry Date", False, None, "条件必填：证书有有效期时填写；Legacy 指令证书通常需要填写。", "2028-12-31", "YYYY-MM-DD", requirement="conditional"),
             ],
         },
     }

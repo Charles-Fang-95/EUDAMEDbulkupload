@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .constants import TOOL_DIR, VENDOR_LIB
 from .storage import Repository
-from .template_schema import ENTRY_SHEETS, ENUM_SOURCES, MAIN_COLUMNS, RELATED_SHEETS
+from .template_schema import ENTRY_SHEETS, ENUM_SOURCES, MAIN_COLUMNS, RELATED_SHEETS, TEMPLATE_VERSION
 
 if str(VENDOR_LIB) not in sys.path:
     sys.path.insert(0, str(VENDOR_LIB))
@@ -78,7 +78,7 @@ class WorkbookImporter:
                         "value": workbook_path.name,
                         "error_type": "unsupported_template",
                         "message": "未识别到可导入的新版 EUDAMED 模板数据。请使用当前默认模板的 MDR_MDD 或 IVDR_IVDD sheet。",
-                        "suggestion": "旧模板或客户原始清单不要直接导入；请先迁移/映射到当前 v2.4 模板字段，确认字段含义后再导入。",
+                        "suggestion": f"旧模板或客户原始清单不要直接导入；请先迁移/映射到当前 {TEMPLATE_VERSION} 模板字段，确认字段含义后再导入。",
                     }
                 ],
                 "warnings": [],

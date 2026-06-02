@@ -5,6 +5,7 @@ import signal
 import subprocess
 import sys
 import time
+import webbrowser
 from pathlib import Path
 
 from local_beta.app import run_server
@@ -28,12 +29,17 @@ def run_with_reloader():
     command = [sys.executable, str(Path(__file__).resolve()), "--no-reload"]
     child = None
     last_mtime = 0.0
+    opened_browser = False
     try:
         while True:
             current_mtime = watched_mtime()
             if child is None or child.poll() is not None:
                 child = subprocess.Popen(command, cwd=str(ROOT), env=env)
                 last_mtime = current_mtime
+                if not opened_browser and not os.environ.get("EUDAMED_NO_BROWSER"):
+                    opened_browser = True
+                    time.sleep(0.6)
+                    webbrowser.open("http://127.0.0.1:8765/")
             elif current_mtime > last_mtime:
                 print("Code change detected. Restarting local beta...")
                 child.terminate()

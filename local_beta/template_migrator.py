@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .build_unified_template import DATA_START_ROW, build_workbook
 from .constants import EXPORT_DIR, TOOL_DIR, VENDOR_LIB
-from .template_schema import ENTRY_SHEETS, RELATED_SHEETS, columns_for_entry_sheet
+from .template_schema import ENTRY_SHEETS, RELATED_SHEETS, TEMPLATE_VERSION, columns_for_entry_sheet
 
 if str(VENDOR_LIB) not in sys.path:
     sys.path.insert(0, str(VENDOR_LIB))
@@ -80,7 +80,7 @@ def migrate_workbook(source_path: Path, output_dir: Path = EXPORT_DIR) -> dict:
     _add_report_sheet(target, report)
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    output_path = output_dir / f"MIGRATED_EUDAMED_Template_v2.4_{timestamp}.xlsx"
+    output_path = output_dir / f"MIGRATED_EUDAMED_Template_{TEMPLATE_VERSION}_{timestamp}.xlsx"
     target.save(output_path)
     return {
         "ok": True,

@@ -2,6 +2,17 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.8.0 - 2026-06-02
+
+- 新增首次使用快速开始卡和一键载入 / 清除示例数据；示例记录在产品库、导出页和详情页有醒目标识，导出预检会提示不要上传到 EUDAMED。
+- 导出页新增 service 人话名和“我该选哪个 service”向导，帮助法规人员区分新注册、追加 UDI-DI、Basic 更新、UDI-DI 更新、市场信息更新和包装结构更新。
+- 新增模板指南页，自动从当前 template schema 展示主表和明细表每个字段的说明、示例和必填状态。
+- 导入页改为上传控件置顶，填写须知默认折叠；产品库、导出页、历史页增加更明确的空状态引导。
+- 新增术语 tooltip、EUDAMED response XML 解析页、只重导被拒记录入口，并在 bulk upload 指引中提醒保存官方 response。
+- 检查更新结果同时展示 GitHub / Gitee 下载入口；Windows 打包默认使用无控制台模式，并通过网页“退出工具”关闭本地服务。
+- 反馈错误 / 发送测试结果与 EUDAMED response 解析页增加互相跳转和邮件引导，明确要求附上官方 response XML。
+- 默认模板升级为 `EUDAMED_Template_v2.5.xlsx`，强化 Market Info、Package Info、Critical Warnings、Storage Conditions、CMR、证书和 Trade Names 明细表的条件必填说明。
+
 ## 0.7.2 - 2026-06-01
 
 - 帮助页下载/更新区新增 Gitee Releases 国内镜像入口，用户可在 GitHub 访问失败时使用 Gitee 下载 Windows ZIP 和模板。
