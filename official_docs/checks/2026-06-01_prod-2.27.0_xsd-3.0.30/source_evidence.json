@@ -1,0 +1,186 @@
+{
+  "official_evidence": {
+    "checked_at": "2026-06-01T09:06:54+08:00",
+    "official_scope": "Production help centre only; no playground sources used for version judgement.",
+    "official_pages": [
+      {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/data-exchange/machine-to-machine/support/technical-documentation.html",
+        "title": "Technical documentation (support page)",
+        "publication_date": "2026-05-18",
+        "observed_facts": [
+          "Lists DTX XSD, XML samples, service definition, business rules, enumerations, and data dictionaries as the authoritative technical-document set."
+        ]
+      },
+      {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/documentation/technical-documentation.html",
+        "title": "Technical documentation (download index)",
+        "publication_date": "2026-05-18",
+        "observed_facts": [
+          "Shows download labels matching local baseline filenames for UDI Devices data dictionary, UDI Devices business rules, DTX for EOs services definition, XSD schemas.zip, and EOs XML samples.zip.",
+          "States: current platform release v 2.27.0; XSD schemas above version v 3.0.30."
+        ]
+      },
+      {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20business%20rules.pdf",
+        "title": "UDI Devices - business rules PDF",
+        "content_type": "application/pdf",
+        "observed_facts": [
+          "First page shows Production v 2.27.0.",
+          "Change-log section includes PG 3.27 / PROD 2.27."
+        ]
+      },
+      {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/DTX%20for%20EOs%20-%20services%20definition.pdf",
+        "title": "DTX for EOs - services definition PDF",
+        "content_type": "application/pdf",
+        "observed_facts": [
+          "Direct official PDF link is still present on the production technical-documentation index."
+        ]
+      }
+    ],
+    "direct_download_urls": {
+      "xsd_schemas": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/XSD%20schemas.zip",
+        "status": "inferred from official index path pattern; not fetched by shell client in this environment"
+      },
+      "eo_xml_samples": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/EOs%20-%20XML%20samples.zip",
+        "status": "inferred from official index path pattern; not fetched by shell client in this environment"
+      },
+      "data_dictionary": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20data%20dictionary.xlsx",
+        "status": "inferred from official index path pattern; not fetched by shell client in this environment"
+      },
+      "business_rules": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20business%20rules.pdf",
+        "status": "official PDF opened via browser-side fetch"
+      },
+      "services_definition": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/DTX%20for%20EOs%20-%20services%20definition.pdf",
+        "status": "official PDF opened via browser-side fetch"
+      }
+    },
+    "http_metadata_note": "Direct shell-side HTTP header capture for webgate.ec.europa.eu was unavailable in this run because local urllib/curl DNS resolution failed. Publication dates, page content, and PDF content were verified via browser-side official fetches only."
+  },
+  "local_baseline": {
+    "manifest_generated_at": "2026-05-22",
+    "expected_xsd_version": "3.0.30",
+    "source_hashes_match_manifest": true,
+    "sources": {
+      "xsd_schemas": {
+        "label": "XSD schemas.zip",
+        "local_path": "official_docs/XSD_schemas_production_3.0.30.zip",
+        "manifest_sha256": "e3c7621a69340b1ad01d375994a6df6a131073626e2a4ae01048e0ffa04b1c3b",
+        "actual_sha256": "e3c7621a69340b1ad01d375994a6df6a131073626e2a4ae01048e0ffa04b1c3b",
+        "manifest_size": 133565,
+        "actual_size": 133565,
+        "matches_manifest": true
+      },
+      "data_dictionary": {
+        "label": "UDI Devices - data dictionary.xlsx",
+        "local_path": "official_docs/UDI_Devices_data_dictionary.xlsx",
+        "manifest_sha256": "5a9fb37b618c173e2b097c1ac4d78213a33b9d1f74cae3d47bad1190ac3d7bb0",
+        "actual_sha256": "5a9fb37b618c173e2b097c1ac4d78213a33b9d1f74cae3d47bad1190ac3d7bb0",
+        "manifest_size": 137871,
+        "actual_size": 137871,
+        "matches_manifest": true
+      },
+      "business_rules": {
+        "label": "UDI Devices - business rules.pdf",
+        "local_path": "official_docs/UDI_Devices_business_rules.pdf",
+        "manifest_sha256": "344fd158c2bc3a51b5a122e155bd01e12c2018eb7daa32a5512d5edd63ad9526",
+        "actual_sha256": "344fd158c2bc3a51b5a122e155bd01e12c2018eb7daa32a5512d5edd63ad9526",
+        "manifest_size": 822918,
+        "actual_size": 822918,
+        "matches_manifest": true
+      },
+      "services_definition": {
+        "label": "DTX for EOs - services definition.pdf",
+        "local_path": "official_docs/DTX_for_EOs_services_definition.pdf",
+        "manifest_sha256": "1f66c9819a63203711c9cc2a39d30ea379927b65e4c6f304694d7b9fba65de0f",
+        "actual_sha256": "1f66c9819a63203711c9cc2a39d30ea379927b65e4c6f304694d7b9fba65de0f",
+        "manifest_size": 947381,
+        "actual_size": 947381,
+        "matches_manifest": true
+      }
+    },
+    "xsd_snapshot": {
+      "message_type_fixed_version": "3.0.30",
+      "zip_entry_count": 92,
+      "zip_xsd_entry_count": 67,
+      "unpacked_xsd_file_count": 67,
+      "enum_counts": {
+        "language_count": 28,
+        "country_count": 32,
+        "issuing_entity_count": 5,
+        "storage_condition_count": 33,
+        "critical_warning_count": 423,
+        "generic_certificate_type_count": 28
+      }
+    }
+  },
+  "impact": {
+    "status": "no change detected",
+    "converter_impact_now": [],
+    "watchlist_if_future_official_update": [
+      {
+        "area": "Schema version pin",
+        "files": [
+          "local_beta/constants.py",
+          "local_beta/xsd_version.py"
+        ],
+        "reason": "SCHEMA_VERSION, fixed-version checks, and help-page comparison must move with any new official XSD version."
+      },
+      {
+        "area": "Exporter payload/versioning",
+        "files": [
+          "local_beta/exporter.py"
+        ],
+        "reason": "Message version field and schema-location assumptions must still validate against the new MessageType.xsd."
+      },
+      {
+        "area": "Template/dropdown enums",
+        "files": [
+          "local_beta/template_schema.py"
+        ],
+        "reason": "Language, country, issuing-entity, storage-condition, critical-warning, and certificate-type enumerations are loaded from unpacked XSD and may require workbook/template refresh."
+      },
+      {
+        "area": "Official baseline metadata",
+        "files": [
+          "official_docs/official_sources_manifest.json",
+          "docs/OFFICIAL_UPDATE_MONITORING.md"
+        ],
+        "reason": "Pinned sha256, size, expected_xsd_version, and enum baselines must be updated after manual review."
+      },
+      {
+        "area": "Validation/regression samples",
+        "files": [
+          "official_docs/unpacked/xsd_production",
+          "official_docs/unpacked/samples",
+          "scripts/check_official_updates.py"
+        ],
+        "reason": "Any added/deleted XSD or sample shape change should trigger XML validation and sample-regression checks."
+      },
+      {
+        "area": "Field mapping audit",
+        "files": [
+          "scripts/audit_data_dictionary_mapping.py",
+          "docs/DATA_DICTIONARY_FIELD_AUDIT.md"
+        ],
+        "reason": "Data-dictionary or business-rule changes may alter requiredness, naming, or out-of-scope fields such as eIFU, Clinical Size, Product Designer, and Purpose Other Than Medical."
+      }
+    ]
+  },
+  "comparison_summary": {
+    "official_page_xsd_version": "3.0.30",
+    "local_manifest_expected_xsd_version": "3.0.30",
+    "local_message_type_fixed_version": "3.0.30",
+    "page_vs_local_version_match": true,
+    "page_link_labels_match_local_baseline": true,
+    "xsd_added_files": [],
+    "xsd_deleted_files": [],
+    "xsd_modified_files": [],
+    "schema_structure_change_summary": "No newer official production XSD version was observed; therefore no new structure/enum/constraint delta was identified in this run."
+  }
+}

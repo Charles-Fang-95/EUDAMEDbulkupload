@@ -1,0 +1,10 @@
+{
+  "changed": true,
+  "mode": "remote",
+  "expected_xsd_version": "3.0.30",
+  "sources": {},
+  "enums": {},
+  "errors": [
+    "Cannot fetch technical documentation page: <urlopen error [Errno 8] nodename nor servname provided, or not known>"
+  ]
+}
