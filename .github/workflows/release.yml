@@ -200,6 +200,7 @@ jobs:
           import os
           import pathlib
           import sys
+          import time
           import urllib.error
           import urllib.parse
           import urllib.request
@@ -219,6 +220,9 @@ jobs:
               pathlib.Path("dist/EUDAMED_Local_Beta_Windows.zip"),
               pathlib.Path("EUDAMED_Template_v2.4.xlsx"),
           ]
+          UPLOAD_TIMEOUT_SECONDS = 900
+          UPLOAD_RETRIES = 3
+          GITEE_MAX_ASSET_BYTES = 100 * 1024 * 1024
 
           def api_url(path, params=None):
               merged = {"access_token": token}
@@ -257,6 +261,7 @@ jobs:
               filename = file_path.name
               content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
               file_bytes = file_path.read_bytes()
+              print(f"Preparing upload {filename}: {len(file_bytes) / 1024 / 1024:.1f} MB")
               parts = [
                   f"--{boundary}\r\n".encode("utf-8"),
                   f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'.encode("utf-8"),
@@ -277,12 +282,44 @@ jobs:
                   },
               )
               try:
-                  with urllib.request.urlopen(req, timeout=120) as resp:
+                  with urllib.request.urlopen(req, timeout=UPLOAD_TIMEOUT_SECONDS) as resp:
                       raw = resp.read().decode("utf-8")
                       return json.loads(raw) if raw else {}
               except urllib.error.HTTPError as exc:
                   body_text = exc.read().decode("utf-8", errors="replace")
                   raise SystemExit(f"Gitee asset upload failed for {filename}: HTTP {exc.code} {body_text}") from exc
+              except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                  raise RuntimeError(f"Gitee asset upload failed for {filename}: {exc}") from exc
+
+          def attachment_names(release_id):
+              current = normalize_attachments(
+                  request_json(
+                      "GET",
+                      f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}/attach_files",
+                  )
+              )
+              return {
+                  item.get("name") or item.get("filename") or item.get("file_name")
+                  for item in current
+              }
+
+          def upload_with_retry(release_id, asset):
+              path = f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}/attach_files"
+              for attempt in range(1, UPLOAD_RETRIES + 1):
+                  try:
+                      print(f"Uploading Gitee asset: {asset} (attempt {attempt}/{UPLOAD_RETRIES})")
+                      multipart_upload(path, asset)
+                      return
+                  except RuntimeError as exc:
+                      names = attachment_names(release_id)
+                      if asset.name in names:
+                          print(f"Gitee asset appears uploaded despite timeout: {asset.name}")
+                          return
+                      if attempt >= UPLOAD_RETRIES:
+                          raise SystemExit(str(exc)) from exc
+                      wait = attempt * 15
+                      print(f"Upload retry needed for {asset.name}: {exc}. Waiting {wait}s...")
+                      time.sleep(wait)
 
           release = request_json(
               "GET",
@@ -338,11 +375,12 @@ jobs:
           for asset in assets:
               if not asset.exists():
                   raise SystemExit(f"Missing asset for Gitee release: {asset}")
-              print(f"Uploading Gitee asset: {asset}")
-              multipart_upload(
-                  f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}/attach_files",
-                  asset,
-              )
+              if asset.stat().st_size > GITEE_MAX_ASSET_BYTES:
+                  raise SystemExit(
+                      f"Gitee 普通项目单个 Release 附件上限约 100MB，{asset.name} 当前为 "
+                      f"{asset.stat().st_size / 1024 / 1024:.1f} MB。请改用 OSS/COS/网盘或压缩包瘦身。"
+                  )
+              upload_with_retry(release_id, asset)
 
           print(f"Gitee Release synced: https://gitee.com/{owner}/{repo}/releases/tag/{tag}")
           PY
