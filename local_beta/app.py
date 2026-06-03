@@ -343,6 +343,8 @@ class App:
             storage_rows = parse_json_array(form.get("storage_json", [""])[0])
             package_rows = parse_json_array(form.get("package_json", [""])[0])
             trade_name_rows = parse_json_array(form.get("trade_name_json", [""])[0])
+            clinical_size_rows = parse_json_array(form.get("clinical_size_json", [""])[0])
+            annex_xvi_rows = parse_json_array(form.get("annex_xvi_json", [""])[0])
         except ValueError as exc:
             return self.respond_html(request, udi_detail(record, f"{t('保存失败','Save failed')}: {exc}", "error"), HTTPStatus.BAD_REQUEST)
         self.repository.update_udi(
@@ -353,6 +355,8 @@ class App:
             storage_rows=storage_rows,
             package_rows=package_rows,
             trade_name_rows=trade_name_rows,
+            clinical_size_rows=clinical_size_rows,
+            annex_xvi_rows=annex_xvi_rows,
             version=form.get("version", [""])[0],
             state=form.get("state", ["draft"])[0],
             notes=form.get("notes", [""])[0],

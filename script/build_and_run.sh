@@ -55,7 +55,7 @@ copy_item() {
 copy_item "$ROOT_DIR/local_beta" "$RESOURCE_ROOT/local_beta"
 copy_item "$ROOT_DIR/EUDAMED_TOOL_v2" "$RESOURCE_ROOT/EUDAMED_TOOL_v2"
 copy_item "$ROOT_DIR/official_docs" "$RESOURCE_ROOT/official_docs"
-copy_item "$ROOT_DIR/EUDAMED_Template_v2.5.xlsx" "$RESOURCE_ROOT/EUDAMED_Template_v2.5.xlsx"
+copy_item "$ROOT_DIR/EUDAMED_Template_v2.6.xlsx" "$RESOURCE_ROOT/EUDAMED_Template_v2.6.xlsx"
 copy_item "$ROOT_DIR/run_local_beta.py" "$RESOURCE_ROOT/run_local_beta.py"
 copy_item "$ROOT_DIR/README.md" "$RESOURCE_ROOT/README.md"
 copy_item "$ROOT_DIR/LOCAL_BETA_README.md" "$RESOURCE_ROOT/LOCAL_BETA_README.md"

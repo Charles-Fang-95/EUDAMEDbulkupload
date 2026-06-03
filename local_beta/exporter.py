@@ -9,6 +9,7 @@ from pathlib import Path
 from xml.dom import minidom
 
 from .constants import BULK_UPLOAD_ENTITY_LIMIT, EXPORT_DIR
+from .template_schema import ENUM_SOURCES
 from .xsd_version import get_tool_xsd_version
 from .storage import Repository
 
@@ -286,6 +287,7 @@ class BetaXMLExporter:
                         else:
                             self._validate_market_rows(errors, item)
                     self._validate_package_rows(errors, item)
+                    self._validate_mdr_detail_rows(errors, warnings, item)
                 if service_type == "MARKET_INFO.PATCH":
                     self._validate_market_rows(errors, item, require_rows=True)
                 if service_type == "PACKAGE_UDI.PATCH":
@@ -636,9 +638,88 @@ class BetaXMLExporter:
                 f"UDI-DI {udi_code} 的 Market Info 中 Originally Placed on Market 必须且只能有一条 TRUE。"
             )
 
+    def _validate_mdr_detail_rows(self, errors: list[str], warnings: list[str], item: dict):
+        profile = self._profile(item.get("basic_payload") or item.get("payload") or {})
+        clinical_rows = item.get("clinical_size_rows") or []
+        annex_rows = item.get("annex_xvi_rows") or []
+        udi_code = item.get("udi_code") or item.get("payload", {}).get("UDI-DI Code", "")
+
+        if profile != "MDR":
+            if clinical_rows:
+                warnings.append(f"UDI-DI {udi_code} 填写了 Clinical Sizes，但该结构仅适用于 MDR UDI-DI；导出时会忽略。")
+            if annex_rows:
+                warnings.append(f"UDI-DI {udi_code} 填写了 Annex XVI Purposes，但该结构仅适用于 MDR UDI-DI；导出时会忽略。")
+            return
+
+        self._validate_clinical_size_rows(errors, item)
+        self._validate_annex_xvi_rows(errors, item)
+
+    def _validate_clinical_size_rows(self, errors: list[str], item: dict):
+        rows = item.get("clinical_size_rows") or []
+        if not rows:
+            return
+        udi_code = item.get("udi_code") or item.get("payload", {}).get("UDI-DI Code", "")
+        type_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("clinical_size_type", [])}
+        unit_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("clinical_size_unit", [])}
+        for row in rows:
+            size_type = str(self._enum_code(row.get("Clinical Size Type")) or "").strip()
+            unit = str(self._enum_code(row.get("Measure Unit")) or "").strip()
+            precision = str(row.get("Precision") or "").strip()
+            if not size_type:
+                errors.append(f"UDI-DI {udi_code} 的 Clinical Sizes 缺少 Clinical Size Type。")
+            elif size_type not in type_codes:
+                errors.append(f"UDI-DI {udi_code} 的 Clinical Size Type {size_type} 不在官方枚举中。")
+            if size_type == "CST999" and not row.get("Clinical Size Type Description"):
+                errors.append(f"UDI-DI {udi_code} 的 Clinical Size Type 为 CST999 - OTHER 时必须填写 Clinical Size Type Description。")
+            if precision not in {"Range", "Value", "Text"}:
+                errors.append(f"UDI-DI {udi_code} 的 Clinical Sizes Precision 必须为 Range、Value 或 Text。")
+                continue
+            if precision == "Range":
+                if not self._is_number(row.get("Minimum")):
+                    errors.append(f"UDI-DI {udi_code} 的 Clinical Sizes Precision=Range 时 Minimum 必须填写数字。")
+                if not self._is_number(row.get("Maximum")):
+                    errors.append(f"UDI-DI {udi_code} 的 Clinical Sizes Precision=Range 时 Maximum 必须填写数字。")
+                self._validate_clinical_size_unit(errors, udi_code, unit, unit_codes, row)
+            elif precision == "Value":
+                if not self._is_number(row.get("Value")):
+                    errors.append(f"UDI-DI {udi_code} 的 Clinical Sizes Precision=Value 时 Value 必须填写数字。")
+                self._validate_clinical_size_unit(errors, udi_code, unit, unit_codes, row)
+            elif not row.get("Text Value"):
+                errors.append(f"UDI-DI {udi_code} 的 Clinical Sizes Precision=Text 时 Text Value 必须填写。")
+
+    def _validate_clinical_size_unit(self, errors: list[str], udi_code: str, unit: str, unit_codes: set[str], row: dict):
+        if not unit:
+            errors.append(f"UDI-DI {udi_code} 的 Clinical Sizes Precision=Range/Value 时必须填写 Measure Unit。")
+        elif unit not in unit_codes:
+            errors.append(f"UDI-DI {udi_code} 的 Clinical Sizes Measure Unit {unit} 不在官方枚举中。")
+        if unit == "MU999" and not row.get("Measure Unit Description"):
+            errors.append(f"UDI-DI {udi_code} 的 Measure Unit 为 MU999 - OTHER 时必须填写 Measure Unit Description。")
+
+    def _validate_annex_xvi_rows(self, errors: list[str], item: dict):
+        rows = item.get("annex_xvi_rows") or []
+        if not rows:
+            return
+        udi_code = item.get("udi_code") or item.get("payload", {}).get("UDI-DI Code", "")
+        annex_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("annex_xvi_nmd", [])}
+        for row in rows:
+            value = str(self._enum_code(row.get("Non-Medical Device Type")) or "").strip()
+            if not value:
+                errors.append(f"UDI-DI {udi_code} 的 Annex XVI Purposes 缺少 Non-Medical Device Type。")
+            elif value not in annex_codes:
+                errors.append(f"UDI-DI {udi_code} 的 Annex XVI Non-Medical Device Type {value} 不在官方枚举中。")
+
     def _positive_integer(self, value) -> bool:
         try:
             return int(str(value).strip()) > 0
+        except (TypeError, ValueError):
+            return False
+
+    def _is_number(self, value) -> bool:
+        if value in (None, ""):
+            return False
+        try:
+            float(str(value).strip())
+            return True
         except (TypeError, ValueError):
             return False
 
@@ -931,7 +1012,7 @@ class BetaXMLExporter:
             self._text(parent, "basicudi", "specialDevice", data.get("Special Device Type"))
             self._bool(parent, "commondi", "companionDiagnostics", data.get("Companion Diagnostic (IVDR)"))
             self._bool(parent, "commondi", "instrument", data.get("Instrument (IVDR)"))
-            self._bool(parent, "commondi", "kit", data.get("Kit (IVDR)"))
+            self._bool(parent, "commondi", "kit", data.get("Is it a Kit") or data.get("Kit (IVDR)"))
             self._bool(parent, "commondi", "microbialSubstances", data.get("Microbial Origin (IVDR)"))
             self._bool(parent, "commondi", "nearPatientTesting", data.get("Near Patient Testing (IVDR)"))
             self._bool(parent, "commondi", "professionalTesting", data.get("Professional Testing (IVDR)"))
@@ -1028,6 +1109,8 @@ class BetaXMLExporter:
 
         self._append_device_marking(parent, data)
 
+        if profile == "MDR":
+            self._append_annex_xvi(parent, item.get("annex_xvi_rows") or [])
         if profile == "IVDR":
             self._bool(parent, "udidi", "newDevice", data.get("New Device (IVDR)"))
             return
@@ -1037,6 +1120,8 @@ class BetaXMLExporter:
         self._bool(parent, "udidi", "latex", data.get("Containing Latex"))
         self._bool(parent, "udidi", "reprocessed", data.get("Reprocessed Single Use Device"))
         self._append_substances(parent, item["basic_code"])
+        if profile == "MDR":
+            self._append_clinical_sizes(parent, item.get("clinical_size_rows") or [])
 
     def _append_basic_model(self, parent: ET.Element, data: dict):
         model = (data.get("Device Model") or "").strip()
@@ -1139,6 +1224,63 @@ class BetaXMLExporter:
                 )
                 ET.SubElement(name, qn("lsn", "textValue")).text = str(row.get("Description"))
             self._text(node, "commondi", "storageHandlingConditionValue", self._enum_code(row.get("Storage Condition Type")))
+
+    def _append_annex_xvi(self, parent: ET.Element, rows: list[dict]):
+        values = [self._enum_code(row.get("Non-Medical Device Type")) for row in (rows or [])]
+        values = [str(value).strip() for value in values if str(value or "").strip()]
+        if not values:
+            return
+        container = ET.SubElement(parent, qn("udidi", "annexXVINonMedicalDeviceTypes"))
+        for value in dict.fromkeys(values):
+            self._text(container, "udidi", "nmdType", value)
+
+    def _append_clinical_sizes(self, parent: ET.Element, rows: list[dict]):
+        rows = rows or []
+        if not rows:
+            return
+        container = ET.SubElement(parent, qn("udidi", "clinicalSizes"))
+        for row in rows:
+            precision = str(row.get("Precision") or "").strip()
+            type_name = {
+                "Range": "commondi:RangeClinicalSizeType",
+                "Value": "commondi:ValueClinicalSizeType",
+                "Text": "commondi:TextClinicalSizeType",
+            }.get(precision)
+            if not type_name:
+                continue
+            size = ET.SubElement(container, qn("commondi", "clinicalSize"))
+            size.set(qn("xsi", "type"), type_name)
+            self._text(size, "commondi", "clinicalSizeType", self._enum_code(row.get("Clinical Size Type")))
+            if row.get("Clinical Size Type Description"):
+                self._append_language_texts(
+                    size,
+                    "commondi",
+                    "clinicalSizeDescription",
+                    [(row.get("Description Language") or "EN", row.get("Clinical Size Type Description"))],
+                )
+            if precision == "Range":
+                self._text(size, "commondi", "maximum", row.get("Maximum"))
+                self._text(size, "commondi", "minimum", row.get("Minimum"))
+                self._text(size, "commondi", "valueUnit", self._enum_code(row.get("Measure Unit")))
+                self._append_measure_unit_description(size, row)
+            elif precision == "Value":
+                self._text(size, "commondi", "value", row.get("Value"))
+                self._text(size, "commondi", "valueUnit", self._enum_code(row.get("Measure Unit")))
+                self._append_measure_unit_description(size, row)
+            elif precision == "Text":
+                self._text(size, "commondi", "text", row.get("Text Value"))
+        if len(container) == 0:
+            parent.remove(container)
+
+    def _append_measure_unit_description(self, parent: ET.Element, row: dict):
+        if not row.get("Measure Unit Description"):
+            return
+        self._append_language_texts(
+            parent,
+            "commondi",
+            "measureUnitDescription",
+            [(row.get("Measure Unit Description Language") or "EN", row.get("Measure Unit Description"))],
+        )
 
     def _append_packages(self, parent: ET.Element, package_rows: list[dict], payload: dict):
         if not package_rows:

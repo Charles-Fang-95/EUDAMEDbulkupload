@@ -21,7 +21,7 @@ except ImportError:
 
 APPENDIX_PATH = ROOT / "Test sample" / "5432_Appendix A_B_C (MDR_EN ISO 13485) - Details on Types of Devices, Facilities and Suppliers_Rev.10.xlsx"
 UDI_LIST_PATH = ROOT / "Test sample" / "UM-QR-9.0-12-02 UDI-DI清单(1) 新 - 副本.xls"
-OUTPUT_PATH = ROOT / "Test sample" / "EUDAMED_Customer_Test_Template_Unimax_v2.5.xlsx"
+OUTPUT_PATH = ROOT / "Test sample" / "EUDAMED_Customer_Test_Template_Unimax_v2.6.xlsx"
 ROW_LIMIT = 10
 
 
@@ -37,10 +37,12 @@ def main():
     market_sheet = workbook["Market Info"]
     package_sheet = workbook["Package Info"]
     trade_sheet = workbook["Trade Names"]
+    annex_sheet = workbook["Annex XVI Purposes"]
     headers = {main_sheet.cell(1, col).value: col for col in range(1, main_sheet.max_column + 1)}
     market_headers = {market_sheet.cell(1, col).value: col for col in range(1, market_sheet.max_column + 1)}
     package_headers = {package_sheet.cell(1, col).value: col for col in range(1, package_sheet.max_column + 1)}
     trade_headers = {trade_sheet.cell(1, col).value: col for col in range(1, trade_sheet.max_column + 1)}
+    annex_headers = {annex_sheet.cell(1, col).value: col for col in range(1, annex_sheet.max_column + 1)}
 
     manufacturer_srn = text(appendix_info["D10"].value)
     for idx in range(ROW_LIMIT):
@@ -100,7 +102,6 @@ def main():
             "UDI - Containing Latex*": "FALSE",
             "UDI - Reprocessed Single Use Device": bool_text(reprocessing),
             "UDI - New Device (IVDR)": "FALSE",
-            "UDI - Purpose Other Than Medical": bool_text(annex_xvi),
             "UDI - Direct Marking": "FALSE",
             "UDI - Trade Name Applicable*": "TRUE",
             "UDI - Trade Name": trade_name,
@@ -161,6 +162,18 @@ def main():
                 col = package_headers.get(header)
                 if col:
                     package_sheet.cell(package_row, col, value)
+
+        if annex_xvi:
+            annex_row = 4 + idx
+            annex_values = {
+                "UDI-DI Code*": udi_code,
+                # Source data only says Annex XVI applies; the specific official enum must be selected by a user.
+                "Non-Medical Device Type*": "",
+            }
+            for header, value in annex_values.items():
+                col = annex_headers.get(header)
+                if col:
+                    annex_sheet.cell(annex_row, col, value)
 
     workbook.save(OUTPUT_PATH)
     print(OUTPUT_PATH)

@@ -31,11 +31,18 @@ RELATED_SHEET_ALIASES = {
     "CMR Substances": ["CMR Substances"],
     "Trade Names": ["Trade Names"],
     "Device Certificates": ["Device Certificates"],
+    "Clinical Sizes": ["Clinical Sizes"],
+    "Annex XVI Purposes": ["Annex XVI Purposes"],
 }
 
 PACKAGE_HEADER_ALIASES = {
     "Package Level": "Local - Package Level",
     "Package Type": "Local - Package Type",
+}
+
+MAIN_HEADER_ALIASES = {
+    "Basic - Kit (IVDR)": "Basic - Is it a Kit",
+    "Kit (IVDR)": "Basic - Is it a Kit",
 }
 
 
@@ -98,13 +105,14 @@ def _copy_unified_sheets(source, target, report: dict):
         rows = _read_rows(source[sheet_name])
         target_headers = _headers(target[sheet_name])
         source_headers = _headers(source[sheet_name])
-        header_map = _header_map(source_headers, target_headers)
+        header_map = _header_map(source_headers, target_headers, extra_aliases=MAIN_HEADER_ALIASES)
         _record_unmapped(report, sheet_name, source_headers, header_map)
         target_row = DATA_START_ROW
         for row in rows:
             if not _has_data(row):
                 continue
             _write_row(target[sheet_name], target_headers, target_row, row, header_map)
+            _append_old_udi_detail_rows(target, row, report)
             target_row += 1
             report["copied_rows"][sheet_name] += 1
 
@@ -130,6 +138,7 @@ def _copy_legacy_split_sheets(source, target, report: dict):
         target_headers = _headers(target[target_sheet])
         combined = _legacy_combined_row(basic, udi)
         _write_by_field(target[target_sheet], target_headers, target_next_rows[target_sheet], combined)
+        _append_old_udi_detail_rows(target, udi, report)
         target_next_rows[target_sheet] += 1
         report["copied_rows"][target_sheet] += 1
 
@@ -236,6 +245,63 @@ def _legacy_field_map() -> dict:
     for source, field in aliases.items():
         fields[_canonical(source)] = field
     return fields
+
+
+def _append_old_udi_detail_rows(target, source_row: dict, report: dict):
+    udi_code = str(_get_by_alias(source_row, "UDI-DI Code") or "").strip()
+    if not udi_code:
+        return
+
+    old_size_value = _get_by_alias(source_row, "Clinical Size Value")
+    old_size_unit = _get_by_alias(source_row, "Clinical Size Unit")
+    if old_size_value not in (None, "") or old_size_unit not in (None, ""):
+        _append_related_row(
+            target["Clinical Sizes"],
+            {
+                "UDI-DI Code*": udi_code,
+                "Precision*": "Value",
+                "Value": old_size_value,
+                "Measure Unit": old_size_unit,
+            },
+        )
+        report["copied_rows"]["Clinical Sizes"] += 1
+        report["warnings"].append(
+            f"UDI-DI {udi_code} 的旧 Clinical Size Value/Unit 已迁移到 Clinical Sizes sheet；请补充 Clinical Size Type，并确认 Measure Unit 使用 v2.6 下拉值。"
+        )
+
+    old_annex = _get_by_alias(source_row, "Purpose Other Than Medical")
+    if _truthy(old_annex):
+        _append_related_row(
+            target["Annex XVI Purposes"],
+            {
+                "UDI-DI Code*": udi_code,
+            },
+        )
+        report["copied_rows"]["Annex XVI Purposes"] += 1
+        report["warnings"].append(
+            f"UDI-DI {udi_code} 的旧 Purpose Other Than Medical=TRUE 无法自动判断 Annex XVI 具体类型；请在 Annex XVI Purposes sheet 选择 Non-Medical Device Type。"
+        )
+
+
+def _append_related_row(ws, values_by_header: dict):
+    headers = _headers(ws)
+    target_index = {header: idx for idx, header in enumerate(headers, start=1)}
+    row_idx = _next_data_row(ws)
+    for header, value in values_by_header.items():
+        if header in target_index:
+            ws.cell(row_idx, target_index[header]).value = value
+
+
+def _next_data_row(ws) -> int:
+    for row_idx in range(DATA_START_ROW, ws.max_row + 2):
+        values = [ws.cell(row_idx, col_idx).value for col_idx in range(1, ws.max_column + 1)]
+        if not any(value not in (None, "") for value in values):
+            return row_idx
+    return ws.max_row + 1
+
+
+def _truthy(value) -> bool:
+    return str(value or "").strip().upper() in {"TRUE", "YES", "1", "Y"}
 
 
 def _get_by_alias(row: dict, field: str):

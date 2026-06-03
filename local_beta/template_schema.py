@@ -6,11 +6,12 @@ from xml.etree import ElementTree as ET
 ROOT_DIR = Path(__file__).resolve().parent.parent
 XSD_BASE = ROOT_DIR / "official_docs" / "unpacked" / "xsd_production" / "data" / "Entity"
 COMMON_DEVICE_XSD = XSD_BASE / "Device" / "CommonDeviceType.xsd"
+REGULATION_UDI_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.5"
+TEMPLATE_VERSION = "v2.6"
 
 
 def _col(
@@ -45,11 +46,11 @@ def _related_col(header, field, required=False, validation=None, description="",
     return _col("Related", header, "related", field, required, validation, description, example, fmt, "all", requirement)
 
 
-def _xsd_enum_values(type_name: str, other_code: str = "") -> list[str]:
-    if not COMMON_DEVICE_XSD.exists():
+def _xsd_enum_values_from_file(xsd_path: Path, type_name: str, other_code: str = "") -> list[str]:
+    if not xsd_path.exists():
         return []
     ns = {"xs": "http://www.w3.org/2001/XMLSchema"}
-    root = ET.parse(COMMON_DEVICE_XSD).getroot()
+    root = ET.parse(xsd_path).getroot()
     restriction = root.find(f".//xs:simpleType[@name='{type_name}']/xs:restriction", ns)
     if restriction is None:
         return []
@@ -64,6 +65,10 @@ def _xsd_enum_values(type_name: str, other_code: str = "") -> list[str]:
         regular_values = [item for item in values if item.split(" - ", 1)[0] != other_code]
         return other_values + regular_values
     return values
+
+
+def _xsd_enum_values(type_name: str, other_code: str = "") -> list[str]:
+    return _xsd_enum_values_from_file(COMMON_DEVICE_XSD, type_name, other_code)
 
 
 def _xsd_country_values(type_name: str = "EUCountryWithSpecialEnum") -> list[str]:
@@ -173,6 +178,18 @@ def _certificate_type_values() -> list[str]:
     return _xsd_simple_enum(LINK_XSD, "GenericCertificateTypeEnum") or list(_CERTIFICATE_TYPE_FALLBACK)
 
 
+def _clinical_size_type_values() -> list[str]:
+    return _xsd_enum_values_from_file(COMMON_DEVICE_XSD, "ClinicalSizeTypeEnum", "CST999")
+
+
+def _clinical_size_unit_values() -> list[str]:
+    return _xsd_enum_values_from_file(REGULATION_UDI_XSD, "ClinicalSizeUnitEnum", "MU999")
+
+
+def _annex_xvi_values() -> list[str]:
+    return _xsd_enum_values_from_file(REGULATION_UDI_XSD, "NonMedicalDeviceEnum")
+
+
 MAIN_COLUMNS = [
     _col("Meta", "Local - Record ID", "meta", "record_id", False, None, "用户自定义行号或内部编码，仅供本地追踪。", "ROW-001", "自由文本"),
     _col("Meta", "Basic - Current Version", "meta", "basic_version", False, None, "条件必填：仅在使用 Update Basic UDI / Basic_UDI.PATCH 时填写 EUDAMED 当前版本号。该字段位于主表 B 列；新上传留空。", "", "数字或文本", requirement="conditional"),
@@ -197,11 +214,10 @@ MAIN_COLUMNS = [
     _col("Basic", "Basic - Self-Testing (IVDR)", "basic", "Self-Testing (IVDR)", False, "boolean", "IVDR 下是否为自检。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Professional Testing (IVDR)", "basic", "Professional Testing (IVDR)", False, "boolean", "IVDR 下是否为专业人员检测。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Instrument (IVDR)", "basic", "Instrument (IVDR)", False, "boolean", "IVDR 下是否为仪器。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
-    _col("Basic", "Basic - Kit (IVDR)", "basic", "Kit (IVDR)", False, "boolean", "IVDR 下是否为试剂盒。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Microbial Origin (IVDR)", "basic", "Microbial Origin (IVDR)", False, "boolean", "IVDR 下是否具有微生物来源。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Additional Description", "basic", "Additional Description", False, None, "Basic UDI-DI 层级附加描述；不要填写随 UDI-DI 变化的尺寸规格。", "", "文本"),
     _col("Basic", "Basic - Device Model", "basic", "Device Model", False, None, "仅在 EUDAMED 中 Model 适用于 Basic UDI-DI 时填写；不适用则留空。", "", "文本"),
-    _col("Basic", "Basic - Is it a Kit", "basic", "Is it a Kit", False, "boolean", "本地辅助/待审计字段：普通 MDR/MDD XML 当前不输出；IVDR 试剂盒请使用 Basic - Kit (IVDR)。", "FALSE", "TRUE / FALSE"),
+    _col("Basic", "Basic - Is it a Kit", "basic", "Is it a Kit", False, "boolean", "是否为 Kit。当前按官方 XSD 在 IVDR/IVDD 相关 kit 字段输出；旧模板中的 Basic - Kit (IVDR) 已合并到本列。MDR/MDD 暂无安全输出位置，不会强行写入 XML。", "FALSE", "TRUE / FALSE"),
     _col("Basic", "Basic - Authorised Representative SRN", "basic", "Authorised Representative SRN", False, None, "非欧盟/EEA 制造商的欧盟授权代表 SRN。", "NL-AR-000000247", "文本"),
     _col("Basic", "Basic - Special Device Type", "basic", "Special Device Type", False, None, "特殊设备类型。没有则留空。", "", "文本"),
     _col("Basic", "Basic - Reagent", "basic", "Reagent", False, "boolean", "IVDR 下是否为试剂。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
@@ -219,7 +235,6 @@ MAIN_COLUMNS = [
     _col("UDI", "UDI - Containing Latex*", "udi", "Containing Latex", True, "boolean", "是否含天然橡胶乳胶。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("UDI", "UDI - Reprocessed Single Use Device", "udi", "Reprocessed Single Use Device", False, "boolean", "是否为重复处理的一次性使用器械。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("UDI", "UDI - New Device (IVDR)", "udi", "New Device (IVDR)", False, "boolean", "IVDR 下是否为新设备。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
-    _col("UDI", "UDI - Purpose Other Than Medical", "udi", "Purpose Other Than Medical", False, "boolean", "仅 Master UDI-DI 相关；普通 UDI-DI 当前不输出该字段。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("UDI", "UDI - Direct Marking", "udi", "Direct Marking", False, "boolean", "是否进行直接标识。", "FALSE", "TRUE / FALSE"),
     _col("UDI", "UDI - DM DI Same as UDI-DI", "udi", "DM DI Same as UDI-DI", False, "boolean", "直接标识 DI 是否与 UDI-DI 相同。", "TRUE", "TRUE / FALSE"),
     _col("UDI", "UDI - DM Issuing Entity", "udi", "DM Issuing Entity", False, "issuing_entity", "直接标识 DI 的签发机构。", "GS1", "下拉选择"),
@@ -231,7 +246,7 @@ MAIN_COLUMNS = [
     _col("UDI", "UDI - Trade Name Applicable*", "udi", "Trade Name Applicable", True, "boolean", "是否适用商品名字段。TRUE 时通常必须填写 Trade Name。", "TRUE", "TRUE / FALSE"),
     _col("UDI", "UDI - Trade Name", "udi", "Trade Name", False, None, "商品名快捷列。若上一列为 TRUE，通常应填写；多语言/多个商品名请使用 Trade Names sheet。", "Trade name", "文本", requirement="conditional"),
     _col("UDI", "UDI - Trade Name Language", "udi", "Trade Name Language", False, "language_any", "商品名快捷列语言。ANY 表示不限定具体语言；不会自动翻译，也不代表只能有一个 Trade Name。多语言/多个商品名请使用 Trade Names sheet。", "ANY", "下拉选择", requirement="conditional"),
-    _col("UDI", "UDI - eIFU URL", "udi", "eIFU URL", False, None, "电子说明书链接；当前 XML 暂不输出，待字段映射审计确认官方路径后再实现。", "", "URL"),
+    _col("UDI", "UDI - eIFU URL", "udi", "eIFU URL", False, None, "电子说明书链接。当前官方 UDI-DI XML 未确认安全输出路径，本工具不输出到 XML，不会提交到 EUDAMED。", "", "URL"),
     _col("UDI", "UDI - Reference Number*", "udi", "Reference Number", True, None, "Reference / Catalogue Number；EUDAMED XML 必填。", "REF-001", "文本"),
     _col("UDI", "UDI - Product Designer SRN", "udi", "Product Designer SRN", False, None, "产品原始制造商/设计者 SRN；当前独立 update service 未实现。", "", "文本"),
     _col("UDI", "UDI - Product Designer ID", "udi", "Product Designer ID", False, None, "产品设计者内部 ID；当前独立 update service 未实现。", "", "文本"),
@@ -242,12 +257,10 @@ MAIN_COLUMNS = [
     _col("UDI", "UDI - PI Software Identification", "udi", "PI Software Identification", False, "boolean", "生产标识是否包含软件识别号。", "FALSE", "TRUE / FALSE"),
     _col("UDI", "UDI - Nomenclature Code*", "udi", "Nomenclature Code", True, None, "命名代码，例如 EMDN。", "M0201030201", "文本"),
     _col("UDI", "UDI - Nomenclature System", "udi", "Nomenclature System", False, None, "命名系统。通常为 EMDN。", "EMDN", "文本"),
-    _col("UDI", "UDI - Clinical Size Value", "udi", "Clinical Size Value", False, None, "临床尺寸值；当前 XML 暂不输出结构化临床尺寸。", "", "数字或文本"),
-    _col("UDI", "UDI - Clinical Size Unit", "udi", "Clinical Size Unit", False, None, "临床尺寸单位；当前 XML 暂不输出结构化临床尺寸。", "", "文本"),
     _col("UDI", "UDI - Additional Description", "udi", "Additional Description", False, None, "UDI-DI 层级附加描述；可填写尺寸、规格、包装形式等随单个 UDI-DI 变化的信息。", "40S, 15 threads, 10x10cm-4ply", "文本"),
     _col("UDI", "UDI - Description Language", "udi", "Description Language", False, "language", "附加描述语言。", "en", "下拉选择"),
     _col("UDI", "UDI - Public Website", "udi", "Public Website", False, None, "公开产品网址。", "", "URL"),
-    _col("UDI", "UDI - Public Email", "udi", "Public Email", False, None, "公开联系邮箱；当前 XML 暂不输出，公开网址 Public Website 已输出。", "", "邮箱"),
+    _col("UDI", "UDI - Public Email", "udi", "Public Email", False, None, "公开联系邮箱。当前普通 UDI-DI XML 未确认安全输出路径，本工具不输出到 XML，不会提交到 EUDAMED；公开网址 Public Website 已输出。", "", "邮箱"),
 ]
 
 
@@ -283,6 +296,30 @@ RELATED_SHEETS = OrderedDict(
                 _related_col("Contains DI Code", "Contains DI Code", False, None, "条件必填：该包装直接包含的 child DI。可填主 UDI-DI，也可填同一 UDI-DI 包装结构里的下一级 Package DI；留空则默认包含主 UDI-DI。", "06942495390010", "文本", requirement="conditional"),
                 _related_col("Contains DI Issuing Entity", "Contains DI Issuing Entity", False, "issuing_entity", "条件必填：child DI 的签发机构。留空时按 child 类型自动使用主 UDI-DI 或对应 Package DI 的签发机构。", "GS1", "下拉选择", requirement="conditional"),
                 _related_col("Quantity per Package*", "Quantity per Package", True, None, "条件必填：若填写 Package Info 行，本列为每个 Package DI 中包含 child DI 的数量，必须为正整数。", "10", "正整数", requirement="conditional"),
+            ],
+        },
+        "Clinical Sizes": {
+            "target": "Clinical Sizes",
+            "columns": [
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：仅 MDR 设备存在结构化 Clinical Sizes 时填写。若填写 Clinical Sizes 行，本列必须关联主表 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Clinical Size Type*", "Clinical Size Type", True, "clinical_size_type", "条件必填：若填写 Clinical Sizes 行，本列必须选择官方 ClinicalSizeTypeEnum。CST999 - OTHER 时必须填写 Clinical Size Type Description。", "CST48 - Length", "下拉选择", requirement="conditional"),
+                _related_col("Clinical Size Type Description", "Clinical Size Type Description", False, None, "条件必填：Clinical Size Type 为 CST999 - OTHER 时填写具体说明；其它类型通常留空。", "", "文本", requirement="conditional"),
+                _related_col("Description Language", "Description Language", False, "language", "条件必填：填写 Clinical Size Type Description 时说明语言。", "en", "下拉选择", requirement="conditional"),
+                _related_col("Precision*", "Precision", True, "clinical_size_precision", "条件必填：Range=范围值，Value=单一数值，Text=文本值。", "Value", "下拉选择", requirement="conditional"),
+                _related_col("Minimum", "Minimum", False, None, "条件必填：Precision=Range 时填写最小值。", "5", "数字", requirement="conditional"),
+                _related_col("Maximum", "Maximum", False, None, "条件必填：Precision=Range 时填写最大值。", "10", "数字", requirement="conditional"),
+                _related_col("Value", "Value", False, None, "条件必填：Precision=Value 时填写单一数值。", "10", "数字", requirement="conditional"),
+                _related_col("Text Value", "Text Value", False, None, "条件必填：Precision=Text 时填写文本尺寸。", "Small", "文本", requirement="conditional"),
+                _related_col("Measure Unit", "Measure Unit", False, "clinical_size_unit", "条件必填：Precision=Range 或 Value 时必须选择官方 ClinicalSizeUnitEnum。MU999 - OTHER 时必须填写 Measure Unit Description。", "MU08 - centimetre (cm)", "下拉选择", requirement="conditional"),
+                _related_col("Measure Unit Description", "Measure Unit Description", False, None, "条件必填：Measure Unit 为 MU999 - OTHER 时填写单位说明；其它单位通常留空。", "", "文本", requirement="conditional"),
+                _related_col("Measure Unit Description Language", "Measure Unit Description Language", False, "language", "条件必填：填写 Measure Unit Description 时说明语言。", "en", "下拉选择", requirement="conditional"),
+            ],
+        },
+        "Annex XVI Purposes": {
+            "target": "Annex XVI Purposes",
+            "columns": [
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：仅 MDR Annex XVI 非医疗目的产品填写。若填写 Annex XVI Purposes 行，本列必须关联主表 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Non-Medical Device Type*", "Non-Medical Device Type", True, "annex_xvi_nmd", "条件必填：若填写 Annex XVI Purposes 行，本列必须选择官方 NonMedicalDeviceEnum；一个 UDI-DI 可填写多行。", "CONTACT_LENSES - Contact Lenses", "下拉选择", requirement="conditional"),
             ],
         },
         "Critical Warnings": {
@@ -359,6 +396,10 @@ ENUM_SOURCES = OrderedDict(
         "storage_condition": _xsd_enum_values("StorageHandlingConditionEnum", "SHC099"),
         "critical_warning": _xsd_enum_values("CriticalWarningEnum", "CW999"),
         "certificate_type": _certificate_type_values(),
+        "clinical_size_type": _clinical_size_type_values(),
+        "clinical_size_unit": _clinical_size_unit_values(),
+        "clinical_size_precision": ["Range", "Value", "Text"],
+        "annex_xvi_nmd": _annex_xvi_values(),
     }
 )
 

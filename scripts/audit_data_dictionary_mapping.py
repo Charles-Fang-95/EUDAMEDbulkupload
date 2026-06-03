@@ -192,15 +192,15 @@ MANUAL_MAPPINGS = {
     },
     "is it a kit": {
         "template": "Basic - Is it a Kit",
-        "status": "collected_not_exported",
-        "xml_path": "",
-        "notes": "Generic kit field is collected but not output; IVDR Kit uses Basic - Kit (IVDR).",
-    },
-    "kit": {
-        "template": "Basic - Kit (IVDR)",
         "status": "implemented",
         "xml_path": "commondi:kit",
-        "notes": "IVDR kit flag is output. Generic MDR/MDD kit field remains under review.",
+        "notes": "Unified template field. Exported for IVDR/IVDD paths where current XSD provides commondi:kit; MDR/MDD are not forced into XML without a safe schema location.",
+    },
+    "kit": {
+        "template": "Basic - Is it a Kit",
+        "status": "implemented",
+        "xml_path": "commondi:kit",
+        "notes": "Old Basic - Kit (IVDR) is migrated into the unified Is it a Kit field.",
     },
     "presence of medicinal substance": {
         "template": "Basic - Presence of Medicinal Substance",
@@ -215,10 +215,10 @@ MANUAL_MAPPINGS = {
         "notes": "Current exporter maps Medicinal Product Device to medicinalProductCheck.",
     },
     "clinical size": {
-        "template": "UDI - Clinical Size Value / UDI - Clinical Size Unit",
-        "status": "explicitly_out_of_scope",
-        "xml_path": "",
-        "notes": "Template states structured clinical size is not currently output.",
+        "template": "Clinical Sizes sheet",
+        "status": "implemented",
+        "xml_path": "udidi:clinicalSizes/commondi:clinicalSize",
+        "notes": "Structured Clinical Sizes sheet is exported for MDR UDI-DI only; other profiles are warned and ignored.",
     },
     "product designer": {
         "template": "UDI - Product Designer SRN / UDI - Product Designer ID",
@@ -227,10 +227,16 @@ MANUAL_MAPPINGS = {
         "notes": "Product original manufacturer/designer update service is not implemented.",
     },
     "purpose other than medical": {
-        "template": "UDI - Purpose Other Than Medical",
-        "status": "explicitly_out_of_scope",
-        "xml_path": "",
-        "notes": "Template states this is Master UDI-DI related and not output for ordinary UDI-DI.",
+        "template": "Annex XVI Purposes sheet",
+        "status": "implemented",
+        "xml_path": "udidi:annexXVINonMedicalDeviceTypes/udidi:nmdType",
+        "notes": "Annex XVI non-medical device types are collected as 0..n rows and exported for MDR UDI-DI only.",
+    },
+    "measure unit description": {
+        "template": "Clinical Sizes / Measure Unit Description",
+        "status": "implemented",
+        "xml_path": "udidi:clinicalSizes/commondi:clinicalSize/commondi:measureUnitDescription",
+        "notes": "Required when Clinical Size Measure Unit is MU999 - OTHER.",
     },
 }
 
@@ -319,6 +325,7 @@ def audit_row(row: dict, template_index: dict, storage_fields: set[str], exporte
     full_text = " ".join([row.get("label", ""), row.get("field_name", ""), row.get("description", "")]).lower()
     manual = manual_match(label_text, full_text)
     if manual:
+        manual = context_adjusted_manual(row, manual)
         template = manual.get("template", "")
         importer_reads = bool(template)
         storage_saves = storage_state(template, storage_fields)
@@ -377,6 +384,20 @@ def manual_match(label_text: str, full_text: str) -> dict | None:
         if needle in haystack:
             return mapping
     return None
+
+
+def context_adjusted_manual(row: dict, manual: dict) -> dict:
+    """Keep broad label-based mappings honest when the official sheet changes context."""
+    adjusted = dict(manual)
+    xml_path = adjusted.get("xml_path", "")
+    if "clinicalSizes" in xml_path and row.get("sheet") != "DD UDI-DI":
+        adjusted["status"] = "explicitly_out_of_scope"
+        adjusted["xml_path"] = ""
+        adjusted["notes"] = (
+            "Current exporter supports structured clinicalSizes only for MDR UDI-DI; "
+            "legacy / other profiles are warned and ignored."
+        )
+    return adjusted
 
 
 def find_template_column(row: dict, template_index: dict) -> dict | None:
@@ -465,8 +486,10 @@ def write_markdown(rows: list[dict], path: Path) -> None:
         "",
         "- `eIFU URL` and `Public Email` are collected or partly represented, but not safely output to XML yet.",
         "- `Device Certificates` is implemented for Basic UDI-DI `deviceCertificateLinks`; PR/SPP certificate handling remains out of scope.",
-        "- `Clinical Size`, `Product Designer`, and `Purpose Other Than Medical` remain explicitly out of scope until their official XML structures/services are designed.",
-        "- `Is it a Kit` and `Presence of Medicinal Substance` need business-design review because similarly named fields already exist in narrower exported contexts.",
+        "- `Clinical Sizes` and `Annex XVI Purposes` are implemented for MDR UDI-DI via structured detail sheets.",
+        "- `Is it a Kit` is unified in the template and exported where the current XSD provides `commondi:kit` (IVDR/IVDD paths).",
+        "- `Product Designer` remains out of scope until the Update product original manufacturer service is designed.",
+        "- `Presence of Medicinal Substance` remains documented-not-exported because `Medicinal Product Device` already maps to `medicinalProductCheck`.",
         "",
         "## Field Audit",
         "",

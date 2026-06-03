@@ -2,7 +2,7 @@
 
 > 当前主工具已经迁移到根目录的本地网页端：`python3 run_local_beta.py`。
 >
-> 本目录是旧命令行转换器和 vendored 依赖目录。当前 `local_beta/` 仍复用这里的 `lib/` 和 `validator.py`，所以不能整体删除；但这里的旧 README 内容、旧模板和历史报告不代表当前 v2.5 本地网页端的使用方式。
+> 本目录是旧命令行转换器和 vendored 依赖目录。当前 `local_beta/` 仍复用这里的 `lib/` 和 `validator.py`，所以不能整体删除；但这里的旧 README 内容、旧模板和历史报告不代表当前 v2.6 本地网页端的使用方式。
 
 当前推荐阅读：
 

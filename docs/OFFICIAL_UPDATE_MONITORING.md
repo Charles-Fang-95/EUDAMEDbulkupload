@@ -34,4 +34,4 @@
 python3 scripts/audit_data_dictionary_mapping.py --output docs/DATA_DICTIONARY_FIELD_AUDIT.md
 ```
 
-报告只用于审查，不会自动生成 XML 映射。复杂字段例如 eIFU、Clinical Size、Product Designer 需要先确认官方 XML 结构和业务规则，再决定是否实现；Basic UDI-DI 的 `deviceCertificateLinks` 已实现，但 PR/SPP 证书结构仍需单独审计。
+报告只用于审查，不会自动生成 XML 映射。复杂字段例如 eIFU、Public Email、Product Designer 需要先确认官方 XML 结构和业务规则，再决定是否实现；Basic UDI-DI 的 `deviceCertificateLinks`、MDR `clinicalSizes` 和 MDR `annexXVINonMedicalDeviceTypes` 已实现，但 PR/SPP 证书结构仍需单独审计。

@@ -575,7 +575,7 @@ def dashboard(
     body = f"""
     <section class="hero">
       <div>
-        <h1>{t('本地运行的 EUDAMED 内测版', 'EUDAMED helper — local beta')}</h1>
+        <h1>{t('本地运行的 EUDAMED 公开测试版', 'EUDAMED helper — Public Beta')}</h1>
         <p>{t('先导入 Excel 总表，在网页端管理记录，再按官方 service 批量生成 XML。数据默认保存在本机 SQLite。',
               'Import the Excel workbook, manage records in the browser, then generate XML per official service. Data stays in a local SQLite file.')}</p>
       </div>
@@ -985,6 +985,8 @@ def udi_detail(record: dict, message: str = "", message_level: str = "notice", f
             ("warning_json", "Critical Warnings JSON", 6, _dump(record["warning_rows"])),
             ("storage_json", "Storage Conditions JSON", 6, _dump(record["storage_rows"])),
             ("package_json", "Package Information JSON", 6, _dump(record["package_rows"])),
+            ("clinical_size_json", "Clinical Sizes JSON", 6, _dump(record.get("clinical_size_rows", []))),
+            ("annex_xvi_json", "Annex XVI Purposes JSON", 6, _dump(record.get("annex_xvi_rows", []))),
         ]
     )
     body = f"""
@@ -1608,7 +1610,7 @@ def update_check_block(check_result: dict | None) -> str:
         if source == "gitee" and fallback_error
         else ""
     )
-    prerelease_badge = f' <span class="badge muted-badge">{esc(t("Beta / 内测", "Beta / prerelease"))}</span>' if prerelease else ""
+    prerelease_badge = f' <span class="badge muted-badge">{esc(t("公开测试版", "Public Beta"))}</span>' if prerelease else ""
 
     if status == "ok":
         level = "warning"
@@ -1651,7 +1653,7 @@ def update_check_block(check_result: dict | None) -> str:
         <div class="alert notice">
           <strong>{esc(t("当前本地版本高于线上最新发布版本", "Local version is newer than the latest online release"))}</strong>
           <p>{esc(t("本地版本", "Local version"))}: <strong>{esc(TOOL_VERSION_LABEL)}</strong> · {esc(source_name)}: <strong>{esc(latest or t("未识别", "unknown"))}</strong></p>
-          <p class="muted">{esc(t("这通常表示你正在使用开发版/内测版，尚未发布成正式 Release。", "This usually means you are using a development/beta build that has not been published as a formal Release yet."))}</p>
+          <p class="muted">{esc(t("这通常表示你正在使用开发版/公开测试版，尚未发布成正式 Release。", "This usually means you are using a development/Public Beta build that has not been published as a formal Release yet."))}</p>
           {source_downloads}
           {fallback_note}
         </div>

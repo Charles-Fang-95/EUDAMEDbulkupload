@@ -2,6 +2,15 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.9.0 - 2026-06-03
+
+- 默认模板升级为 `EUDAMED_Template_v2.6.xlsx`，新增 `Clinical Sizes` 和 `Annex XVI Purposes` 明细表。
+- 支持 MDR UDI-DI 输出结构化 `clinicalSizes`，包含 Range / Value / Text 三种 precision、Clinical Size Type、Measure Unit 和 OTHER 描述规则。
+- 支持 MDR Annex XVI 非医疗目的产品输出 `annexXVINonMedicalDeviceTypes`，一个 UDI-DI 可填写多个 Non-Medical Device Type。
+- 统一 Kit 模板字段：旧 `Basic - Kit (IVDR)` 迁移到 `Basic - Is it a Kit`；导出时按当前 XSD 在 IVDR / IVDD kit 路径输出，不向 MDR/MDD 强行写入无安全位置的节点。
+- 迁移工具支持把旧 Clinical Size Value/Unit、旧 Purpose Other Than Medical 布尔值和旧 Kit 字段搬到 v2.6 结构，并在 Migration Report 中提示需要人工补充的字段。
+- 模板、README、字段映射审计报告和打包脚本同步到 v2.6；`eIFU URL`、`Public Email`、`Product Designer` 等仍明确标注为当前不输出到普通 UDI-DI XML。
+
 ## 0.8.0 - 2026-06-02
 
 - 新增首次使用快速开始卡和一键载入 / 清除示例数据；示例记录在产品库、导出页和详情页有醒目标识，导出预检会提示不要上传到 EUDAMED。
@@ -12,6 +21,7 @@
 - 检查更新结果同时展示 GitHub / Gitee 下载入口；Windows 打包默认使用无控制台模式，并通过网页“退出工具”关闭本地服务。
 - 反馈错误 / 发送测试结果与 EUDAMED response 解析页增加互相跳转和邮件引导，明确要求附上官方 response XML。
 - 默认模板升级为 `EUDAMED_Template_v2.5.xlsx`，强化 Market Info、Package Info、Critical Warnings、Storage Conditions、CMR、证书和 Trade Names 明细表的条件必填说明。
+- 版本展示从“内测版”调整为“公开测试版 / Public Beta”，适合对外发给企业试用，但仍保留非官方和正式提交前 Playground 验证提示。
 
 ## 0.7.2 - 2026-06-01
 

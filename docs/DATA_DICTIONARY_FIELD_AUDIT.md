@@ -12,18 +12,20 @@ Status meanings:
 
 ## Summary
 
-- `implemented`: 143
-- `collected_not_exported`: 2
-- `not_in_template`: 139
-- `explicitly_out_of_scope`: 9
+- `implemented`: 158
+- `collected_not_exported`: 0
+- `not_in_template`: 129
+- `explicitly_out_of_scope`: 6
 - `needs_design`: 0
 
 ## Known Priority Findings
 
 - `eIFU URL` and `Public Email` are collected or partly represented, but not safely output to XML yet.
 - `Device Certificates` is implemented for Basic UDI-DI `deviceCertificateLinks`; PR/SPP certificate handling remains out of scope.
-- `Clinical Size`, `Product Designer`, and `Purpose Other Than Medical` remain explicitly out of scope until their official XML structures/services are designed.
-- `Is it a Kit` and `Presence of Medicinal Substance` need business-design review because similarly named fields already exist in narrower exported contexts.
+- `Clinical Sizes` and `Annex XVI Purposes` are implemented for MDR UDI-DI via structured detail sheets.
+- `Is it a Kit` is unified in the template and exported where the current XSD provides `commondi:kit` (IVDR/IVDD paths).
+- `Product Designer` remains out of scope until the Update product original manufacturer service is designed.
+- `Presence of Medicinal Substance` remains documented-not-exported because `Medicinal Product Device` already maps to `medicinalProductCheck`.
 
 ## Field Audit
 
@@ -34,7 +36,7 @@ Status meanings:
 | DD BASIC UDI | FLD-UDID-10 | Legal Manufacturer SRN | 1 | Basic - Manufacturer SRN* | Yes | Yes | Yes | manufacturerActorCode | `implemented` |  |
 | DD BASIC UDI | FLD-UDID-11 | Applicable regulation | 1 | Basic - Applicable Legislation* | Yes | Yes | Yes | payload profile / applicableLegislation | `implemented` | Template uses the label Applicable Legislation. |
 | DD BASIC UDI | FLD-UDID-12 | Is it a System which is a Device in itself, Procedure pack which is a Device in itself | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD BASIC UDI | FLD-UDID-356 | Is it a Kit | 1 | Basic - Is it a Kit | Yes | Yes | No |  | `collected_not_exported` | Generic kit field is collected but not output; IVDR Kit uses Basic - Kit (IVDR). |
+| DD BASIC UDI | FLD-UDID-356 | Is it a Kit | 1 | Basic - Is it a Kit | Yes | Yes | Yes | commondi:kit | `implemented` | Unified template field. Exported for IVDR/IVDD paths where current XSD provides commondi:kit; MDR/MDD are not forced into XML without a safe schema location. |
 | DD BASIC UDI | FLD-UDID-13 | Special Device Type | 0..1 | Basic - Special Device Type | Yes | Yes | Yes |  | `implemented` |  |
 | DD BASIC UDI | FLD-UDID-15 | Authorised Representative | 0..1 Applicable and mandatory only for nonEU MF | Basic - Authorised Representative SRN | Yes | Yes | Yes | basicudi:ARActorCode | `implemented` | Template stores SRN only. |
 | DD BASIC UDI | FLD-UDID-16 | Risk Class | 1 | Basic - Risk Class* | Yes | Yes | Yes | riskClass | `implemented` |  |
@@ -112,7 +114,7 @@ Status meanings:
 | DD UDI-DI | FLD-UDID-149 | Nomenclature code | 1..n | UDI - Nomenclature Code* | Yes | Yes | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-151 | Quantity of device | 1 | UDI - Quantity of Device | Yes | Yes | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes |  | `implemented` |  |
-| DD UDI-DI | FLD-UDID-157 | Maximum number of reuses | 0..1 Field must be completed only if singleUse is false |  | No | No | No |  | `not_in_template` |  |
+| DD UDI-DI | FLD-UDID-157 | Maximum number of reuses | 0..1 Field must be completed only if singleUse is false | Maximum | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-159 | New Device | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-163 | Reference / Catalogue number | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-164 | Reprocessed single use device | 1 | UDI - Reprocessed Single Use Device | Yes | Yes | Yes |  | `implemented` |  |
@@ -125,13 +127,13 @@ Status meanings:
 | DD UDI-DI | FLD-UDID-176 | Trade name | 0..n | Trade Name* | Yes | Yes | Yes | tradeNames | `implemented` |  |
 | DD UDI-DI | FLD-UDID-130 | UDI-DI / Device Status | 1 | UDI - Device Status* | Yes | Yes | Yes | deviceStatus | `implemented` |  |
 | DD UDI-DI | FLD-UDID-256 | Device Substatus | 0..n |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-147 | Intended purpose other than medical (Annex XVI) | 0..n | UDI - Purpose Other Than Medical | Yes | Yes | No |  | `explicitly_out_of_scope` | Template states this is Master UDI-DI related and not output for ordinary UDI-DI. |
+| DD UDI-DI | FLD-UDID-147 | Intended purpose other than medical (Annex XVI) | 0..n | Annex XVI Purposes sheet | Yes | JSON payload | Yes | udidi:annexXVINonMedicalDeviceTypes/udidi:nmdType | `implemented` | Annex XVI non-medical device types are collected as 0..n rows and exported for MDR UDI-DI only. |
 | DD UDI-DI | FLD-UDID-140 | List of CMR Substances associated to Device | 0..n |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-310 | List of Endocrine Substances associated to Device | 0..n |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-311 | List of Medicinal product substances associated to the Device | 0..n | Basic - Medicinal Product Device | Yes | Yes | Yes | basicudi:medicinalProductCheck | `implemented` | Current exporter maps Medicinal Product Device to medicinalProductCheck. |
 | DD UDI-DI | FLD-UDID-312 | List of Storage and handling Conditions | 0..n |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-144 | List of Critical Warnings or Contraindications | 0..n |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-146 | Clinical Sizes | 0..n | UDI - Clinical Size Value / UDI - Clinical Size Unit | Yes | Yes | No |  | `explicitly_out_of_scope` | Template states structured clinical size is not currently output. |
+| DD UDI-DI | FLD-UDID-146 | Clinical Sizes | 0..n | Clinical Sizes sheet | Yes | JSON payload | Yes | udidi:clinicalSizes/commondi:clinicalSize | `implemented` | Structured Clinical Sizes sheet is exported for MDR UDI-DI only; other profiles are warned and ignored. |
 | DD UDI-DI | FLD-UDID-139 | Natural or Legal person who manufactured and desinged the Device | 0..1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-137 | Member State of the placing on the EU market of the Device | 0..1 (0 only if Device Status is ‘not intended for EU market’”; ) |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-141 | Member States where device is or is to be made available on the market | 0..n If the Device has the status Not intended for EU Market, Countries where the devices is made available are not provided (Occurrence 0) |  | No | No | No |  | `not_in_template` |  |
@@ -143,15 +145,15 @@ Status meanings:
 | DD UDI-DI | FLD-UDID-126 | Start date | 1 Occurrence applicable if Device Substatus (FLD-UDID-256) is provided | Start Date | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-127 | Estimated end date | 0..1 Occurrence applicable if Device Substatus (FLD-UDID-256) is provided | End Date | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-131 | UDI-DI/Device -Sub status | 1 Occurrence applicable if Device Substatus (FLD-UDID-256) is provided |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-190 | /Clinical Size Type | 1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided | UDI - Clinical Size Value / UDI - Clinical Size Unit | Yes | Yes | No |  | `explicitly_out_of_scope` | Template states structured clinical size is not currently output. |
+| DD UDI-DI | FLD-UDID-190 | /Clinical Size Type | 1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided | Clinical Sizes sheet | Yes | JSON payload | Yes | udidi:clinicalSizes/commondi:clinicalSize | `implemented` | Structured Clinical Sizes sheet is exported for MDR UDI-DI only; other profiles are warned and ignored. |
 | DD UDI-DI | FLD-UDID-191 | /Precizion | 1 Applicable if Clinical Size (FLD-UDID-146) is provided |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-192 | /Maximum | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Range |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-193 | /Value(Minimum) | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Range |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-196 | /Value | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Value |  | No | No | No |  | `not_in_template` |  |
+| DD UDI-DI | FLD-UDID-192 | /Maximum | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Range | Maximum | Yes | Payload | Yes |  | `implemented` |  |
+| DD UDI-DI | FLD-UDID-193 | /Value(Minimum) | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Range | Minimum | Yes | Payload | Yes |  | `implemented` |  |
+| DD UDI-DI | FLD-UDID-196 | /Value | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Value | Value | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-194 | /Value(Text) | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Text |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-195 | /Measure Unit | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when the Precision value is either Value or Range |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-358 | Clinical Size Type Description | 0..1 Required when the Clinical Size Type has option Other | UDI - Clinical Size Value / UDI - Clinical Size Unit | Yes | Yes | No |  | `explicitly_out_of_scope` | Template states structured clinical size is not currently output. |
-| DD UDI-DI | FLD-UDID-359 | Measure Unit Description | 0..1 Required when the Measure Unit Type has option Other | Description | Yes | Payload | Yes |  | `implemented` |  |
+| DD UDI-DI | FLD-UDID-195 | /Measure Unit | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when the Precision value is either Value or Range | Measure Unit | Yes | Payload | Yes |  | `implemented` |  |
+| DD UDI-DI | FLD-UDID-358 | Clinical Size Type Description | 0..1 Required when the Clinical Size Type has option Other | Clinical Sizes sheet | Yes | JSON payload | Yes | udidi:clinicalSizes/commondi:clinicalSize | `implemented` | Structured Clinical Sizes sheet is exported for MDR UDI-DI only; other profiles are warned and ignored. |
+| DD UDI-DI | FLD-UDID-359 | Measure Unit Description | 0..1 Required when the Measure Unit Type has option Other | Clinical Sizes / Measure Unit Description | Yes | JSON payload | Yes | udidi:clinicalSizes/commondi:clinicalSize/commondi:measureUnitDescription | `implemented` | Required when Clinical Size Measure Unit is MU999 - OTHER. |
 | DD UDI-DI | FLD-UDID-200 | Category of CMR | 1 Occurrence applicable if List of CMR Substances (FLD-UDID-140) is provided |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-201 | Name of Substance | 0..1 Applicable if List of CMR Substances (FLD-UDID-140) is provided In case the #CAS, #EC is provided, Name of substance must be provided without the Language |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-202 | CAS# | 0..1 Applicable if List of CMR Substances (FLD-UDID-140) is provided |  | No | No | No |  | `not_in_template` |  |
@@ -187,7 +189,7 @@ Status meanings:
 | DD Legacy Devices | FLD-UDID-10 | Legal Manufacturer SRN | 1 | Basic - Manufacturer SRN* | Yes | Yes | Yes | manufacturerActorCode | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-11 | Applicable Legislation | 1 | Basic - Applicable Legislation* | Yes | Yes | Yes | payload entity selection | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-12 | Is it a System which is a Device in itself, Procedure pack which is a Device in itself | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-356 | Is it a Kit | 1 | Basic - Is it a Kit | Yes | Yes | No |  | `collected_not_exported` | Generic kit field is collected but not output; IVDR Kit uses Basic - Kit (IVDR). |
+| DD Legacy Devices | FLD-UDID-356 | Is it a Kit | 1 | Basic - Is it a Kit | Yes | Yes | Yes | commondi:kit | `implemented` | Unified template field. Exported for IVDR/IVDD paths where current XSD provides commondi:kit; MDR/MDD are not forced into XML without a safe schema location. |
 | DD Legacy Devices | FLD-UDID-13 | Special Device Type | 0..1 | Basic - Special Device Type | Yes | Yes | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-15 | Authorised Representative | 0..1 Applicable and mandatory only for nonEU MF | Basic - Authorised Representative SRN | Yes | Yes | Yes | basicudi:ARActorCode | `implemented` | Template stores SRN only. |
 | DD Legacy Devices | FLD-UDID-16 | Risk Class | 1 | Basic - Risk Class* | Yes | Yes | Yes | riskClass | `implemented` |  |
@@ -229,10 +231,10 @@ Status meanings:
 | DD Legacy Devices | FLD-UDID-144 | List of Critical Warnings or Contraindications or Storage and handling Conditions | 0..n |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-312 | List of Storage and handling Conditions | 0..n |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-145 | EUDAMED DI Identifier | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-146 | Clinical Sizes | 0..n | UDI - Clinical Size Value / UDI - Clinical Size Unit | Yes | Yes | No |  | `explicitly_out_of_scope` | Template states structured clinical size is not currently output. |
+| DD Legacy Devices | FLD-UDID-146 | Clinical Sizes | 0..n | Clinical Sizes sheet | Yes | JSON payload | No |  | `explicitly_out_of_scope` | Current exporter supports structured clinicalSizes only for MDR UDI-DI; legacy / other profiles are warned and ignored. |
 | DD Legacy Devices | FLD-UDID-149 | Nomenclature code | 1..n | UDI - Nomenclature Code* | Yes | Yes | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes |  | `implemented` |  |
-| DD Legacy Devices | FLD-UDID-157 | Maximum number of reuses | 0..1 Field can be completed only if singleUse is false |  | No | No | No |  | `not_in_template` |  |
+| DD Legacy Devices | FLD-UDID-157 | Maximum number of reuses | 0..1 Field can be completed only if singleUse is false | Maximum | Yes | Payload | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-163 | Reference / Catalogue number | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-164 | Reprocessed single use device | 1 | UDI - Reprocessed Single Use Device | Yes | Yes | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-167 | Labelled as single use | 1 |  | No | No | No |  | `not_in_template` |  |
@@ -250,15 +252,15 @@ Status meanings:
 | DD Legacy Devices | FLD-UDID-126 | Start date | 1 Occurrence applicable if Device Substatus (FLD-UDID-256) is provided | Start Date | Yes | Payload | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-127 | Estimated end date | 0..1 Occurrence applicable if Device Substatus (FLD-UDID-256) is provided | End Date | Yes | Payload | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-131 | UDI-DI/Device -Sub status | 1 Occurrence applicable if Device Substatus (FLD-UDID-256) is provided |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-190 | /Clinical Size Type | 1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided | UDI - Clinical Size Value / UDI - Clinical Size Unit | Yes | Yes | No |  | `explicitly_out_of_scope` | Template states structured clinical size is not currently output. |
+| DD Legacy Devices | FLD-UDID-190 | /Clinical Size Type | 1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided | Clinical Sizes sheet | Yes | JSON payload | No |  | `explicitly_out_of_scope` | Current exporter supports structured clinicalSizes only for MDR UDI-DI; legacy / other profiles are warned and ignored. |
 | DD Legacy Devices | FLD-UDID-191 | /Precizion | 1 Applicable if Clinical Size (FLD-UDID-146) is provided |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-192 | /Maximum | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Range |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-193 | /Value(Minimum) | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Range |  | No | No | No |  | `not_in_template` |  |
+| DD Legacy Devices | FLD-UDID-192 | /Maximum | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Range | Maximum | Yes | Payload | Yes |  | `implemented` |  |
+| DD Legacy Devices | FLD-UDID-193 | /Value(Minimum) | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Range | Minimum | Yes | Payload | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-194 | /Value(Text) | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Text |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-196 | /Value | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Value |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-195 | /Measure Unit | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when the Precision value is either Value or Range |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-358 | Clinical Size Type Description | 0..1 Required when the Clinical Size Type has option Other | UDI - Clinical Size Value / UDI - Clinical Size Unit | Yes | Yes | No |  | `explicitly_out_of_scope` | Template states structured clinical size is not currently output. |
-| DD Legacy Devices | FLD-UDID-359 | Measure Unit Description | 0..1 Required when the Measure Unit Type has option Other | Description | Yes | Payload | Yes |  | `implemented` |  |
+| DD Legacy Devices | FLD-UDID-196 | /Value | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when Precision has value Value | Value | Yes | Payload | Yes |  | `implemented` |  |
+| DD Legacy Devices | FLD-UDID-195 | /Measure Unit | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when the Precision value is either Value or Range | Measure Unit | Yes | Payload | Yes |  | `implemented` |  |
+| DD Legacy Devices | FLD-UDID-358 | Clinical Size Type Description | 0..1 Required when the Clinical Size Type has option Other | Clinical Sizes sheet | Yes | JSON payload | No |  | `explicitly_out_of_scope` | Current exporter supports structured clinicalSizes only for MDR UDI-DI; legacy / other profiles are warned and ignored. |
+| DD Legacy Devices | FLD-UDID-359 | Measure Unit Description | 0..1 Required when the Measure Unit Type has option Other | Clinical Sizes / Measure Unit Description | Yes | JSON payload | No |  | `explicitly_out_of_scope` | Current exporter supports structured clinicalSizes only for MDR UDI-DI; legacy / other profiles are warned and ignored. |
 | DD Legacy Devices | FLD-UDID-316 | Type of Substance (Presence of a substance which, if used separately, may be considered to be a medicinal product/ Presence of a substance which, if used separately, may be considered to be a medicinal product derived from human blood or human plasma) | 1 Occurrence applicable if List of medicinal product substances (FLD-UDID-311) is provided | Basic - Medicinal Product Device | Yes | Yes | Yes | basicudi:medicinalProductCheck | `implemented` | Current exporter maps Medicinal Product Device to medicinalProductCheck. |
 | DD Legacy Devices | FLD-UDID-317 | Name of Substance | 0..1 Occurrence applicable if List of medicinal product substances (FLD-UDID-311) is provided Not required in case the INN is provided |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-318 | INN | 0..1 Occurrence applicable if List of medicinal product substances (FLD-UDID-311) is provided |  | No | No | No |  | `not_in_template` |  |

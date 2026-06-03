@@ -96,6 +96,8 @@ class Repository:
                     storage_json TEXT NOT NULL DEFAULT '[]',
                     package_json TEXT NOT NULL DEFAULT '[]',
                     trade_names_json TEXT NOT NULL DEFAULT '[]',
+                    clinical_sizes_json TEXT NOT NULL DEFAULT '[]',
+                    annex_xvi_json TEXT NOT NULL DEFAULT '[]',
                     version TEXT NOT NULL DEFAULT '',
                     state TEXT NOT NULL DEFAULT 'draft',
                     notes TEXT NOT NULL DEFAULT '',
@@ -137,6 +139,10 @@ class Repository:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} TEXT NOT NULL DEFAULT ''")
         if table == "udi_records" and "trade_names_json" not in existing:
             conn.execute("ALTER TABLE udi_records ADD COLUMN trade_names_json TEXT NOT NULL DEFAULT '[]'")
+        if table == "udi_records" and "clinical_sizes_json" not in existing:
+            conn.execute("ALTER TABLE udi_records ADD COLUMN clinical_sizes_json TEXT NOT NULL DEFAULT '[]'")
+        if table == "udi_records" and "annex_xvi_json" not in existing:
+            conn.execute("ALTER TABLE udi_records ADD COLUMN annex_xvi_json TEXT NOT NULL DEFAULT '[]'")
         if table == "basic_records" and "cert_json" not in existing:
             conn.execute("ALTER TABLE basic_records ADD COLUMN cert_json TEXT NOT NULL DEFAULT '[]'")
         if "is_sample" not in existing:
@@ -278,6 +284,8 @@ class Repository:
         storage_rows: list[dict],
         package_rows: list[dict],
         trade_name_rows: list[dict] | None = None,
+        clinical_size_rows: list[dict] | None = None,
+        annex_xvi_rows: list[dict] | None = None,
         version: str = "",
         is_sample: int = 0,
     ) -> dict | None:
@@ -292,6 +300,8 @@ class Repository:
         storage_json = _json(storage_rows)
         package_json = _json(package_rows)
         trade_names_json = _json(trade_name_rows or [])
+        clinical_sizes_json = _json(clinical_size_rows or [])
+        annex_xvi_json = _json(annex_xvi_rows or [])
         with self.connect() as conn:
             existing = conn.execute("SELECT * FROM udi_records WHERE udi_code = ?", (udi_code,)).fetchone()
             if existing is None:
@@ -299,9 +309,9 @@ class Repository:
                     """
                     INSERT INTO udi_records
                     (udi_code, basic_code, import_id, row_number, payload_json, market_json, warnings_json,
-                     storage_json, package_json, trade_names_json, version, state, created_at, updated_at,
+                     storage_json, package_json, trade_names_json, clinical_sizes_json, annex_xvi_json, version, state, created_at, updated_at,
                      first_imported_at, last_imported_at, last_changed_at, last_change_type, is_sample)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, 'created', ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, 'created', ?)
                     """,
                     (
                         udi_code,
@@ -314,6 +324,8 @@ class Repository:
                         storage_json,
                         package_json,
                         trade_names_json,
+                        clinical_sizes_json,
+                        annex_xvi_json,
                         version,
                         now,
                         now,
@@ -338,6 +350,8 @@ class Repository:
                     "storage_json": storage_json,
                     "package_json": package_json,
                     "trade_names_json": trade_names_json,
+                    "clinical_sizes_json": clinical_sizes_json,
+                    "annex_xvi_json": annex_xvi_json,
                     "version": effective_version,
                     "is_sample": 1 if is_sample else 0,
                 },
@@ -349,6 +363,8 @@ class Repository:
                     "storage_json": "Storage Conditions",
                     "package_json": "Package Info",
                     "trade_names_json": "Trade Names",
+                    "clinical_sizes_json": "Clinical Sizes",
+                    "annex_xvi_json": "Annex XVI Purposes",
                     "version": "version",
                     "is_sample": "sample flag",
                 },
@@ -360,7 +376,8 @@ class Repository:
                     """
                     UPDATE udi_records
                     SET basic_code = ?, import_id = ?, row_number = ?, payload_json = ?, market_json = ?,
-                        warnings_json = ?, storage_json = ?, package_json = ?, trade_names_json = ?, version = ?, state = ?,
+                        warnings_json = ?, storage_json = ?, package_json = ?, trade_names_json = ?, clinical_sizes_json = ?, annex_xvi_json = ?,
+                        version = ?, state = ?,
                         updated_at = ?, last_imported_at = ?, last_changed_at = ?, last_change_type = ?, is_sample = ?
                     WHERE id = ?
                     """,
@@ -374,6 +391,8 @@ class Repository:
                         storage_json,
                         package_json,
                         trade_names_json,
+                        clinical_sizes_json,
+                        annex_xvi_json,
                         effective_version,
                         next_state,
                         now,
@@ -1041,6 +1060,8 @@ class Repository:
         storage_rows: list[dict],
         package_rows: list[dict],
         trade_name_rows: list[dict],
+        clinical_size_rows: list[dict],
+        annex_xvi_rows: list[dict],
         version: str,
         state: str,
         notes: str,
@@ -1054,6 +1075,7 @@ class Repository:
                 """
                 UPDATE udi_records
                 SET basic_code = ?, payload_json = ?, market_json = ?, warnings_json = ?, storage_json = ?, package_json = ?, trade_names_json = ?,
+                    clinical_sizes_json = ?, annex_xvi_json = ?,
                     version = ?, state = ?, notes = ?, updated_at = ?, last_changed_at = ?, last_change_type = 'updated'
                 WHERE id = ?
                 """,
@@ -1065,6 +1087,8 @@ class Repository:
                     _json(storage_rows),
                     _json(package_rows),
                     _json(trade_name_rows),
+                    _json(clinical_size_rows),
+                    _json(annex_xvi_rows),
                     version,
                     state,
                     notes,
@@ -1215,6 +1239,8 @@ class Repository:
             "storage_rows": json.loads(row["storage_json"]),
             "package_rows": json.loads(row["package_json"]),
             "trade_name_rows": json.loads(row["trade_names_json"]) if "trade_names_json" in row.keys() else [],
+            "clinical_size_rows": json.loads(row["clinical_sizes_json"]) if "clinical_sizes_json" in row.keys() else [],
+            "annex_xvi_rows": json.loads(row["annex_xvi_json"]) if "annex_xvi_json" in row.keys() else [],
             "version": row["version"],
             "state": row["state"],
             "notes": row["notes"],

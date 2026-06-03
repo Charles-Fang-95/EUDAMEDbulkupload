@@ -28,6 +28,8 @@ BUSINESS_SHEETS = [
     "CMR Substances",
     "Package Information",
     "Device Certificates",
+    "Clinical Sizes",
+    "Annex XVI Purposes",
 ]
 DATA_START_ROW = 4
 FORMAT_RISK_FIELDS = {
@@ -99,6 +101,8 @@ class WorkbookImporter:
         cmr_map = defaultdict(list)
         cert_map = defaultdict(list)
         trade_name_map = defaultdict(list)
+        clinical_size_map = defaultdict(list)
+        annex_xvi_map = defaultdict(list)
 
         for row in parsed.get("Trade Names", []):
             trade_name_map[row.get("UDI-DI Code", "")].append(row)
@@ -114,6 +118,10 @@ class WorkbookImporter:
             cmr_map[row.get("Basic UDI-DI Code", "")].append(row)
         for row in parsed.get("Device Certificates", []):
             cert_map[row.get("Basic UDI-DI Code", "")].append(row)
+        for row in parsed.get("Clinical Sizes", []):
+            clinical_size_map[row.get("UDI-DI Code", "")].append(row)
+        for row in parsed.get("Annex XVI Purposes", []):
+            annex_xvi_map[row.get("UDI-DI Code", "")].append(row)
 
         self._merge_trade_name_shortcuts(parsed, trade_name_map)
         validator = DataValidator(parsed)
@@ -150,6 +158,8 @@ class WorkbookImporter:
                 storage_rows=[self._clean_row(item) for item in storage_map.get(code, [])],
                 package_rows=[self._clean_row(item) for item in package_map.get(code, [])],
                 trade_name_rows=self._trade_name_rows_for_udi(row, trade_name_map.get(code, [])),
+                clinical_size_rows=[self._clean_row(item) for item in clinical_size_map.get(code, [])],
+                annex_xvi_rows=[self._clean_row(item) for item in annex_xvi_map.get(code, [])],
                 version=import_meta["udi_versions"].get(code, ""),
             )
             if change:
@@ -302,7 +312,14 @@ class WorkbookImporter:
                 item = schema_by_header.get(header)
                 if item:
                     self._collect_format_risks(ws, row_idx, headers.index(header) + 1, item["field"], value, format_warnings)
-                    if item.get("validation") in {"critical_warning", "storage_condition", "certificate_type"}:
+                    if item.get("validation") in {
+                        "critical_warning",
+                        "storage_condition",
+                        "certificate_type",
+                        "clinical_size_type",
+                        "clinical_size_unit",
+                        "annex_xvi_nmd",
+                    }:
                         value = self._enum_code(value)
                     row_data[item["field"]] = value
             if any(value not in ("", None) for value in row_data.values()):
@@ -369,6 +386,8 @@ class WorkbookImporter:
             "cmr_count": len(parsed.get("CMR Substances", [])),
             "package_count": len(parsed.get("Package Information", [])),
             "certificate_count": len(parsed.get("Device Certificates", [])),
+            "clinical_size_count": len(parsed.get("Clinical Sizes", [])),
+            "annex_xvi_count": len(parsed.get("Annex XVI Purposes", [])),
         }
 
     def _change_summary(self, changes: list[dict]) -> dict:
@@ -431,6 +450,9 @@ class WorkbookImporter:
         storage_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("storage_condition", [])}
         warning_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("critical_warning", [])}
         certificate_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("certificate_type", [])}
+        clinical_size_type_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("clinical_size_type", [])}
+        clinical_size_unit_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("clinical_size_unit", [])}
+        annex_xvi_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("annex_xvi_nmd", [])}
         language_any_codes = set(ENUM_SOURCES.get("language_any", []))
         basic_codes = {str(row.get("Basic UDI-DI Code", "")).strip() for row in parsed.get("Basic UDI-DI", [])}
 
@@ -476,7 +498,76 @@ class WorkbookImporter:
         self._validate_market_rules(parsed, errors)
         self._validate_package_rules(parsed, errors, udi_codes)
         self._validate_certificate_rules(parsed, errors, basic_codes, certificate_codes)
+        self._validate_clinical_size_rules(parsed, errors, udi_codes, clinical_size_type_codes, clinical_size_unit_codes)
+        self._validate_annex_xvi_rules(parsed, errors, udi_codes, annex_xvi_codes)
         return errors
+
+    def _validate_clinical_size_rules(
+        self,
+        parsed: dict,
+        errors: list[dict],
+        udi_codes: set[str],
+        clinical_size_type_codes: set[str],
+        clinical_size_unit_codes: set[str],
+    ):
+        for row in parsed.get("Clinical Sizes", []):
+            udi_code = str(row.get("UDI-DI Code", "")).strip()
+            size_type = str(row.get("Clinical Size Type", "")).strip()
+            type_description = str(row.get("Clinical Size Type Description", "")).strip()
+            precision = str(row.get("Precision", "")).strip()
+            unit = str(row.get("Measure Unit", "")).strip()
+            unit_description = str(row.get("Measure Unit Description", "")).strip()
+
+            if not udi_code:
+                errors.append(self._validation_error(row, "Clinical Sizes", "UDI-DI Code", "", "Clinical Sizes 行缺少 UDI-DI Code。"))
+            elif udi_code not in udi_codes:
+                errors.append(self._validation_error(row, "Clinical Sizes", "UDI-DI Code", udi_code, "Clinical Sizes 引用的 UDI-DI Code 不存在于主表。"))
+            if not size_type:
+                errors.append(self._validation_error(row, "Clinical Sizes", "Clinical Size Type", "", "Clinical Sizes 行缺少 Clinical Size Type。"))
+            elif size_type not in clinical_size_type_codes:
+                errors.append(self._validation_error(row, "Clinical Sizes", "Clinical Size Type", size_type, "Clinical Size Type 不在官方 ClinicalSizeTypeEnum 中。"))
+            if size_type == "CST999" and not type_description:
+                errors.append(self._validation_error(row, "Clinical Sizes", "Clinical Size Type Description", "", "CST999 - OTHER 必须填写 Clinical Size Type Description。"))
+            if precision not in {"Range", "Value", "Text"}:
+                errors.append(self._validation_error(row, "Clinical Sizes", "Precision", precision, "Precision 必须为 Range、Value 或 Text。"))
+            if precision == "Range":
+                if not self._is_number(row.get("Minimum")):
+                    errors.append(self._validation_error(row, "Clinical Sizes", "Minimum", row.get("Minimum"), "Precision=Range 时 Minimum 必须填写数字。"))
+                if not self._is_number(row.get("Maximum")):
+                    errors.append(self._validation_error(row, "Clinical Sizes", "Maximum", row.get("Maximum"), "Precision=Range 时 Maximum 必须填写数字。"))
+                self._validate_clinical_unit(row, errors, unit, unit_description, clinical_size_unit_codes)
+            elif precision == "Value":
+                if not self._is_number(row.get("Value")):
+                    errors.append(self._validation_error(row, "Clinical Sizes", "Value", row.get("Value"), "Precision=Value 时 Value 必须填写数字。"))
+                self._validate_clinical_unit(row, errors, unit, unit_description, clinical_size_unit_codes)
+            elif precision == "Text" and not str(row.get("Text Value", "")).strip():
+                errors.append(self._validation_error(row, "Clinical Sizes", "Text Value", "", "Precision=Text 时 Text Value 必须填写。"))
+
+    def _validate_clinical_unit(self, row: dict, errors: list[dict], unit: str, unit_description: str, unit_codes: set[str]):
+        if not unit:
+            errors.append(self._validation_error(row, "Clinical Sizes", "Measure Unit", "", "Precision=Range/Value 时必须填写 Measure Unit。"))
+        elif unit not in unit_codes:
+            errors.append(self._validation_error(row, "Clinical Sizes", "Measure Unit", unit, "Measure Unit 不在官方 ClinicalSizeUnitEnum 中。"))
+        if unit == "MU999" and not unit_description:
+            errors.append(self._validation_error(row, "Clinical Sizes", "Measure Unit Description", "", "MU999 - OTHER 必须填写 Measure Unit Description。"))
+
+    def _validate_annex_xvi_rules(self, parsed: dict, errors: list[dict], udi_codes: set[str], annex_xvi_codes: set[str]):
+        seen = set()
+        for row in parsed.get("Annex XVI Purposes", []):
+            udi_code = str(row.get("UDI-DI Code", "")).strip()
+            nmd_type = str(row.get("Non-Medical Device Type", "")).strip()
+            if not udi_code:
+                errors.append(self._validation_error(row, "Annex XVI Purposes", "UDI-DI Code", "", "Annex XVI Purposes 行缺少 UDI-DI Code。"))
+            elif udi_code not in udi_codes:
+                errors.append(self._validation_error(row, "Annex XVI Purposes", "UDI-DI Code", udi_code, "Annex XVI Purposes 引用的 UDI-DI Code 不存在于主表。"))
+            if not nmd_type:
+                errors.append(self._validation_error(row, "Annex XVI Purposes", "Non-Medical Device Type", "", "Annex XVI Purposes 行缺少 Non-Medical Device Type。"))
+            elif nmd_type not in annex_xvi_codes:
+                errors.append(self._validation_error(row, "Annex XVI Purposes", "Non-Medical Device Type", nmd_type, "Non-Medical Device Type 不在官方 NonMedicalDeviceEnum 中。"))
+            key = (udi_code, nmd_type)
+            if udi_code and nmd_type and key in seen:
+                errors.append(self._validation_error(row, "Annex XVI Purposes", "Non-Medical Device Type", nmd_type, "同一 UDI-DI 的 Annex XVI Purpose 不应重复。"))
+            seen.add(key)
 
     def _validate_certificate_rules(self, parsed: dict, errors: list[dict], basic_codes: set[str], certificate_codes: set[str]):
         for row in parsed.get("Device Certificates", []):
@@ -596,6 +687,16 @@ class WorkbookImporter:
     def _positive_integer(self, value) -> bool:
         try:
             return int(str(value).strip()) > 0
+        except (TypeError, ValueError):
+            return False
+
+    def _is_number(self, value) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        try:
+            float(text)
+            return True
         except (TypeError, ValueError):
             return False
 
