@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.9.0 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.9.0 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.9.1 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.9.1 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -69,7 +69,7 @@ http://127.0.0.1:8765
 
 ## 工具怎么用
 
-1. **下载模板**：顶栏「下载模板」，或直接用仓库里的 `EUDAMED_Template_v2.6.xlsx`。
+1. **下载模板**：顶栏「下载模板」，或直接用仓库里的 `EUDAMED_Template_v2.7.xlsx`。
 2. **填写 Excel**：在 Excel / WPS 里填数据（填写规则见下一节）。
 3. **导入 Excel**：在「导入 Excel」页上传，系统立即校验并显示新增 / 已更新 / 错误行。
 4. **产品库**：浏览、搜索、按 Manufacturer SRN 切换不同 actor；详情页可做临时修正（正式维护建议回到 Excel）。
@@ -77,12 +77,12 @@ http://127.0.0.1:8765
 6. **上传 EUDAMED**：按页面 / manifest 指引上传。**先在 Playground TEST 环境验收**，通过后再上生产。
 
 辅助功能：
-- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.6 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
+- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.7 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
 - **XSD 版本**页：核对工具内置 XSD、本地 XSD 包、官方文档页版本是否一致。
 
 ## 模板怎么用
 
-模板 `EUDAMED_Template_v2.6.xlsx` 的结构：
+模板 `EUDAMED_Template_v2.7.xlsx` 的结构：
 
 - **两个主录入表**：`MDR_MDD`（医疗器械）、`IVDR_IVDD`（体外诊断）。
   - 第 1 行 = 字段名，第 2 行 = 中文说明，第 3 行 = 示例（前三行已锁定，请勿改）。
@@ -92,6 +92,10 @@ http://127.0.0.1:8765
 
 **关键填写规则：**
 - 编码类字段（UDI / GTIN、Basic UDI-DI、Package UDI-DI、Reference、SRN、EMDN）必须按**文本**维护，避免 Excel / WPS 把它变成科学计数法或丢掉前导 0。
+- `Basic - Special Device Type` 不是自由文本，必须使用法规 sheet 内的官方枚举下拉；普通器械留空。
+- `CMR Substances / Substance Type` 不是自由文本，必须从当前工具支持的 5 类下拉中选择。
+- `CMR Substances` 中 CAS/EC 仅对 CMR 1A/1B 和 Endocrine Disrupting 类型输出；Medicinal Product / Human Blood or Plasma 类型不会输出 CAS/EC。
+- `Basic - Is Suture/Staple/Filling/Brace (IIb Implant)` 仅 Class IIb + Implantable 时适用，必须使用 `TRUE/FALSE`。
 - `Market Info`：同一个 UDI-DI 可以填多个上市国家，但 `Originally Placed on Market`（首个投放成员国）**必须且只能有一个 `TRUE`**，其余填 `FALSE`。
 - 多语言 / 多个商品名请用 `Trade Names` 明细表；主表的 Trade Name 只是快捷输入。
 - 触发 MDR Art. 29(3) / IVDR Art. 26(2) 或 legacy 指令证书场景时，请在 `Device Certificates` 明细表填写 product certificate 信息；工具会输出 `deviceCertificateLinks`，但 NB 确认仍发生在 EUDAMED 官方流程中。
@@ -107,7 +111,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **0.9.0 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.9.1 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -184,7 +188,7 @@ http://127.0.0.1:8765
 
 ## Using the tool
 
-1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.6.xlsx` from the repo.
+1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.7.xlsx` from the repo.
 2. **Fill in the Excel** (rules in the next section).
 3. **Import Excel**: upload on the "Import Excel" page; it validates immediately and shows created / updated / error rows.
 4. **Product Library**: browse, search, switch actor by Manufacturer SRN; the detail page allows quick fixes (for real maintenance, go back to Excel).
@@ -192,12 +196,12 @@ http://127.0.0.1:8765
 6. **Upload to EUDAMED** following the page / manifest. **Validate in the Playground TEST environment first**, then go to production.
 
 Helpers:
-- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.6 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
+- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.7 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
 - **XSD version** page: check that the tool's built-in XSD, local XSD package, and the official documentation version are consistent.
 
 ## Using the template
 
-Structure of `EUDAMED_Template_v2.6.xlsx`:
+Structure of `EUDAMED_Template_v2.7.xlsx`:
 
 - **Two main entry sheets**: `MDR_MDD` (medical devices), `IVDR_IVDD` (in-vitro diagnostics).
   - Row 1 = field name, Row 2 = description, Row 3 = example (first three rows are locked — do not edit).
@@ -207,6 +211,10 @@ Structure of `EUDAMED_Template_v2.6.xlsx`:
 
 **Key rules:**
 - Code fields (UDI / GTIN, Basic UDI-DI, Package UDI-DI, Reference, SRN, EMDN) must be kept as **text**, to avoid Excel / WPS turning them into scientific notation or dropping leading zeros.
+- `Basic - Special Device Type` is not free text; use the official regulation-specific dropdown, or leave it blank for ordinary devices.
+- `CMR Substances / Substance Type` is not free text; select one of the five currently supported substance categories.
+- In `CMR Substances`, CAS/EC is output only for CMR 1A/1B and Endocrine Disrupting; Medicinal Product / Human Blood or Plasma types do not output CAS/EC.
+- `Basic - Is Suture/Staple/Filling/Brace (IIb Implant)` applies only to Class IIb + implantable cases and must be `TRUE/FALSE`.
 - `Market Info`: one UDI-DI may have several market countries, but `Originally Placed on Market` **must have exactly one `TRUE`**; the rest should be `FALSE`.
 - For multiple / multilingual trade names, use the `Trade Names` sheet; the main-sheet Trade Name is only a shortcut.
 - For MDR Art. 29(3) / IVDR Art. 26(2) or legacy directive certificate scenarios, fill product certificate information in `Device Certificates`; the tool writes `deviceCertificateLinks`, while NB confirmation still happens in the official EUDAMED flow.
@@ -222,7 +230,7 @@ Structure of `EUDAMED_Template_v2.6.xlsx`:
 
 ## Version history
 
-Current **0.9.0 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.9.1 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

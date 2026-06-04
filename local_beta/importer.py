@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .constants import TOOL_DIR, VENDOR_LIB
 from .storage import Repository
-from .template_schema import ENTRY_SHEETS, ENUM_SOURCES, MAIN_COLUMNS, RELATED_SHEETS, TEMPLATE_VERSION
+from .template_schema import ENTRY_SHEETS, ENUM_SOURCES, RELATED_SHEETS, TEMPLATE_VERSION, columns_for_entry_sheet
 
 if str(VENDOR_LIB) not in sys.path:
     sys.path.insert(0, str(VENDOR_LIB))
@@ -243,7 +243,7 @@ class WorkbookImporter:
 
     def _parse_entry_sheet(self, ws, parsed: dict, basic_index: dict, import_meta: dict, format_warnings: list[dict]):
         headers = self._headers(ws)
-        schema_by_header = {item["header"]: item for item in MAIN_COLUMNS}
+        schema_by_header = {item["header"]: item for item in columns_for_entry_sheet(ws.title)}
 
         for row_idx in range(DATA_START_ROW, ws.max_row + 1):
             raw, has_data = self._row_values(ws, headers, row_idx)
@@ -260,6 +260,8 @@ class WorkbookImporter:
                 if not item:
                     continue
                 self._collect_format_risks(ws, row_idx, headers.index(header) + 1, item["field"], value, format_warnings)
+                if item.get("validation") in {"special_device_mdr", "special_device_ivdr"}:
+                    value = self._enum_code(value)
                 if item["entity"] == "basic":
                     basic_payload[item["field"]] = value
                 elif item["entity"] == "udi":
@@ -274,6 +276,8 @@ class WorkbookImporter:
             udi_code = str(udi_payload.get("UDI-DI Code", "")).strip()
             if basic_code:
                 udi_payload["Parent Basic UDI-DI"] = basic_code
+
+            self._normalize_basic_enums(basic_payload)
 
             if self._should_create_basic(basic_payload, basic_version):
                 basic_payload["_row_number"] = row_idx
@@ -319,8 +323,11 @@ class WorkbookImporter:
                         "clinical_size_type",
                         "clinical_size_unit",
                         "annex_xvi_nmd",
+                        "substance_type",
                     }:
                         value = self._enum_code(value)
+                    if item.get("validation") == "substance_type":
+                        value = self._normal_substance_type(value) or value
                     row_data[item["field"]] = value
             if any(value not in ("", None) for value in row_data.values()):
                 row_data["_row_number"] = row_idx
@@ -444,6 +451,93 @@ class WorkbookImporter:
             return value.split(" - ", 1)[0].strip()
         return value
 
+    def _normalize_basic_enums(self, payload: dict):
+        special = self._special_device_code(payload.get("Special Device Type"), payload)
+        if special:
+            payload["Special Device Type"] = special
+
+    def _normal_substance_type(self, value) -> str:
+        text = str(self._enum_code(value) or "").strip()
+        if not text:
+            return ""
+        supported = set(ENUM_SOURCES.get("substance_type", []))
+        if text in supported:
+            return text
+        aliases = {
+            "CMR_1A": "CMR 1A",
+            "CMR 1A": "CMR 1A",
+            "CMR_1B": "CMR 1B",
+            "CMR 1B": "CMR 1B",
+            "ENDOCRINE_DISRUPTING_SUBSTANCE": "Endocrine Disrupting",
+            "ENDOCRINE DISRUPTING": "Endocrine Disrupting",
+            "MEDICINAL_PRODUCT_SUBSTANCE": "Medicinal Product Substance",
+            "MEDICINAL PRODUCT SUBSTANCE": "Medicinal Product Substance",
+            "HUMAN_PRODUCT_SUBSTANCE": "Human Blood or Plasma Substance",
+            "HUMAN_BLOOD_OR_PLASMA_SUBSTANCE": "Human Blood or Plasma Substance",
+            "HUMAN PRODUCT SUBSTANCE": "Human Blood or Plasma Substance",
+            "HUMAN BLOOD OR PLASMA SUBSTANCE": "Human Blood or Plasma Substance",
+        }
+        return aliases.get(text.upper().replace("-", " ").replace("/", " "), "")
+
+    def _special_device_code(self, value, payload: dict) -> str:
+        text = str(self._enum_code(value) or "").strip()
+        if not text:
+            return ""
+        values = self._special_device_values_for_legislation(payload.get("Applicable Legislation"))
+        allowed_codes = {str(self._enum_code(item) or "").strip() for item in values}
+        if text in allowed_codes:
+            return text
+        normalized_code = text.upper().replace(" ", "_").replace("-", "_")
+        if normalized_code in allowed_codes:
+            return normalized_code
+        legacy_map = {
+            "SOFTWARE": "SOFTWARE",
+            "ORTHOPEDIC": "ORTHOPEDIC",
+            "ORTHOPAEDIC": "ORTHOPEDIC",
+            "STANDARD SOFT CONTACT LENSES": "STANDARD_SOFT_CONTACT_LENSES",
+            "RIGID GAS PERMEABLE": "RIGID_GAS_PERMEABLE",
+            "MADE TO ORDER": "MADE_TO_ORDER",
+            "SPECTACLES FRAMES": "SPECTACLES_FRAMES",
+            "SPECTACLES LENSES": "SPECTACLES_LENSES",
+            "READY MADE SPECTACLES": "READY_MADE_SPECTACLES",
+        }
+        suffix = legacy_map.get(text.upper().replace("_", " ").replace("-", " "))
+        if suffix:
+            candidate = f"{self._special_device_preferred_prefix(payload.get('Applicable Legislation'))}_{suffix}"
+            if candidate in allowed_codes:
+                return candidate
+        label_matches = []
+        for item in values:
+            code, label = self._split_enum_label(item)
+            if label and label.lower() == text.lower():
+                label_matches.append(code)
+        if len(label_matches) == 1:
+            return label_matches[0]
+        if label_matches:
+            prefix = self._special_device_preferred_prefix(payload.get("Applicable Legislation"))
+            for code in label_matches:
+                if code.startswith(prefix):
+                    return code
+        return ""
+
+    def _special_device_values_for_legislation(self, legislation) -> list[str]:
+        value = str(legislation or "").strip().upper()
+        if value in {"IVDR", "IVDD"}:
+            return ENUM_SOURCES.get("special_device_ivdr", [])
+        return ENUM_SOURCES.get("special_device_mdr", [])
+
+    def _special_device_preferred_prefix(self, legislation) -> str:
+        value = str(legislation or "").strip().upper()
+        if value in {"MDR", "MDD", "AIMDD", "IVDR", "IVDD"}:
+            return value
+        return "MDR"
+
+    def _split_enum_label(self, value: str) -> tuple[str, str]:
+        text = str(value or "")
+        if " - " in text:
+            return tuple(text.split(" - ", 1))  # type: ignore[return-value]
+        return text, ""
+
     def _validate_related_rules(self, parsed: dict) -> list[dict]:
         errors = []
         udi_codes = {row.get("UDI-DI Code", "") for row in parsed.get("UDI-DI", [])}
@@ -453,8 +547,11 @@ class WorkbookImporter:
         clinical_size_type_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("clinical_size_type", [])}
         clinical_size_unit_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("clinical_size_unit", [])}
         annex_xvi_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("annex_xvi_nmd", [])}
+        substance_codes = {self._enum_code(value) for value in ENUM_SOURCES.get("substance_type", [])}
         language_any_codes = set(ENUM_SOURCES.get("language_any", []))
         basic_codes = {str(row.get("Basic UDI-DI Code", "")).strip() for row in parsed.get("Basic UDI-DI", [])}
+
+        self._validate_main_field_rules(parsed, errors)
 
         for row in parsed.get("Trade Names", []):
             udi_code = str(row.get("UDI-DI Code", "")).strip()
@@ -497,10 +594,55 @@ class WorkbookImporter:
                 errors.append(self._validation_error(row, "Storage Conditions", "Language", language, "SHC099 - OTHER 必须选择具体语言，不能为 ANY。"))
         self._validate_market_rules(parsed, errors)
         self._validate_package_rules(parsed, errors, udi_codes)
+        self._validate_substance_rules(parsed, errors, basic_codes, substance_codes)
         self._validate_certificate_rules(parsed, errors, basic_codes, certificate_codes)
         self._validate_clinical_size_rules(parsed, errors, udi_codes, clinical_size_type_codes, clinical_size_unit_codes)
         self._validate_annex_xvi_rules(parsed, errors, udi_codes, annex_xvi_codes)
         return errors
+
+    def _validate_main_field_rules(self, parsed: dict, errors: list[dict]):
+        for row in parsed.get("Basic UDI-DI", []):
+            basic_code = str(row.get("Basic UDI-DI Code", "")).strip()
+            special_device = str(self._enum_code(row.get("Special Device Type")) or "").strip()
+            if special_device:
+                allowed = self._special_device_codes_for_legislation(row.get("Applicable Legislation"))
+                if allowed and special_device not in allowed:
+                    errors.append(self._validation_error(
+                        row,
+                        "Basic UDI-DI",
+                        "Special Device Type",
+                        special_device,
+                        f"Basic UDI-DI {basic_code} 的 Special Device Type 不属于当前法规对应的官方枚举；普通器械应留空。",
+                    ))
+
+            ii_b_exception = row.get("Is Suture/Staple/Filling/Brace (IIb Implant)")
+            if ii_b_exception not in ("", None) and not self._valid_bool_token(ii_b_exception):
+                errors.append(self._validation_error(
+                    row,
+                    "Basic UDI-DI",
+                    "Is Suture/Staple/Filling/Brace (IIb Implant)",
+                    ii_b_exception,
+                    "该字段必须使用 TRUE/FALSE；仅 Class IIb + Implantable 时适用。",
+                ))
+
+    def _validate_substance_rules(
+        self,
+        parsed: dict,
+        errors: list[dict],
+        basic_codes: set[str],
+        substance_codes: set[str],
+    ):
+        for row in parsed.get("CMR Substances", []):
+            basic_code = str(row.get("Basic UDI-DI Code", "")).strip()
+            substance_type = str(self._enum_code(row.get("Substance Type")) or "").strip()
+            if not basic_code:
+                errors.append(self._validation_error(row, "CMR Substances", "Basic UDI-DI Code", "", "CMR Substances 行缺少 Basic UDI-DI Code。"))
+            elif basic_code not in basic_codes:
+                errors.append(self._validation_error(row, "CMR Substances", "Basic UDI-DI Code", basic_code, "CMR Substances 引用的 Basic UDI-DI Code 不存在于主表。"))
+            if not substance_type:
+                errors.append(self._validation_error(row, "CMR Substances", "Substance Type", "", "CMR Substances 行必须选择 Substance Type。"))
+            elif substance_type not in substance_codes:
+                errors.append(self._validation_error(row, "CMR Substances", "Substance Type", substance_type, "Substance Type 不在本工具当前支持的安全输出类型中。"))
 
     def _validate_clinical_size_rules(
         self,
@@ -623,6 +765,19 @@ class WorkbookImporter:
         if not text:
             return False
         return text.upper() in valid_values or text.lower() in valid_values
+
+    def _valid_bool_token(self, value) -> bool:
+        if isinstance(value, bool):
+            return True
+        return str(value or "").strip().upper() in {"TRUE", "FALSE", "YES", "NO", "Y", "N", "1", "0"}
+
+    def _special_device_codes_for_legislation(self, legislation) -> set[str]:
+        value = str(legislation or "").strip().upper()
+        if value in {"IVDR", "IVDD"}:
+            return {self._enum_code(item) for item in ENUM_SOURCES.get("special_device_ivdr", [])}
+        if value in {"MDR", "MDD", "AIMDD"}:
+            return {self._enum_code(item) for item in ENUM_SOURCES.get("special_device_mdr", [])}
+        return set()
 
     def _validate_package_rules(self, parsed: dict, errors: list[dict], udi_codes: set[str]):
         rows_by_udi = defaultdict(list)

@@ -1,8 +1,11 @@
 import json
 import os
 import shutil
+import sys
+import traceback
 import threading
 import webbrowser
+from datetime import datetime
 from email.parser import BytesParser
 from email.policy import default
 from http import HTTPStatus
@@ -59,6 +62,50 @@ STATIC_CONTENT_TYPES = {
     ".svg": "image/svg+xml",
     ".webp": "image/webp",
 }
+
+
+LOG_DIR = UPLOAD_DIR.parent / "logs"
+STARTUP_LOG = LOG_DIR / "run.log"
+# DATA_DIR = UPLOAD_DIR.parent；其上一级是 exe/源码所在目录（用户能直接看到的地方）。
+APP_ROOT_DIR = UPLOAD_DIR.parent.parent
+
+
+def log_exception(context: str, exc: Exception) -> Path:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = LOG_DIR / "app.log"
+    with log_path.open("a", encoding="utf-8") as handle:
+        handle.write(f"\n[{context}] {type(exc).__name__}: {exc}\n")
+        handle.write(traceback.format_exc())
+        handle.write("\n")
+    return log_path
+
+
+def log_startup(message: str) -> None:
+    """把启动阶段的信息写到 run.log；无控制台的打包版靠它事后排查。"""
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        with STARTUP_LOG.open("a", encoding="utf-8") as handle:
+            handle.write(f"[{datetime.now().isoformat(timespec='seconds')}] {message}\n")
+    except Exception:
+        pass
+
+
+def show_startup_error(summary: str, detail: str = "") -> None:
+    """启动失败时尽量让用户看见：写一个可见的 txt，并在 Windows 上弹原生消息框。"""
+    body = summary + (("\n\n" + detail) if detail else "") + f"\n\n日志位置 / Log: {STARTUP_LOG}"
+    for target in (APP_ROOT_DIR, LOG_DIR.parent):
+        try:
+            (target / "启动失败_STARTUP_ERROR.txt").write_text(body, encoding="utf-8")
+            break
+        except Exception:
+            continue
+    if sys.platform.startswith("win"):
+        try:
+            import ctypes  # noqa: PLC0415
+
+            ctypes.windll.user32.MessageBoxW(0, body, "EUDAMED 工具启动失败 / Startup failed", 0x10)
+        except Exception:
+            pass
 
 
 def parse_multipart(headers, body: bytes):
@@ -249,39 +296,55 @@ class App:
         return self.respond_html(request, page(t("未找到","Not found"), f"<section class='panel'><h1>{t('页面不存在','Page not found')}</h1></section>"), HTTPStatus.NOT_FOUND)
 
     def handle_import(self, request: BaseHTTPRequestHandler):
-        body = self.read_body(request)
-        _, files = parse_multipart(request.headers, body)
-        file_part = files.get("workbook")
-        if not file_part:
-            return self.respond_html(request, import_page(t("请选择一个 Excel 文件。", "Please choose an Excel file."), message_level="error"), HTTPStatus.BAD_REQUEST)
-        upload_path = UPLOAD_DIR / Path(file_part["filename"]).name
-        upload_path.write_bytes(file_part["content"])
-        result = self.importer.import_workbook(upload_path)
-        error_count = len(result.get("validation", {}).get("errors", []))
-        if error_count:
-            return self.respond_html(request, import_page(t("导入完成，但发现错误，请先处理后再导出。", "Import finished, but errors were found — please fix them before exporting."), result, "warning"))
-        return self.respond_html(request, import_page(t("导入完成。", "Import finished."), result, "success"))
+        try:
+            body = self.read_body(request)
+            _, files = parse_multipart(request.headers, body)
+            file_part = files.get("workbook")
+            if not file_part:
+                return self.respond_html(request, import_page(t("请选择一个 Excel 文件。", "Please choose an Excel file."), message_level="error"), HTTPStatus.BAD_REQUEST)
+            upload_path = UPLOAD_DIR / Path(file_part["filename"]).name
+            upload_path.write_bytes(file_part["content"])
+            result = self.importer.import_workbook(upload_path)
+            error_count = len(result.get("validation", {}).get("errors", []))
+            if error_count:
+                return self.respond_html(request, import_page(t("导入完成，但发现错误，请先处理后再导出。", "Import finished, but errors were found — please fix them before exporting."), result, "warning"))
+            return self.respond_html(request, import_page(t("导入完成。", "Import finished."), result, "success"))
+        except Exception as exc:
+            log_path = log_exception("import", exc)
+            message = (
+                f"{t('导入失败，工具已记录错误日志。请把 Excel 原文件和日志文件发给作者排查。日志位置：', 'Import failed. The tool recorded an error log. Please send the original Excel and the log file to the author. Log path: ')}"
+                f"{log_path}"
+            )
+            return self.respond_html(request, import_page(message, message_level="error"), HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def handle_migrate_template(self, request: BaseHTTPRequestHandler):
-        body = self.read_body(request)
-        _, files = parse_multipart(request.headers, body)
-        file_part = files.get("workbook")
-        if not file_part:
-            return self.respond_html(
-                request,
-                migrate_template_page(t("请选择一个 Excel 文件。", "Please choose an Excel file."), message_level="error"),
-                HTTPStatus.BAD_REQUEST,
+        try:
+            body = self.read_body(request)
+            _, files = parse_multipart(request.headers, body)
+            file_part = files.get("workbook")
+            if not file_part:
+                return self.respond_html(
+                    request,
+                    migrate_template_page(t("请选择一个 Excel 文件。", "Please choose an Excel file."), message_level="error"),
+                    HTTPStatus.BAD_REQUEST,
+                )
+            upload_path = UPLOAD_DIR / Path(file_part["filename"]).name
+            upload_path.write_bytes(file_part["content"])
+            result = migrate_workbook(upload_path, EXPORT_DIR)
+            if not result.get("ok"):
+                message = "；".join(result.get("errors") or [t("迁移失败。", "Migration failed.")])
+                return self.respond_html(request, migrate_template_page(message, result, "error"), HTTPStatus.BAD_REQUEST)
+            warnings = result.get("warnings") or []
+            if warnings:
+                return self.respond_html(request, migrate_template_page(t("迁移完成，但需要检查提示。", "Migration finished, but warnings need review."), result, "warning"))
+            return self.respond_html(request, migrate_template_page(t("迁移完成。", "Migration finished."), result, "success"))
+        except Exception as exc:
+            log_path = log_exception("migrate-template", exc)
+            message = (
+                f"{t('迁移失败，工具已记录错误日志。请把 Excel 原文件和日志文件发给作者排查。日志位置：', 'Migration failed. The tool recorded an error log. Please send the original Excel and the log file to the author. Log path: ')}"
+                f"{log_path}"
             )
-        upload_path = UPLOAD_DIR / Path(file_part["filename"]).name
-        upload_path.write_bytes(file_part["content"])
-        result = migrate_workbook(upload_path, EXPORT_DIR)
-        if not result.get("ok"):
-            message = "；".join(result.get("errors") or [t("迁移失败。", "Migration failed.")])
-            return self.respond_html(request, migrate_template_page(message, result, "error"), HTTPStatus.BAD_REQUEST)
-        warnings = result.get("warnings") or []
-        if warnings:
-            return self.respond_html(request, migrate_template_page(t("迁移完成，但需要检查提示。", "Migration finished, but warnings need review."), result, "warning"))
-        return self.respond_html(request, migrate_template_page(t("迁移完成。", "Migration finished."), result, "success"))
+            return self.respond_html(request, migrate_template_page(message, message_level="error"), HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def handle_ack(self, request: BaseHTTPRequestHandler):
         body = self.read_body(request)
@@ -559,11 +622,60 @@ class App:
         request.end_headers()
 
 
-def run_server(host: str = "127.0.0.1", port: int = 8765):
-    app = App()
-    server = ThreadingHTTPServer((host, port), app.handler())
-    url = f"http://{host}:{port}"
+def run_server(host: str = "127.0.0.1", port: int = 8765, max_port_tries: int = 12):
+    # 1) 初始化（建库等）。失败时记录并尽量让用户看见。
+    try:
+        app = App()
+    except Exception as exc:
+        log_startup(f"初始化失败 / init failed: {type(exc).__name__}: {exc}\n{traceback.format_exc()}")
+        show_startup_error(
+            "EUDAMED 工具启动失败（初始化阶段）。\nStartup failed during initialization.",
+            f"{type(exc).__name__}: {exc}",
+        )
+        raise
+
+    # 2) 端口回退：8765 被占就依次尝试 8766..，绑定第一个可用端口。
+    server = None
+    chosen_port = None
+    last_error = None
+    for candidate in range(port, port + max_port_tries):
+        try:
+            server = ThreadingHTTPServer((host, candidate), app.handler())
+            chosen_port = candidate
+            break
+        except OSError as exc:
+            last_error = exc
+            log_startup(f"端口 {candidate} 不可用 / unavailable: {exc}")
+
+    if server is None:
+        last_port = port + max_port_tries - 1
+        summary = (
+            f"找不到可用端口（已尝试 {port}-{last_port}）。\n"
+            f"No free port found (tried {port}-{last_port})."
+        )
+        detail = (
+            f"最后错误 / last error: {last_error}\n"
+            "可能原因：1) 工具已有一个实例在后台运行；2) 其它程序占用了这些端口；"
+            "3) 防火墙/杀毒拦截了本程序。\n"
+            "Likely causes: another instance already running; another app using these ports; "
+            "firewall/antivirus blocking this program."
+        )
+        log_startup(summary + " " + detail)
+        show_startup_error("EUDAMED 工具启动失败：" + summary, detail)
+        raise SystemExit(1)
+
+    # 3) 让浏览器打开【真正绑定到的】端口，而不是写死的 8765。
+    url = f"http://{host}:{chosen_port}"
+    log_startup(f"启动成功 / started at {url}")
     print(f"Local beta is running at {url}")
+    if chosen_port != port:
+        print(f"(端口 {port} 不可用，已改用 {chosen_port} / port {port} busy, using {chosen_port})")
     if not os.environ.get("EUDAMED_NO_BROWSER") and not os.environ.get("EUDAMED_RELOAD_CHILD"):
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    except Exception as exc:
+        log_startup(f"运行中异常退出 / crashed while serving: {type(exc).__name__}: {exc}\n{traceback.format_exc()}")
+        raise

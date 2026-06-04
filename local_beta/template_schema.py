@@ -6,12 +6,13 @@ from xml.etree import ElementTree as ET
 ROOT_DIR = Path(__file__).resolve().parent.parent
 XSD_BASE = ROOT_DIR / "official_docs" / "unpacked" / "xsd_production" / "data" / "Entity"
 COMMON_DEVICE_XSD = XSD_BASE / "Device" / "CommonDeviceType.xsd"
+BASIC_UDI_XSD = XSD_BASE / "Device" / "RegulationDevice" / "BasicUDIType.xsd"
 REGULATION_UDI_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.6"
+TEMPLATE_VERSION = "v2.7"
 
 
 def _col(
@@ -190,6 +191,24 @@ def _annex_xvi_values() -> list[str]:
     return _xsd_enum_values_from_file(REGULATION_UDI_XSD, "NonMedicalDeviceEnum")
 
 
+def _special_device_mdr_values() -> list[str]:
+    return _xsd_enum_values_from_file(BASIC_UDI_XSD, "MDRSpecialDeviceTypeEnum")
+
+
+def _special_device_ivdr_values() -> list[str]:
+    return _xsd_enum_values_from_file(BASIC_UDI_XSD, "IVDRSpecialDeviceTypeEnum")
+
+
+def _substance_type_values() -> list[str]:
+    return [
+        "CMR 1A",
+        "CMR 1B",
+        "Endocrine Disrupting",
+        "Medicinal Product Substance",
+        "Human Blood or Plasma Substance",
+    ]
+
+
 MAIN_COLUMNS = [
     _col("Meta", "Local - Record ID", "meta", "record_id", False, None, "用户自定义行号或内部编码，仅供本地追踪。", "ROW-001", "自由文本"),
     _col("Meta", "Basic - Current Version", "meta", "basic_version", False, None, "条件必填：仅在使用 Update Basic UDI / Basic_UDI.PATCH 时填写 EUDAMED 当前版本号。该字段位于主表 B 列；新上传留空。", "", "数字或文本", requirement="conditional"),
@@ -219,10 +238,10 @@ MAIN_COLUMNS = [
     _col("Basic", "Basic - Device Model", "basic", "Device Model", False, None, "仅在 EUDAMED 中 Model 适用于 Basic UDI-DI 时填写；不适用则留空。", "", "文本"),
     _col("Basic", "Basic - Is it a Kit", "basic", "Is it a Kit", False, "boolean", "是否为 Kit。当前按官方 XSD 在 IVDR/IVDD 相关 kit 字段输出；旧模板中的 Basic - Kit (IVDR) 已合并到本列。MDR/MDD 暂无安全输出位置，不会强行写入 XML。", "FALSE", "TRUE / FALSE"),
     _col("Basic", "Basic - Authorised Representative SRN", "basic", "Authorised Representative SRN", False, None, "非欧盟/EEA 制造商的欧盟授权代表 SRN。", "NL-AR-000000247", "文本"),
-    _col("Basic", "Basic - Special Device Type", "basic", "Special Device Type", False, None, "特殊设备类型。没有则留空。", "", "文本"),
+    _col("Basic", "Basic - Special Device Type", "basic", "Special Device Type", False, None, "特殊设备类型。仅软件、眼镜/隐形眼镜、骨科、定制等官方特殊类型适用；普通器械留空。System/Procedure Pack 通常不提供。", "MDR_SOFTWARE - Software", "法规专属下拉选择"),
     _col("Basic", "Basic - Reagent", "basic", "Reagent", False, "boolean", "IVDR 下是否为试剂。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Presence of Medicinal Substance", "basic", "Presence of Medicinal Substance", False, "boolean", "待审计字段：当前 XML 不单独输出；目前导出的是 Basic - Medicinal Product Device。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
-    _col("Basic", "Basic - Is Suture/Staple/Filling/Brace (IIb Implant)", "basic", "Is Suture/Staple/Filling/Brace (IIb Implant)", False, None, "IIb 植入物特殊情形。仅适用时填写 TRUE/FALSE。", "", "文本 / TRUE / FALSE", "mdr_mdd"),
+    _col("Basic", "Basic - Is Suture/Staple/Filling/Brace (IIb Implant)", "basic", "Is Suture/Staple/Filling/Brace (IIb Implant)", False, "boolean", "仅 Class IIb + Implantable 时适用，用于判断是否属于 suture/staple/dental filling/dental brace 等特殊情形；不适用留空或填 FALSE。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Meta", "UDI - Current Version", "meta", "udi_version", False, None, "条件必填：仅在使用 Update of UDI-DI / Master UDI-DI（UDI_DI.PATCH）时填写 EUDAMED 当前版本号；新上传留空。", "", "数字或文本", requirement="conditional"),
     _col("UDI", "UDI - UDI-DI Code*", "udi", "UDI-DI Code", True, None, "具体 UDI-DI 的唯一代码。", "06942495390010", "8-50 位字母数字"),
     _col("UDI", "UDI - UDI-DI Issuing Entity*", "udi", "UDI-DI Issuing Entity", True, "issuing_entity", "UDI-DI 签发机构。普通 UDI 通常按实际发码机构选择 GS1/HIBCC/ICCBBA/IFA；EUDAMED 通常用于 EUDAMED DI 等 legacy 场景。", "GS1", "下拉选择"),
@@ -344,9 +363,9 @@ RELATED_SHEETS = OrderedDict(
             "target": "CMR Substances",
             "columns": [
                 _related_col("Basic UDI-DI Code*", "Basic UDI-DI Code", True, None, "条件必填：只有 Basic UDI-DI 涉及 CMR / endocrine disrupting substances 时填写本 sheet。若填写 CMR 行，本列必须关联主表 Basic UDI-DI Code。", "BASIC001234", "文本", requirement="conditional"),
-                _related_col("Substance Type", "Substance Type", False, None, "条件必填：若填写 CMR 行，建议填写物质类型，例如 CMR 1A/1B。", "CMR 1A", "文本", requirement="conditional"),
-                _related_col("CAS Code", "CAS Code", False, None, "条件必填：如有 CAS 编码应填写；没有时与客户确认其它识别信息。", "50-00-0", "文本", requirement="conditional"),
-                _related_col("EC Code", "EC Code", False, None, "条件必填：如有 EC 编码应填写；没有则留空。", "200-001-8", "文本", requirement="conditional"),
+                _related_col("Substance Type", "Substance Type", False, "substance_type", "条件必填：若填写 CMR/Substance 行，必须选择本工具当前支持并可安全输出的物质类型。", "CMR 1A", "下拉选择", requirement="conditional"),
+                _related_col("CAS Code", "CAS Code", False, None, "条件必填：仅 CMR 1A/1B 或 Endocrine Disrupting 类型会输出 CAS；Medicinal/Human Product 类型不输出 CAS。", "50-00-0", "文本", requirement="conditional"),
+                _related_col("EC Code", "EC Code", False, None, "条件必填：仅 CMR 1A/1B 或 Endocrine Disrupting 类型会输出 EC；Medicinal/Human Product 类型不输出 EC。", "200-001-8", "文本", requirement="conditional"),
                 _related_col("Language", "Language", False, "language_any", "条件必填：若填写 Substance Name，本列用于说明物质名称语言；不限定具体语言时可用 ANY。", "ANY", "下拉选择", requirement="conditional"),
                 _related_col("Substance Name", "Substance Name", False, None, "条件必填：若填写 CMR 行，建议填写物质名称。", "Formaldehyde", "文本", requirement="conditional"),
             ],
@@ -400,13 +419,26 @@ ENUM_SOURCES = OrderedDict(
         "clinical_size_unit": _clinical_size_unit_values(),
         "clinical_size_precision": ["Range", "Value", "Text"],
         "annex_xvi_nmd": _annex_xvi_values(),
+        "special_device_mdr": _special_device_mdr_values(),
+        "special_device_ivdr": _special_device_ivdr_values(),
+        "substance_type": _substance_type_values(),
     }
 )
 
 
 def columns_for_entry_sheet(sheet_name: str) -> list[dict]:
     applies = ENTRY_SHEETS[sheet_name]["applies"]
-    return [item for item in MAIN_COLUMNS if item["applies"] in applies]
+    columns = []
+    for item in MAIN_COLUMNS:
+        if item["applies"] not in applies:
+            continue
+        column = dict(item)
+        if column["field"] == "Special Device Type":
+            column["validation"] = "special_device_ivdr" if sheet_name == "IVDR_IVDD" else "special_device_mdr"
+            values = ENUM_SOURCES.get(column["validation"], [])
+            column["example"] = values[0] if values else column["example"]
+        columns.append(column)
+    return columns
 
 
 ALL_COLUMNS = MAIN_COLUMNS + [col for spec in RELATED_SHEETS.values() for col in spec["columns"]]

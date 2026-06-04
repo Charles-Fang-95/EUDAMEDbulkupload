@@ -1,0 +1,20 @@
+Subject: APP-DTX-000061870
+From: 叶嘉文 <qa03@bonreemed.com>
+Received: 2026-06-04 03:40
+
+Report type / 反馈类型: EUDAMED 上传失败
+Step / 发生步骤: EUDAMED bulk upload
+Description / 问题描述:
+只提示格式不匹配，请帮我判断是excel模板填写错误还是xml生成错误
+
+Attachments / 附件:
+- EUDAMED 系统回传的 response XML（上传失败时必需）
+- 本工具生成的 XML 或 ZIP
+- 使用的 Excel 模板
+
+Note / 注意:
+如涉及客户敏感信息，请先脱敏。EUDAMED 上传失败时，请务必附上官方 response XML。
+
+Tool version: 0.9.0 · 公开测试版
+XSD version: 3.0.30
+OS: Windows-10-10.0.26200-SP0

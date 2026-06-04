@@ -77,6 +77,27 @@ DEVICE_STATUS_MAP = {
     "No longer placed on the EU market": "NO_LONGER_PLACED_ON_THE_MARKET",
     "Not intended for the EU market": "NOT_INTENDED_FOR_EU_MARKET",
 }
+SUBSTANCE_TYPE_EXPORT_MAP = {
+    "CMR 1A": ("udidi:CMRSubstanceType", "CMR_1A"),
+    "CMR 1B": ("udidi:CMRSubstanceType", "CMR_1B"),
+    "Endocrine Disrupting": ("udidi:EndocrineSubstanceType", "ENDOCRINE_DISRUPTING_SUBSTANCE"),
+    "Medicinal Product Substance": ("udidi:MedicalHumanProductSubstanceType", "MEDICINAL_PRODUCT_SUBSTANCE"),
+    "Human Blood or Plasma Substance": ("udidi:MedicalHumanProductSubstanceType", "HUMAN_PRODUCT_SUBSTANCE"),
+}
+SUBSTANCE_TYPE_ALIASES = {
+    "CMR_1A": "CMR 1A",
+    "CMR 1A": "CMR 1A",
+    "CMR_1B": "CMR 1B",
+    "CMR 1B": "CMR 1B",
+    "ENDOCRINE_DISRUPTING_SUBSTANCE": "Endocrine Disrupting",
+    "ENDOCRINE DISRUPTING": "Endocrine Disrupting",
+    "MEDICINAL_PRODUCT_SUBSTANCE": "Medicinal Product Substance",
+    "MEDICINAL PRODUCT SUBSTANCE": "Medicinal Product Substance",
+    "HUMAN_PRODUCT_SUBSTANCE": "Human Blood or Plasma Substance",
+    "HUMAN_BLOOD_OR_PLASMA_SUBSTANCE": "Human Blood or Plasma Substance",
+    "HUMAN PRODUCT SUBSTANCE": "Human Blood or Plasma Substance",
+    "HUMAN BLOOD OR PLASMA SUBSTANCE": "Human Blood or Plasma Substance",
+}
 PRODUCTION_IDENTIFIER_MAP = {
     "PI Lot/Batch Number": "BATCH_NUMBER",
     "PI Expiration Date": "EXPIRATION_DATE",
@@ -262,6 +283,7 @@ class BetaXMLExporter:
             if len(udis) != len(record_ids):
                 errors.append("部分 UDI-DI 记录不存在。")
             checked_basic_codes = set()
+            checked_basic_enum_codes = set()
             for item in udis:
                 payload = item["payload"]
                 basic_payload = item.get("basic_payload") or {}
@@ -288,6 +310,13 @@ class BetaXMLExporter:
                             self._validate_market_rows(errors, item)
                     self._validate_package_rows(errors, item)
                     self._validate_mdr_detail_rows(errors, warnings, item)
+                    basic_code = str(item.get("basic_code") or payload.get("Parent Basic UDI-DI") or "").strip()
+                    if basic_code and basic_code not in checked_basic_enum_codes:
+                        checked_basic_enum_codes.add(basic_code)
+                        basic = self.repository.get_basic_by_code(basic_code)
+                        if basic:
+                            self._validate_basic_enum_fields(errors, basic["basic_code"], basic["payload"])
+                            self._validate_cmr_rows(errors, basic["basic_code"], basic.get("cmr_rows") or [])
                 if service_type == "MARKET_INFO.PATCH":
                     self._validate_market_rows(errors, item, require_rows=True)
                 if service_type == "PACKAGE_UDI.PATCH":
@@ -327,6 +356,8 @@ class BetaXMLExporter:
                 self._validate_authorised_representative(errors, item["basic_code"], payload)
                 if not payload.get("Risk Class"):
                     errors.append(f"Basic UDI-DI {item['basic_code']} 缺少 Risk Class。")
+                self._validate_basic_enum_fields(errors, item["basic_code"], payload)
+                self._validate_cmr_rows(errors, item["basic_code"], item.get("cmr_rows") or [])
                 self._certificate_warning_if_needed(warnings, item)
                 if not item["version"]:
                     errors.append(f"Basic UDI-DI {item['basic_code']} 缺少当前版本号，无法导出更新 XML。")
@@ -653,6 +684,28 @@ class BetaXMLExporter:
 
         self._validate_clinical_size_rows(errors, item)
         self._validate_annex_xvi_rows(errors, item)
+
+    def _validate_basic_enum_fields(self, errors: list[str], basic_code: str, payload: dict):
+        special_device = self._special_device_code(payload.get("Special Device Type"), payload)
+        raw_special_device = str(payload.get("Special Device Type") or "").strip()
+        if raw_special_device and not special_device:
+            errors.append(
+                f"Basic UDI-DI {basic_code} 的 Special Device Type 不是当前法规对应的官方枚举；普通器械请留空。"
+            )
+
+        ii_b_exception = payload.get("Is Suture/Staple/Filling/Brace (IIb Implant)")
+        if ii_b_exception not in ("", None) and not self._valid_bool_token(ii_b_exception):
+            errors.append(
+                f"Basic UDI-DI {basic_code} 的 Is Suture/Staple/Filling/Brace (IIb Implant) 必须为 TRUE/FALSE。"
+            )
+
+    def _validate_cmr_rows(self, errors: list[str], basic_code: str, rows: list[dict]):
+        for row in rows or []:
+            raw_type = str(row.get("Substance Type") or "").strip()
+            if not raw_type:
+                errors.append(f"Basic UDI-DI {basic_code} 的 CMR Substances 缺少 Substance Type。")
+            elif not self._normal_substance_type(raw_type):
+                errors.append(f"Basic UDI-DI {basic_code} 的 CMR/Substance Type {raw_type} 不在当前支持的安全输出类型中。")
 
     def _validate_clinical_size_rows(self, errors: list[str], item: dict):
         rows = item.get("clinical_size_rows") or []
@@ -1009,7 +1062,7 @@ class BetaXMLExporter:
         self._append_device_certificates(parent, cert_rows)
 
         if profile in {"IVDR", "IVDEU"}:
-            self._text(parent, "basicudi", "specialDevice", data.get("Special Device Type"))
+            self._text(parent, "basicudi", "specialDevice", self._special_device_code(data.get("Special Device Type"), data))
             self._bool(parent, "commondi", "companionDiagnostics", data.get("Companion Diagnostic (IVDR)"))
             self._bool(parent, "commondi", "instrument", data.get("Instrument (IVDR)"))
             self._bool(parent, "commondi", "kit", data.get("Is it a Kit") or data.get("Kit (IVDR)"))
@@ -1024,7 +1077,7 @@ class BetaXMLExporter:
         if self._has_value(data.get("Is Suture/Staple/Filling/Brace (IIb Implant)")):
             self._bool(parent, "basicudi", "IIb_implantable_exceptions", data.get("Is Suture/Staple/Filling/Brace (IIb Implant)"))
         self._bool(parent, "basicudi", "medicinalProductCheck", data.get("Medicinal Product Device"))
-        self._text(parent, "basicudi", "specialDevice", data.get("Special Device Type"))
+        self._text(parent, "basicudi", "specialDevice", self._special_device_code(data.get("Special Device Type"), data))
         self._text(parent, "basicudi", "type", DEVICE_TYPE_MAP.get(data.get("Device Type", ""), data.get("Device Type", "")) or "DEVICE")
         self._bool(parent, "commondi", "active", data.get("Active Device"))
         self._bool(parent, "commondi", "administeringMedicine", data.get("Administer Medicine"))
@@ -1174,6 +1227,82 @@ class BetaXMLExporter:
         if isinstance(value, str) and " - " in value:
             return value.split(" - ", 1)[0].strip()
         return value
+
+    def _normal_substance_type(self, value) -> str:
+        code = str(self._enum_code(value) or "").strip()
+        if not code:
+            return ""
+        if code in SUBSTANCE_TYPE_EXPORT_MAP:
+            return code
+        return SUBSTANCE_TYPE_ALIASES.get(code.upper().replace("-", " ").replace("/", " "))
+
+    def _special_device_code(self, value, payload: dict) -> str:
+        text = str(self._enum_code(value) or "").strip()
+        if not text:
+            return ""
+        values = self._special_device_values_for_payload(payload)
+        allowed_codes = {str(self._enum_code(item) or "").strip() for item in values}
+        if text in allowed_codes:
+            return text
+        normalized_code = text.upper().replace(" ", "_").replace("-", "_")
+        if normalized_code in allowed_codes:
+            return normalized_code
+
+        legacy_map = {
+            "SOFTWARE": "SOFTWARE",
+            "ORTHOPEDIC": "ORTHOPEDIC",
+            "ORTHOPAEDIC": "ORTHOPEDIC",
+            "STANDARD SOFT CONTACT LENSES": "STANDARD_SOFT_CONTACT_LENSES",
+            "RIGID GAS PERMEABLE": "RIGID_GAS_PERMEABLE",
+            "MADE TO ORDER": "MADE_TO_ORDER",
+            "SPECTACLES FRAMES": "SPECTACLES_FRAMES",
+            "SPECTACLES LENSES": "SPECTACLES_LENSES",
+            "READY MADE SPECTACLES": "READY_MADE_SPECTACLES",
+        }
+        suffix = legacy_map.get(text.upper().replace("_", " ").replace("-", " "))
+        if suffix:
+            preferred_code = f"{self._special_device_preferred_prefix(payload)}_{suffix}"
+            if preferred_code in allowed_codes:
+                return preferred_code
+
+        label_matches = []
+        for item in values:
+            code, label = self._split_enum_label(item)
+            if label and label.lower() == text.lower():
+                label_matches.append(code)
+        if len(label_matches) == 1:
+            return label_matches[0]
+        if label_matches:
+            preferred = self._special_device_preferred_prefix(payload)
+            for code in label_matches:
+                if code.startswith(preferred):
+                    return code
+
+        return ""
+
+    def _special_device_values_for_payload(self, payload: dict) -> list[str]:
+        legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
+        if legislation in {"IVDR", "IVDD"}:
+            return ENUM_SOURCES.get("special_device_ivdr", [])
+        return ENUM_SOURCES.get("special_device_mdr", [])
+
+    def _special_device_preferred_prefix(self, payload: dict) -> str:
+        legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
+        if legislation in {"MDR", "MDD", "AIMDD", "IVDR", "IVDD"}:
+            return legislation
+        profile = self._profile(payload)
+        return {"MDEU": "MDD", "IVDEU": "IVDD"}.get(profile, profile)
+
+    def _split_enum_label(self, value: str) -> tuple[str, str]:
+        text = str(value or "")
+        if " - " in text:
+            return tuple(text.split(" - ", 1))  # type: ignore[return-value]
+        return text, ""
+
+    def _valid_bool_token(self, value) -> bool:
+        if isinstance(value, bool):
+            return True
+        return str(value or "").strip().upper() in {"TRUE", "FALSE", "YES", "NO", "Y", "N", "1", "0"}
 
     def _comment_language(self, language, code: str, other_code: str) -> str:
         if code == other_code:
@@ -1334,16 +1463,23 @@ class BetaXMLExporter:
             return
         container = ET.SubElement(parent, qn("udidi", "substances"))
         for row in basic["cmr_rows"]:
+            normal_type = self._normal_substance_type(row.get("Substance Type"))
+            if not normal_type:
+                continue
             substance = ET.SubElement(container, qn("udidi", "substance"))
-            substance.set(qn("xsi", "type"), self._substance_type(row.get("Substance Type")))
+            substance.set(qn("xsi", "type"), self._substance_type(normal_type))
             if row.get("Substance Name"):
                 names = ET.SubElement(substance, qn("udidi", "names"))
                 name = ET.SubElement(names, qn("lsn", "name"))
                 ET.SubElement(name, qn("lsn", "language")).text = (row.get("Language") or "ANY").upper()
                 ET.SubElement(name, qn("lsn", "textValue")).text = str(row.get("Substance Name"))
-            self._text(substance, "udidi", "CASCode", row.get("CAS Code"))
-            self._text(substance, "udidi", "ECCode", row.get("EC Code"))
-            self._text(substance, "udidi", "type", self._substance_value(row.get("Substance Type")))
+            if normal_type in {"CMR 1A", "CMR 1B", "Endocrine Disrupting"}:
+                self._text(substance, "udidi", "CASCode", row.get("CAS Code"))
+                self._text(substance, "udidi", "ECCode", row.get("EC Code"))
+            if normal_type != "Endocrine Disrupting":
+                self._text(substance, "udidi", "type", self._substance_value(normal_type))
+        if len(container) == 0:
+            parent.remove(container)
 
     def _append_device_marking(self, parent: ET.Element, data: dict):
         has_direct = self._is_true(data.get("Direct Marking")) and (
@@ -1400,24 +1536,10 @@ class BetaXMLExporter:
         return f"udidi:{profile}UDIDIDataType"
 
     def _substance_type(self, substance_type: str) -> str:
-        mapping = {
-            "CMR 1A": "udidi:CMRSubstanceType",
-            "CMR 1B": "udidi:CMRSubstanceType",
-            "Endocrine Disrupting": "udidi:EndocrineSubstanceType",
-            "Medicinal Product Substance": "udidi:MedicalHumanProductSubstanceType",
-            "Human Blood or Plasma Substance": "udidi:MedicalHumanProductSubstanceType",
-        }
-        return mapping.get(substance_type or "", "udidi:CMRSubstanceType")
+        return SUBSTANCE_TYPE_EXPORT_MAP.get(substance_type or "", ("", ""))[0]
 
     def _substance_value(self, substance_type: str) -> str:
-        mapping = {
-            "CMR 1A": "CMR_1A",
-            "CMR 1B": "CMR_1B",
-            "Endocrine Disrupting": "ENDOCRINE_DISRUPTING_SUBSTANCE",
-            "Medicinal Product Substance": "MEDICINAL_PRODUCT_SUBSTANCE",
-            "Human Blood or Plasma Substance": "HUMAN_BLOOD_OR_PLASMA_SUBSTANCE",
-        }
-        return mapping.get(substance_type or "", "CMR_1A")
+        return SUBSTANCE_TYPE_EXPORT_MAP.get(substance_type or "", ("", ""))[1]
 
     def _sender_code_from_basic(self, payload: dict) -> str:
         return (

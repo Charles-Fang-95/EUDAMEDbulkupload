@@ -2,6 +2,17 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.9.1 - 2026-06-04
+
+- 默认模板升级为 `EUDAMED_Template_v2.7.xlsx`，把 `Basic - Special Device Type` 改为法规专属官方枚举下拉。
+- `CMR Substances / Substance Type` 改为当前工具可安全输出的 5 类下拉，并在导入/导出预检中拦截不支持类型。
+- `Basic - Is Suture/Staple/Filling/Brace (IIb Implant)` 改为 TRUE/FALSE 下拉，并在导入/导出预检中拦截非布尔值。
+- 导入器、导出器和模板迁移工具增加旧值兼容：可识别 `CODE - label`、官方 code 以及部分旧模板英文标签。
+- How to Use、Glossary、README、字段映射审计和打包/Release 配置同步到 v2.7 / 0.9.1。
+- 启动健壮性修复：8765 端口被占时自动改用 8766-8776 第一个可用端口，并让浏览器打开真正绑定到的地址（不再固定打开打不开的 8765）。
+- 新增启动日志 `local_beta_data/logs/run.log`，记录端口选择与启动成功/失败；无控制台打包版崩溃也能事后排查。
+- 启动彻底失败（无可用端口等）时在程序目录写出「启动失败_STARTUP_ERROR.txt」，并在 Windows 上弹原生消息框，提示可能的端口占用 / 防火墙拦截原因。
+
 ## 0.9.0 - 2026-06-03
 
 - 默认模板升级为 `EUDAMED_Template_v2.6.xlsx`，新增 `Clinical Sizes` 和 `Annex XVI Purposes` 明细表。

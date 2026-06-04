@@ -1,0 +1,25 @@
+您好 何工，
+
+我查看了您提供的 EUDAMED response XML、本工具生成的 XML 和模板文件。错误原因已经定位：
+
+这次是 XML schema 校验阶段失败，具体字段是 Basic UDI 里的 Special Device Type。
+
+EUDAMED response 里提示：
+The value 'Rectal Pressure Catheter 10Fr' of element 'basicudi:specialDevice' is not valid.
+
+我在本工具生成的 XML 中也看到：
+<basicudi:specialDevice>Rectal Pressure Catheter 10Fr</basicudi:specialDevice>
+
+这个字段不能填写产品名称、型号或规格。Special Device Type 是 EUDAMED 官方枚举字段，只能选择软件、眼镜/隐形眼镜、骨科、定制类等特殊器械枚举值，例如 MDR_SOFTWARE、MDR_ORTHOPEDIC 等。对于普通器械，这个字段应留空。
+
+建议处理：
+1. 回到 Excel 模板，找到 Basic UDI 区域的 Special Device Type 字段。
+2. 将其中的 “Rectal Pressure Catheter 10Fr” 删除，保持为空。
+3. 产品名称/型号可以放在 Device Name/Model、Trade Name、Reference Number 或 Clinical Size 等对应字段中，不要放在 Special Device Type。
+4. 重新导入模板并导出 DEVICE.POST XML，再上传 EUDAMED。
+
+这不是 EUDAMED 对产品本身的业务审核拒绝，而是字段值不符合官方 XSD 枚举规则，所以系统在格式校验阶段就拒绝了。
+
+工具这边后续可以改进：在导入预检时增加 Special Device Type 的枚举校验，避免产品名称误填到该字段后才由 EUDAMED 拒绝。
+
+此邮件为草稿，请发送前再人工确认。

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .build_unified_template import DATA_START_ROW, build_workbook
 from .constants import EXPORT_DIR, TOOL_DIR, VENDOR_LIB
-from .template_schema import ENTRY_SHEETS, RELATED_SHEETS, TEMPLATE_VERSION, columns_for_entry_sheet
+from .template_schema import ENTRY_SHEETS, ENUM_SOURCES, RELATED_SHEETS, TEMPLATE_VERSION, columns_for_entry_sheet
 
 if str(VENDOR_LIB) not in sys.path:
     sys.path.insert(0, str(VENDOR_LIB))
@@ -112,6 +112,7 @@ def _copy_unified_sheets(source, target, report: dict):
             if not _has_data(row):
                 continue
             _write_row(target[sheet_name], target_headers, target_row, row, header_map)
+            _normalize_main_row(target[sheet_name], target_headers, target_row, report)
             _append_old_udi_detail_rows(target, row, report)
             target_row += 1
             report["copied_rows"][sheet_name] += 1
@@ -138,6 +139,7 @@ def _copy_legacy_split_sheets(source, target, report: dict):
         target_headers = _headers(target[target_sheet])
         combined = _legacy_combined_row(basic, udi)
         _write_by_field(target[target_sheet], target_headers, target_next_rows[target_sheet], combined)
+        _normalize_main_row(target[target_sheet], target_headers, target_next_rows[target_sheet], report)
         _append_old_udi_detail_rows(target, udi, report)
         target_next_rows[target_sheet] += 1
         report["copied_rows"][target_sheet] += 1
@@ -164,6 +166,7 @@ def _copy_related_sheets(source, target, report: dict):
             if not _has_data(row):
                 continue
             _write_row(target[target_sheet], target_headers, target_row, row, header_map)
+            _normalize_related_row(target[target_sheet], target_headers, target_row, report)
             target_row += 1
             report["copied_rows"][target_sheet] += 1
 
@@ -266,7 +269,7 @@ def _append_old_udi_detail_rows(target, source_row: dict, report: dict):
         )
         report["copied_rows"]["Clinical Sizes"] += 1
         report["warnings"].append(
-            f"UDI-DI {udi_code} 的旧 Clinical Size Value/Unit 已迁移到 Clinical Sizes sheet；请补充 Clinical Size Type，并确认 Measure Unit 使用 v2.6 下拉值。"
+            f"UDI-DI {udi_code} 的旧 Clinical Size Value/Unit 已迁移到 Clinical Sizes sheet；请补充 Clinical Size Type，并确认 Measure Unit 使用 {TEMPLATE_VERSION} 下拉值。"
         )
 
     old_annex = _get_by_alias(source_row, "Purpose Other Than Medical")
@@ -298,6 +301,135 @@ def _next_data_row(ws) -> int:
         if not any(value not in (None, "") for value in values):
             return row_idx
     return ws.max_row + 1
+
+
+def _normalize_main_row(ws, target_headers: list[str], row_idx: int, report: dict):
+    field_to_header = {item["field"]: item["header"] for item in columns_for_entry_sheet(ws.title)}
+    header = field_to_header.get("Special Device Type")
+    if not header or header not in target_headers:
+        return
+    cell = ws.cell(row_idx, target_headers.index(header) + 1)
+    value = cell.value
+    if value in (None, ""):
+        return
+    legislation_header = field_to_header.get("Applicable Legislation")
+    legislation = ""
+    if legislation_header in target_headers:
+        legislation = str(ws.cell(row_idx, target_headers.index(legislation_header) + 1).value or "").strip()
+    display = _special_device_display(value, ws.title, legislation)
+    if display:
+        cell.value = display
+        return
+    report["warnings"].append(
+        f"{ws.title} 第 {row_idx} 行 Special Device Type={value} 无法匹配官方枚举；已保留原值，请人工核对。"
+    )
+
+
+def _normalize_related_row(ws, target_headers: list[str], row_idx: int, report: dict):
+    if ws.title != "CMR Substances" or "Substance Type" not in target_headers:
+        return
+    cell = ws.cell(row_idx, target_headers.index("Substance Type") + 1)
+    value = cell.value
+    if value in (None, ""):
+        return
+    normalized = _normal_substance_type(value)
+    if normalized:
+        cell.value = normalized
+        return
+    report["warnings"].append(
+        f"CMR Substances 第 {row_idx} 行 Substance Type={value} 无法匹配当前支持类型；已保留原值，请人工核对。"
+    )
+
+
+def _special_device_display(value, sheet_name: str, legislation: str = "") -> str:
+    text = str(_enum_code(value) or "").strip()
+    if not text:
+        return ""
+    values = _special_device_values(sheet_name, legislation)
+    code_to_display = {_enum_code(item): item for item in values}
+    if text in code_to_display:
+        return code_to_display[text]
+    normalized_code = text.upper().replace(" ", "_").replace("-", "_")
+    if normalized_code in code_to_display:
+        return code_to_display[normalized_code]
+    aliases = {
+        "SOFTWARE": "SOFTWARE",
+        "ORTHOPEDIC": "ORTHOPEDIC",
+        "ORTHOPAEDIC": "ORTHOPEDIC",
+        "STANDARD SOFT CONTACT LENSES": "STANDARD_SOFT_CONTACT_LENSES",
+        "RIGID GAS PERMEABLE": "RIGID_GAS_PERMEABLE",
+        "MADE TO ORDER": "MADE_TO_ORDER",
+        "SPECTACLES FRAMES": "SPECTACLES_FRAMES",
+        "SPECTACLES LENSES": "SPECTACLES_LENSES",
+        "READY MADE SPECTACLES": "READY_MADE_SPECTACLES",
+    }
+    suffix = aliases.get(text.upper().replace("_", " ").replace("-", " "))
+    if suffix:
+        candidate = f"{_special_device_prefix(sheet_name, legislation)}_{suffix}"
+        return code_to_display.get(candidate, "")
+    label_matches = []
+    for item in values:
+        code, label = _split_enum_label(item)
+        if label and label.lower() == text.lower():
+            label_matches.append((code, item))
+    if len(label_matches) == 1:
+        return label_matches[0][1]
+    if label_matches:
+        prefix = _special_device_prefix(sheet_name, legislation)
+        for code, item in label_matches:
+            if code.startswith(prefix):
+                return item
+    return ""
+
+
+def _special_device_values(sheet_name: str, legislation: str = "") -> list[str]:
+    value = str(legislation or "").strip().upper()
+    if sheet_name == "IVDR_IVDD" or value in {"IVDR", "IVDD"}:
+        return ENUM_SOURCES.get("special_device_ivdr", [])
+    return ENUM_SOURCES.get("special_device_mdr", [])
+
+
+def _special_device_prefix(sheet_name: str, legislation: str = "") -> str:
+    value = str(legislation or "").strip().upper()
+    if value in {"MDR", "MDD", "AIMDD", "IVDR", "IVDD"}:
+        return value
+    return "IVDR" if sheet_name == "IVDR_IVDD" else "MDR"
+
+
+def _normal_substance_type(value) -> str:
+    text = str(_enum_code(value) or "").strip()
+    if not text:
+        return ""
+    if text in ENUM_SOURCES.get("substance_type", []):
+        return text
+    aliases = {
+        "CMR_1A": "CMR 1A",
+        "CMR 1A": "CMR 1A",
+        "CMR_1B": "CMR 1B",
+        "CMR 1B": "CMR 1B",
+        "ENDOCRINE_DISRUPTING_SUBSTANCE": "Endocrine Disrupting",
+        "ENDOCRINE DISRUPTING": "Endocrine Disrupting",
+        "MEDICINAL_PRODUCT_SUBSTANCE": "Medicinal Product Substance",
+        "MEDICINAL PRODUCT SUBSTANCE": "Medicinal Product Substance",
+        "HUMAN_PRODUCT_SUBSTANCE": "Human Blood or Plasma Substance",
+        "HUMAN_BLOOD_OR_PLASMA_SUBSTANCE": "Human Blood or Plasma Substance",
+        "HUMAN PRODUCT SUBSTANCE": "Human Blood or Plasma Substance",
+        "HUMAN BLOOD OR PLASMA SUBSTANCE": "Human Blood or Plasma Substance",
+    }
+    return aliases.get(text.upper().replace("-", " ").replace("/", " "), "")
+
+
+def _enum_code(value):
+    if isinstance(value, str) and " - " in value:
+        return value.split(" - ", 1)[0].strip()
+    return value
+
+
+def _split_enum_label(value: str) -> tuple[str, str]:
+    text = str(value or "")
+    if " - " in text:
+        return tuple(text.split(" - ", 1))  # type: ignore[return-value]
+    return text, ""
 
 
 def _truthy(value) -> bool:
