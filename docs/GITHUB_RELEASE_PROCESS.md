@@ -55,7 +55,7 @@ Gitee Release 附件限制：普通项目单个附件不能超过 100M，仓库�
 1. 打开仓库页面，进入 `Releases`。
 2. 点击 `Draft a new release`。
 3. 创建 tag，例如 `v0.7.0`。tag 需要和 `TOOL_VERSION` 对齐。
-4. Release title 写 `v0.9.1 - 公开测试版`。
+4. Release title 写 `v0.9.2 - 公开测试版`。
 5. Release notes 粘贴 `CHANGELOG.md` 中对应版本的内容。
 6. 上传二进制附件，例如：
    - `EUDAMED_Local_Beta_Windows.zip`

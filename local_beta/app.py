@@ -5,7 +5,7 @@ import sys
 import traceback
 import threading
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.parser import BytesParser
 from email.policy import default
 from http import HTTPStatus
@@ -66,6 +66,8 @@ STATIC_CONTENT_TYPES = {
 
 LOG_DIR = UPLOAD_DIR.parent / "logs"
 STARTUP_LOG = LOG_DIR / "run.log"
+UPDATE_CHECK_CACHE = UPLOAD_DIR.parent / "update_check_cache.json"
+UPDATE_CHECK_CACHE_TTL = timedelta(hours=12)
 # DATA_DIR = UPLOAD_DIR.parent；其上一级是 exe/源码所在目录（用户能直接看到的地方）。
 APP_ROOT_DIR = UPLOAD_DIR.parent.parent
 
@@ -150,6 +152,42 @@ class App:
 
         return Handler
 
+    def dashboard_update_hint(self) -> dict:
+        cached = self._read_update_cache()
+        if cached:
+            return cached
+        result = check_latest_release(RELEASES_API_URL, TOOL_VERSION, timeout=4, mirror_api_url=GITEE_RELEASES_API_URL)
+        hint = {
+            "status": result.get("status", "error"),
+            "latest_version": result.get("latest_version", ""),
+            "source": result.get("source", ""),
+            "html_url": result.get("html_url", ""),
+            "asset_url": result.get("asset_url", ""),
+            "error": result.get("error", ""),
+            "checked_at": datetime.now().isoformat(timespec="seconds"),
+        }
+        self._write_update_cache(hint)
+        return hint
+
+    def _read_update_cache(self) -> dict:
+        try:
+            if not UPDATE_CHECK_CACHE.exists():
+                return {}
+            data = json.loads(UPDATE_CHECK_CACHE.read_text(encoding="utf-8"))
+            checked_at = datetime.fromisoformat(str(data.get("checked_at", "")))
+            if datetime.now() - checked_at > UPDATE_CHECK_CACHE_TTL:
+                return {}
+            return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+
+    def _write_update_cache(self, data: dict):
+        try:
+            UPDATE_CHECK_CACHE.parent.mkdir(parents=True, exist_ok=True)
+            UPDATE_CHECK_CACHE.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+
     def route(self, request: BaseHTTPRequestHandler):
         parsed = urlparse(request.path)
         path = parsed.path
@@ -178,6 +216,7 @@ class App:
             return
         if request.command == "GET" and path == "/":
             xsd_report = build_xsd_version_report(check_online=False)
+            update_hint = self.dashboard_update_hint()
             return self.respond_html(
                 request,
                 dashboard(
@@ -186,6 +225,7 @@ class App:
                     self.repository.recent_exports(),
                     xsd_report,
                     self.repository.manufacturer_srn_summary(),
+                    update_hint,
                 ),
             )
         if request.command == "GET" and path == "/import":

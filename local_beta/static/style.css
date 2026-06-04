@@ -101,6 +101,34 @@ a {
   margin: 0;
 }
 
+.update-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.035);
+}
+
+.update-card p {
+  margin: 0.35rem 0 0;
+}
+
+.update-card-new {
+  border-color: rgba(212, 156, 52, 0.6);
+  background: linear-gradient(135deg, #fff7df, #fffdf7);
+  color: #73500c;
+}
+
+.update-card-muted {
+  border-color: rgba(110, 106, 96, 0.26);
+  background: rgba(255, 253, 247, 0.7);
+}
+
 .hero, .panel, .card {
   background: var(--paper);
   border: 1px solid var(--line);
@@ -701,7 +729,7 @@ label span {
 }
 
 @media (max-width: 860px) {
-  .hero, .columns {
+  .hero, .columns, .update-card {
     grid-template-columns: 1fr;
     flex-direction: column;
   }
@@ -717,7 +745,7 @@ label span {
     width: 100%;
   }
 
-  .hero {
+  .hero, .update-card {
     align-items: stretch;
   }
 }

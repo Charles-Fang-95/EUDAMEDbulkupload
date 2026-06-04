@@ -561,6 +561,7 @@ def dashboard(
     exports: list,
     xsd_report: dict | None = None,
     srn_summary: list[dict] | None = None,
+    update_hint: dict | None = None,
 ) -> str:
     xsd_report = xsd_report or {"tool_version": SCHEMA_VERSION, "local_xsd_version": "", "status": "unknown"}
     import_cards = "".join(
@@ -572,6 +573,7 @@ def dashboard(
         for row in exports
     ) or f"<li>{t('还没有导出记录', 'No exports yet')}</li>"
     quick_start = quick_start_card() if int(stats.get("basic_count", 0) or 0) == 0 and int(stats.get("udi_count", 0) or 0) == 0 else ""
+    update_card = dashboard_update_card(update_hint)
     body = f"""
     <section class="hero">
       <div>
@@ -581,6 +583,7 @@ def dashboard(
       </div>
       <a class="button primary" href="/import">{t('开始导入 Excel', 'Start importing Excel')}</a>
     </section>
+    {update_card}
     {quick_start}
     <section class="grid cards">
       <article class="card"><h2>Basic UDI-DI</h2><p>{stats['basic_count']}</p></article>
@@ -604,6 +607,42 @@ def dashboard(
     </section>
     """
     return page(t("概览", "Overview"), body, "/")
+
+
+def dashboard_update_card(update_hint: dict | None) -> str:
+    if not update_hint:
+        return ""
+    status = update_hint.get("status", "")
+    latest = update_hint.get("latest_version", "")
+    source = update_hint.get("source", "")
+    source_label = "Gitee" if source == "gitee" else "GitHub"
+    checked_at = display_time(update_hint.get("checked_at", ""))
+    if status == "ok":
+        return f"""
+        <section class="update-card update-card-new">
+          <div>
+            <strong>{esc(t("发现新版本", "New version available"))} {esc(latest)}</strong>
+            <p>{esc(t("请前往帮助页下载最新版工具。更新前先关闭当前运行的旧工具；本地数据库不会因为替换程序而丢失。", "Go to Help to download the latest tool. Close the old running tool before replacing it; your local database is not lost when replacing the program."))}</p>
+            <p class="muted">{esc(t("检查来源", "Checked via"))}: {esc(source_label)}{f" · {esc(checked_at)}" if checked_at else ""}</p>
+          </div>
+          <a class="button primary" href="/help#download-update">{esc(t("去下载更新", "Download update"))}</a>
+        </section>
+        """
+    if status in {"offline", "error", "no_release", "unconfigured"}:
+        message = t("无法确认是否有新版本；如需更新，可到帮助页手动打开 GitHub/Gitee Releases。", "Cannot confirm whether a newer version exists; open GitHub/Gitee Releases from Help if you need to update.")
+        if status == "no_release":
+            message = t("当前仓库尚未发布可下载版本；发布后首页会提示更新。", "No downloadable release has been published yet; this page will show updates after releases are available.")
+        return f"""
+        <section class="update-card update-card-muted">
+          <div>
+            <strong>{esc(t("更新检查提示", "Update check"))}</strong>
+            <p>{esc(message)}</p>
+            <p class="muted">{esc(update_hint.get("error", ""))}</p>
+          </div>
+          <a class="button" href="/help#download-update">{esc(t("查看下载入口", "Open download links"))}</a>
+        </section>
+        """
+    return ""
 
 
 def quick_start_card() -> str:
@@ -1355,7 +1394,7 @@ def history_page(exports: list) -> str:
 def download_update_help_block(check_result: dict | None = None) -> str:
     update_section = update_check_block(check_result)
     return f"""
-    <div class="panel inset">
+    <div class="panel inset" id="download-update">
       <h3>{t('下载与更新工具', 'Download and update the tool')}</h3>
       {update_section}
       <ol>
