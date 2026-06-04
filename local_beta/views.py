@@ -726,6 +726,7 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
       <ul>
         <li>{t('确认 UDI/GTIN/Reference/SRN 等编码按文本维护，没有科学计数法或丢失前导 0。', 'Confirm UDI/GTIN/Reference/SRN codes are maintained as text, with no scientific notation or lost leading zeros.')}</li>
         <li>{t(f'使用当前 {TEMPLATE_VERSION} 模板；旧模板或客户原始 Excel 请先走迁移/映射。', f'Use the current {TEMPLATE_VERSION} template; migrate/map old templates or customer source Excel first.')}</li>
+        <li>{t('如果导入旧模板，系统会按当前规则重新校验并提示 Special Device Type、CMR Substance Type 等自动归一或错误项。', 'If you import an old template, the tool revalidates it against current rules and reports Special Device Type, CMR Substance Type and other normalized or invalid fields.')}</li>
         <li>{t('Market Info：同一 UDI-DI 可有多个 made available 国家，但 Originally Placed on Market 必须且只能有一个 TRUE。', 'Market Info: one UDI-DI may have multiple made available countries, but Originally Placed on Market must have exactly one TRUE.')}</li>
         <li>{t('国家/市场信息填报错误时，优先通过 EUDAMED update/create new version 纠正，不要默认删除 UDI-DI 重建。', 'Market information errors should be corrected through EUDAMED update/create new version where possible; do not default to deleting and re-registering the UDI-DI.')}</li>
       </ul>

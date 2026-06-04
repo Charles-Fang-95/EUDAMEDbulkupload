@@ -67,7 +67,7 @@ class WorkbookImporter:
 
     def import_workbook(self, workbook_path: Path) -> dict:
         wb = openpyxl.load_workbook(workbook_path, data_only=True)
-        parsed, import_meta, format_warnings = self._parse_workbook(wb)
+        parsed, import_meta, format_warnings, migration_warnings = self._parse_workbook(wb)
 
         summary = self._summary(parsed)
         if not any(summary.values()):
@@ -130,7 +130,7 @@ class WorkbookImporter:
 
         validation = {
             "errors": [error.to_dict() for error in errors] + extra_errors,
-            "warnings": [warning.to_dict() for warning in warnings] + format_warnings,
+            "warnings": [warning.to_dict() for warning in warnings] + format_warnings + migration_warnings,
         }
         import_id = self.repository.create_import(workbook_path.name, summary, validation)
         changes = []
@@ -180,24 +180,25 @@ class WorkbookImporter:
             "change_summary": self._change_summary(changes),
         }
 
-    def _parse_workbook(self, wb) -> tuple[dict, dict, list[dict]]:
+    def _parse_workbook(self, wb) -> tuple[dict, dict, list[dict], list[dict]]:
         parsed = {sheet: [] for sheet in BUSINESS_SHEETS}
         basic_index = {}
         import_meta = {"basic_versions": {}, "udi_versions": {}}
         format_warnings = []
+        migration_warnings = self._template_version_warnings(wb)
 
         for sheet_name in ENTRY_SHEETS:
             if sheet_name not in wb.sheetnames:
                 continue
-            self._parse_entry_sheet(wb[sheet_name], parsed, basic_index, import_meta, format_warnings)
+            self._parse_entry_sheet(wb[sheet_name], parsed, basic_index, import_meta, format_warnings, migration_warnings)
 
         for sheet_name, spec in RELATED_SHEETS.items():
             if sheet_name not in wb.sheetnames:
                 continue
-            rows = self._parse_related_sheet(wb[sheet_name], spec["columns"], format_warnings)
+            rows = self._parse_related_sheet(wb[sheet_name], spec["columns"], format_warnings, migration_warnings)
             parsed[spec["target"]].extend(rows)
 
-        return parsed, import_meta, format_warnings
+        return parsed, import_meta, format_warnings, migration_warnings
 
     def _market_change_warnings(self, changes: list[dict]) -> list[dict]:
         warnings = []
@@ -241,7 +242,15 @@ class WorkbookImporter:
             )
         return warnings
 
-    def _parse_entry_sheet(self, ws, parsed: dict, basic_index: dict, import_meta: dict, format_warnings: list[dict]):
+    def _parse_entry_sheet(
+        self,
+        ws,
+        parsed: dict,
+        basic_index: dict,
+        import_meta: dict,
+        format_warnings: list[dict],
+        migration_warnings: list[dict],
+    ):
         headers = self._headers(ws)
         schema_by_header = {item["header"]: item for item in columns_for_entry_sheet(ws.title)}
 
@@ -277,7 +286,7 @@ class WorkbookImporter:
             if basic_code:
                 udi_payload["Parent Basic UDI-DI"] = basic_code
 
-            self._normalize_basic_enums(basic_payload)
+            self._normalize_basic_enums(basic_payload, ws.title, row_idx, migration_warnings)
 
             if self._should_create_basic(basic_payload, basic_version):
                 basic_payload["_row_number"] = row_idx
@@ -303,7 +312,13 @@ class WorkbookImporter:
                 if udi_version:
                     import_meta["udi_versions"][udi_code] = udi_version
 
-    def _parse_related_sheet(self, ws, columns: list[dict], format_warnings: list[dict]) -> list[dict]:
+    def _parse_related_sheet(
+        self,
+        ws,
+        columns: list[dict],
+        format_warnings: list[dict],
+        migration_warnings: list[dict],
+    ) -> list[dict]:
         headers = self._headers(ws)
         schema_by_header = {item["header"]: item for item in columns}
         rows = []
@@ -327,7 +342,17 @@ class WorkbookImporter:
                     }:
                         value = self._enum_code(value)
                     if item.get("validation") == "substance_type":
-                        value = self._normal_substance_type(value) or value
+                        normalized = self._normal_substance_type(value)
+                        if normalized and str(value or "").strip() != normalized:
+                            migration_warnings.append(self._normalization_warning(
+                                ws.title,
+                                row_idx,
+                                item["field"],
+                                value,
+                                normalized,
+                                "旧模板/旧写法中的 Substance Type 已按当前 v2.7 下拉值自动归一；请核对是否符合实际物质类型。",
+                            ))
+                        value = normalized or value
                     row_data[item["field"]] = value
             if any(value not in ("", None) for value in row_data.values()):
                 row_data["_row_number"] = row_idx
@@ -380,6 +405,50 @@ class WorkbookImporter:
             "warning_type": "FORMAT_RISK",
             "message": message,
             "suggestion": "在 Excel/WPS 中把该列设置为文本格式，并按标签/证书原值重新填写。",
+        }
+
+    def _template_version_warnings(self, wb) -> list[dict]:
+        warnings = []
+        detected = self._detect_template_version(wb)
+        if detected == TEMPLATE_VERSION:
+            return warnings
+        label = detected or "未知版本 / unknown"
+        warnings.append(
+            {
+                "sheet": "Workbook",
+                "row": "",
+                "field": "Template Version",
+                "value": label,
+                "warning_type": "TEMPLATE_VERSION_RISK",
+                "message": f"检测到该文件可能不是当前 {TEMPLATE_VERSION} 模板，系统已按当前规则重新校验。",
+                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info 等 v2.6/v2.7 后变化字段；建议先使用迁移模板功能生成当前模板。",
+            }
+        )
+        return warnings
+
+    def _detect_template_version(self, wb) -> str:
+        if "How to Use" in wb.sheetnames:
+            value = str(wb["How to Use"].cell(1, 1).value or "")
+            match = re.search(r"EUDAMED Template (v\d+\.\d+)", value)
+            if match:
+                return match.group(1)
+        for sheet_name in ENTRY_SHEETS:
+            if sheet_name not in wb.sheetnames:
+                continue
+            headers = set(self._headers(wb[sheet_name]))
+            if "Basic - Special Device Type" in headers and "Basic - Is Suture/Staple/Filling/Brace (IIb Implant)" in headers:
+                return ""
+        return ""
+
+    def _normalization_warning(self, sheet: str, row: int, field: str, old_value, new_value, message: str) -> dict:
+        return {
+            "sheet": sheet,
+            "row": row,
+            "field": field,
+            "value": f"{old_value} -> {new_value}",
+            "warning_type": "TEMPLATE_VALUE_NORMALIZED",
+            "message": message,
+            "suggestion": "如果自动归一不符合实际，请在当前模板下拉中重新选择正确值后再导入/导出。",
         }
 
     def _summary(self, parsed: dict) -> dict:
@@ -451,9 +520,19 @@ class WorkbookImporter:
             return value.split(" - ", 1)[0].strip()
         return value
 
-    def _normalize_basic_enums(self, payload: dict):
-        special = self._special_device_code(payload.get("Special Device Type"), payload)
+    def _normalize_basic_enums(self, payload: dict, sheet: str, row_idx: int, migration_warnings: list[dict]):
+        original = payload.get("Special Device Type")
+        special = self._special_device_code(original, payload)
         if special:
+            if str(original or "").strip() != special:
+                migration_warnings.append(self._normalization_warning(
+                    sheet,
+                    row_idx,
+                    "Special Device Type",
+                    original,
+                    special,
+                    "旧模板/旧写法中的 Special Device Type 已按当前法规枚举自动归一；请核对是否属于该产品的真实特殊类型。普通器械应留空。",
+                ))
             payload["Special Device Type"] = special
 
     def _normal_substance_type(self, value) -> str:

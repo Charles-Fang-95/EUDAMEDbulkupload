@@ -73,6 +73,11 @@ def migrate_workbook(source_path: Path, output_dir: Path = EXPORT_DIR) -> dict:
         "unmapped_headers": defaultdict(list),
         "warnings": [],
     }
+    detected_version = _detect_template_version(source)
+    if detected_version != TEMPLATE_VERSION:
+        report["warnings"].append(
+            f"源文件模板版本为 {detected_version or '未知版本'}，当前模板为 {TEMPLATE_VERSION}；迁移后请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace 和 Package Info。"
+        )
 
     if any(sheet in source.sheetnames for sheet in ENTRY_SHEETS):
         report["mode"] = "current_unified_template"
@@ -303,6 +308,15 @@ def _next_data_row(ws) -> int:
     return ws.max_row + 1
 
 
+def _detect_template_version(wb) -> str:
+    if "How to Use" in wb.sheetnames:
+        value = str(wb["How to Use"].cell(1, 1).value or "")
+        match = re.search(r"EUDAMED Template (v\d+\.\d+)", value)
+        if match:
+            return match.group(1)
+    return ""
+
+
 def _normalize_main_row(ws, target_headers: list[str], row_idx: int, report: dict):
     field_to_header = {item["field"]: item["header"] for item in columns_for_entry_sheet(ws.title)}
     header = field_to_header.get("Special Device Type")
@@ -318,6 +332,10 @@ def _normalize_main_row(ws, target_headers: list[str], row_idx: int, report: dic
         legislation = str(ws.cell(row_idx, target_headers.index(legislation_header) + 1).value or "").strip()
     display = _special_device_display(value, ws.title, legislation)
     if display:
+        if str(value or "").strip() != display:
+            report["warnings"].append(
+                f"{ws.title} 第 {row_idx} 行 Special Device Type 已自动归一：{value} -> {display}。请核对是否属于该产品的真实特殊类型；普通器械应留空。"
+            )
         cell.value = display
         return
     report["warnings"].append(
@@ -334,6 +352,10 @@ def _normalize_related_row(ws, target_headers: list[str], row_idx: int, report: 
         return
     normalized = _normal_substance_type(value)
     if normalized:
+        if str(value or "").strip() != normalized:
+            report["warnings"].append(
+                f"CMR Substances 第 {row_idx} 行 Substance Type 已自动归一：{value} -> {normalized}。请核对是否符合实际物质类型。"
+            )
         cell.value = normalized
         return
     report["warnings"].append(
