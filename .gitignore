@@ -33,6 +33,7 @@ __pycache__/
 
 # Customer/private samples
 Test sample/
+Feedback case/
 *.xlsx
 !EUDAMED_Template_v2.4.xlsx
 !EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.4.xlsx
