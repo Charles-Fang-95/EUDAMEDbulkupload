@@ -76,7 +76,7 @@ def migrate_workbook(source_path: Path, output_dir: Path = EXPORT_DIR) -> dict:
     detected_version = _detect_template_version(source)
     if detected_version != TEMPLATE_VERSION:
         report["warnings"].append(
-            f"源文件模板版本为 {detected_version or '未知版本'}，当前模板为 {TEMPLATE_VERSION}；迁移后请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace 和 Package Info。"
+            f"源文件模板版本为 {detected_version or '未知版本'}，当前模板为 {TEMPLATE_VERSION}；迁移后请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info 和 IVD 人源/动物源字段。"
         )
 
     if any(sheet in source.sheetnames for sheet in ENTRY_SHEETS):

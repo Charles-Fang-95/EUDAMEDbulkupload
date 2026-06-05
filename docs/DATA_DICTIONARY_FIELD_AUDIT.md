@@ -37,7 +37,7 @@ Status meanings:
 | DD BASIC UDI | FLD-UDID-11 | Applicable regulation | 1 | Basic - Applicable Legislation* | Yes | Yes | Yes | payload profile / applicableLegislation | `implemented` | Template uses the label Applicable Legislation. |
 | DD BASIC UDI | FLD-UDID-12 | Is it a System which is a Device in itself, Procedure pack which is a Device in itself | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD BASIC UDI | FLD-UDID-356 | Is it a Kit | 1 | Basic - Is it a Kit | Yes | Yes | Yes | commondi:kit | `implemented` | Unified template field. Exported for IVDR/IVDD paths where current XSD provides commondi:kit; MDR/MDD are not forced into XML without a safe schema location. |
-| DD BASIC UDI | FLD-UDID-13 | Special Device Type | 0..1 | Basic - Special Device Type | Yes | Yes | Yes | basicudi:specialDevice | `implemented` | v2.7 template uses official MDRSpecialDeviceTypeEnum / IVDRSpecialDeviceTypeEnum dropdowns by sheet. |
+| DD BASIC UDI | FLD-UDID-13 | Special Device Type | 0..1 | Basic - Special Device Type | Yes | Yes | Yes | basicudi:specialDevice | `implemented` | v2.8 template uses official MDRSpecialDeviceTypeEnum / IVDRSpecialDeviceTypeEnum dropdowns by sheet. |
 | DD BASIC UDI | FLD-UDID-15 | Authorised Representative | 0..1 Applicable and mandatory only for nonEU MF | Basic - Authorised Representative SRN | Yes | Yes | Yes | basicudi:ARActorCode | `implemented` | Template stores SRN only. |
 | DD BASIC UDI | FLD-UDID-16 | Risk Class | 1 | Basic - Risk Class* | Yes | Yes | Yes | riskClass | `implemented` |  |
 | DD BASIC UDI | FLD-UDID-18 | Tissues and cells - Presence of animal tissues or Cells, or their derivates | 1 | Basic - Presence of Animal Tissues | Yes | Yes | Yes |  | `implemented` |  |
@@ -58,7 +58,7 @@ Status meanings:
 | DD BASIC UDI | FLD-UDID-262 | Reagent | 1 | Basic - Reagent | Yes | Yes | Yes |  | `implemented` |  |
 | DD BASIC UDI | FLD-UDID-263 | Professional Testing | 1 | Basic - Professional Testing (IVDR) | Yes | Yes | Yes | commondi:professionalTesting | `implemented` | IVDR field. |
 | DD BASIC UDI | FLD-UDID-264 | Instrument | 1 | Basic - Instrument (IVDR) | Yes | Yes | Yes | commondi:instrument | `implemented` | IVDR field. |
-| DD BASIC UDI | FLD-UDID-265 | Is it Device a suture, staple, dental filling, dental brace (...)? | 0..1 Property is conditional mandatory only for Devices having Risk Class II b and having the property 'Implantable' | Basic - Is Suture/Staple/Filling/Brace (IIb Implant) | Yes | Payload | Yes | basicudi:IIb_implantable_exceptions | `implemented` | Conditional MDR/MDD field; v2.7 template uses TRUE/FALSE dropdown. |
+| DD BASIC UDI | FLD-UDID-265 | Is it Device a suture, staple, dental filling, dental brace (...)? | 0..1 Property is conditional mandatory only for Devices having Risk Class II b and having the property 'Implantable' | Basic - Is Suture/Staple/Filling/Brace (IIb Implant) | Yes | Payload | Yes | basicudi:IIb_implantable_exceptions | `implemented` | Conditional MDR/MDD field; v2.8 template uses TRUE/FALSE dropdown. |
 | DD BASIC UDI | FLD-UDID-50 | Clinical Investigations associated to the Basic UDI | 0..n |  | No | No | No |  | `not_in_template` |  |
 | DD BASIC UDI | FLD-UDID-39 | Device Certificate Information associated with the Device | 0..1 | Device Certificates | Yes | Payload | Yes | basicudi:deviceCertificateLinks/links:deviceCertificateLink | `implemented` | Structured certificate rows are exported as deviceCertificateLinks. PR/SPP certificate handling remains out of scope. |
 | DD BASIC UDI | FLD-UDID-343 | Certificates linked to the Device | 0..n | Device Certificates | Yes | Payload | Yes | basicudi:deviceCertificateLinks/links:deviceCertificateLink | `implemented` | Structured certificate rows are exported as deviceCertificateLinks. PR/SPP certificate handling remains out of scope. |
@@ -112,8 +112,8 @@ Status meanings:
 | DD UDI-DI | FLD-UDID-145 | Basic UDI-DI Identifier | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-148 | Type of UDI-PI | 1..n |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-149 | Nomenclature code | 1..n | UDI - Nomenclature Code* | Yes | Yes | Yes |  | `implemented` |  |
-| DD UDI-DI | FLD-UDID-151 | Quantity of device | 1 | UDI - Quantity of Device | Yes | Yes | Yes |  | `implemented` |  |
-| DD UDI-DI | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes |  | `implemented` |  |
+| DD UDI-DI | FLD-UDID-151 | Quantity of device | 1 | UDI - Quantity of Device | Yes | Yes | Yes |  | `implemented` | Output only for MDR/IVDR Regulation Device `baseQuantity`; legacy devices do not output it. |
+| DD UDI-DI | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes |  | `implemented` | MDR/MDD/AIMDD only; not applicable to IVDR/IVDD. |
 | DD UDI-DI | FLD-UDID-157 | Maximum number of reuses | 0..1 Field must be completed only if singleUse is false | Maximum | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-159 | New Device | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-163 | Reference / Catalogue number | 1 |  | No | No | No |  | `not_in_template` |  |
@@ -154,7 +154,7 @@ Status meanings:
 | DD UDI-DI | FLD-UDID-195 | /Measure Unit | 0..1 Occurrence applicable if Clinical Size (FLD-UDID-146) is provided Required when the Precision value is either Value or Range | Measure Unit | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-358 | Clinical Size Type Description | 0..1 Required when the Clinical Size Type has option Other | Clinical Sizes sheet | Yes | JSON payload | Yes | udidi:clinicalSizes/commondi:clinicalSize | `implemented` | Structured Clinical Sizes sheet is exported for MDR UDI-DI only; other profiles are warned and ignored. |
 | DD UDI-DI | FLD-UDID-359 | Measure Unit Description | 0..1 Required when the Measure Unit Type has option Other | Clinical Sizes / Measure Unit Description | Yes | JSON payload | Yes | udidi:clinicalSizes/commondi:clinicalSize/commondi:measureUnitDescription | `implemented` | Required when Clinical Size Measure Unit is MU999 - OTHER. |
-| DD UDI-DI | FLD-UDID-200 | Category of CMR | 1 Occurrence applicable if List of CMR Substances (FLD-UDID-140) is provided | CMR Substances / Substance Type | Yes | JSON payload | Yes | udidi:substances/udidi:substance/udidi:type | `implemented` | v2.7 template restricts Substance Type to the 5 exporter-supported substance categories. |
+| DD UDI-DI | FLD-UDID-200 | Category of CMR | 1 Occurrence applicable if List of CMR Substances (FLD-UDID-140) is provided | CMR Substances / Substance Type | Yes | JSON payload | Yes | udidi:substances/udidi:substance/udidi:type | `implemented` | v2.8 template restricts Substance Type to the 5 exporter-supported substance categories. |
 | DD UDI-DI | FLD-UDID-201 | Name of Substance | 0..1 Applicable if List of CMR Substances (FLD-UDID-140) is provided In case the #CAS, #EC is provided, Name of substance must be provided without the Language | CMR Substances / Substance Name | Yes | JSON payload | Yes | udidi:substances/udidi:substance/udidi:names | `implemented` | Stored in CMR Substances sheet. |
 | DD UDI-DI | FLD-UDID-202 | CAS# | 0..1 Applicable if List of CMR Substances (FLD-UDID-140) is provided | CMR Substances / CAS Code | Yes | JSON payload | Yes | udidi:substances/udidi:substance/udidi:CASCode | `implemented` | Stored in CMR Substances sheet; exported only for CMR and Endocrine substance types. |
 | DD UDI-DI | FLD-UDID-203 | EC# | 0..1 Occurrence applicable if List of CMR Substances (FLD-UDID-140) is provided | CMR Substances / EC Code | Yes | JSON payload | Yes | udidi:substances/udidi:substance/udidi:ECCode | `implemented` | Stored in CMR Substances sheet; exported only for CMR and Endocrine substance types. |
@@ -190,7 +190,7 @@ Status meanings:
 | DD Legacy Devices | FLD-UDID-11 | Applicable Legislation | 1 | Basic - Applicable Legislation* | Yes | Yes | Yes | payload entity selection | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-12 | Is it a System which is a Device in itself, Procedure pack which is a Device in itself | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-356 | Is it a Kit | 1 | Basic - Is it a Kit | Yes | Yes | Yes | commondi:kit | `implemented` | Unified template field. Exported for IVDR/IVDD paths where current XSD provides commondi:kit; MDR/MDD are not forced into XML without a safe schema location. |
-| DD Legacy Devices | FLD-UDID-13 | Special Device Type | 0..1 | Basic - Special Device Type | Yes | Yes | Yes | basicudi:specialDevice | `implemented` | v2.7 template uses official MDRSpecialDeviceTypeEnum / IVDRSpecialDeviceTypeEnum dropdowns by sheet. |
+| DD Legacy Devices | FLD-UDID-13 | Special Device Type | 0..1 | Basic - Special Device Type | Yes | Yes | Yes | basicudi:specialDevice | `implemented` | v2.8 template uses official MDRSpecialDeviceTypeEnum / IVDRSpecialDeviceTypeEnum dropdowns by sheet. |
 | DD Legacy Devices | FLD-UDID-15 | Authorised Representative | 0..1 Applicable and mandatory only for nonEU MF | Basic - Authorised Representative SRN | Yes | Yes | Yes | basicudi:ARActorCode | `implemented` | Template stores SRN only. |
 | DD Legacy Devices | FLD-UDID-16 | Risk Class | 1 | Basic - Risk Class* | Yes | Yes | Yes | riskClass | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-18 | Tissues and cells - Presence of animal tissues or Cells, or their derivates | 1 | Basic - Presence of Animal Tissues | Yes | Yes | Yes |  | `implemented` |  |
@@ -233,7 +233,7 @@ Status meanings:
 | DD Legacy Devices | FLD-UDID-145 | EUDAMED DI Identifier | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-146 | Clinical Sizes | 0..n | Clinical Sizes sheet | Yes | JSON payload | No |  | `explicitly_out_of_scope` | Current exporter supports structured clinicalSizes only for MDR UDI-DI; legacy / other profiles are warned and ignored. |
 | DD Legacy Devices | FLD-UDID-149 | Nomenclature code | 1..n | UDI - Nomenclature Code* | Yes | Yes | Yes |  | `implemented` |  |
-| DD Legacy Devices | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes |  | `implemented` |  |
+| DD Legacy Devices | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes |  | `implemented` | MDD/AIMDD legacy only; not applicable to IVDD legacy. |
 | DD Legacy Devices | FLD-UDID-157 | Maximum number of reuses | 0..1 Field can be completed only if singleUse is false | Maximum | Yes | Payload | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-163 | Reference / Catalogue number | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-164 | Reprocessed single use device | 1 | UDI - Reprocessed Single Use Device | Yes | Yes | Yes |  | `implemented` |  |

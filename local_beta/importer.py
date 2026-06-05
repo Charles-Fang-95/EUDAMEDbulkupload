@@ -350,7 +350,7 @@ class WorkbookImporter:
                                 item["field"],
                                 value,
                                 normalized,
-                                "旧模板/旧写法中的 Substance Type 已按当前 v2.7 下拉值自动归一；请核对是否符合实际物质类型。",
+                                "旧模板/旧写法中的 Substance Type 已按当前模板下拉值自动归一；请核对是否符合实际物质类型。",
                             ))
                         value = normalized or value
                     row_data[item["field"]] = value
@@ -421,7 +421,7 @@ class WorkbookImporter:
                 "value": label,
                 "warning_type": "TEMPLATE_VERSION_RISK",
                 "message": f"检测到该文件可能不是当前 {TEMPLATE_VERSION} 模板，系统已按当前规则重新校验。",
-                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info 等 v2.6/v2.7 后变化字段；建议先使用迁移模板功能生成当前模板。",
+                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info、IVD 人源/动物源字段等 v2.6-v2.8 后变化字段；建议先使用迁移模板功能生成当前模板。",
             }
         )
         return warnings
@@ -524,7 +524,9 @@ class WorkbookImporter:
         original = payload.get("Special Device Type")
         special = self._special_device_code(original, payload)
         if special:
-            if str(original or "").strip() != special:
+            # 只在【真正发生归一】时才警告：当前模板下拉值是「代码 - 标签」格式，剥成代码属正常操作，
+            # 不应报「自动归一」。用提取后的代码与归一结果比较，避免对正确的当前下拉输入误报。
+            if str(self._enum_code(original) or "").strip() != special:
                 migration_warnings.append(self._normalization_warning(
                     sheet,
                     row_idx,

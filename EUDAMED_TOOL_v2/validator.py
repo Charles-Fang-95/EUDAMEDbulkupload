@@ -74,6 +74,21 @@ class DataValidator:
         self.data = data
         self.errors = []
         self.warnings = []
+        self.basic_by_code = {
+            str(row.get('Basic UDI-DI Code') or '').strip(): row
+            for row in self.data.get('Basic UDI-DI', [])
+            if str(row.get('Basic UDI-DI Code') or '').strip()
+        }
+
+    def _udi_legislation(self, row: Dict) -> str:
+        """Return the Applicable Legislation for a UDI-DI row via its parent Basic."""
+        parent_code = str(row.get('Parent Basic UDI-DI') or '').strip()
+        basic = self.basic_by_code.get(parent_code, {})
+        return str(basic.get('Applicable Legislation') or row.get('Applicable Legislation') or '').strip().upper()
+
+    def _requires_latex_field(self, row: Dict) -> bool:
+        """Containing Latex is required only for MDR/MDD/AIMDD profiles, not IVDR/IVDD."""
+        return self._udi_legislation(row) in {'MDR', 'MDD', 'AIMDD'}
     
     def validate_all(self) -> Tuple[List[ValidationError], List[ValidationError]]:
         """执行所有验证"""
@@ -279,7 +294,7 @@ class DataValidator:
         udi_di_required = [
             'Parent Basic UDI-DI', 'UDI-DI Code', 'UDI-DI Issuing Entity',
             'Device Status', 'Single Use Device', 'Device Labelled as Sterile',
-            'Containing Latex', 'Trade Name Applicable',
+            'Trade Name Applicable',
             'PI Lot/Batch Number', 'PI Expiration Date',  # 这些是布尔字段！
             'Nomenclature Code'
         ]
@@ -294,6 +309,16 @@ class DataValidator:
                         'REQUIRED_FIELD_MISSING',
                         '必填字段缺失',
                         '请填写此字段'
+                    ))
+
+            if self._requires_latex_field(row):
+                value = row.get('Containing Latex', '')
+                if value is None or value == '':
+                    self.errors.append(ValidationError(
+                        'UDI-DI', row.get('_row_number', '?'), 'Containing Latex', value,
+                        'REQUIRED_FIELD_MISSING',
+                        '必填字段缺失',
+                        'MDR/MDD/AIMDD 设备需要填写 Containing Latex；IVDR/IVDD 不需要。'
                     ))
             
             # 条件必填：Trade Name Applicable为TRUE时，Trade Name为必填

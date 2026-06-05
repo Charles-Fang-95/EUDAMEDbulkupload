@@ -1,6 +1,7 @@
 import csv
 import html
 import io
+import re
 import uuid
 import zipfile
 import xml.etree.ElementTree as ET
@@ -114,6 +115,47 @@ COUNTRY_CODE_MAP = {
     "GR": "EL",
     "GREECE": "EL",
     "希腊": "EL",
+}
+
+# 官方 XSD occurrence=1 的器械特征布尔字段：留空时工具仍按 false 输出，但预检要提示用户确认，
+# 避免「漏填 Implantable 等于声明非植入」这类无声错报。按法规分组，只对该法规会输出的字段提示。
+MANDATORY_BASIC_BOOLEANS = {
+    "common_device": [
+        "Presence of Human Tissues",
+        "Presence of Animal Tissues",
+    ],
+    "mdr_mdd": [
+        "Active Device",
+        "Measuring Function",
+        "Administer Medicine",
+        "Implantable",
+        "Reusable Surgical Instrument",
+    ],
+    "ivdr_ivdd": [
+        "Companion Diagnostic (IVDR)",
+        "Near Patient Testing (IVDR)",
+        "Self-Testing (IVDR)",
+        "Professional Testing (IVDR)",
+        "Instrument (IVDR)",
+        "Is it a Kit",
+        "Microbial Origin (IVDR)",
+        "Reagent",
+    ],
+}
+MANDATORY_UDI_BOOLEANS = {
+    "all": [
+        "Single Use Device",
+        "Device Labelled as Sterile",
+        "Needs Sterilisation Before Use",
+        "Trade Name Applicable",
+    ],
+    "mdr_mdd": [
+        "Containing Latex",
+        "Reprocessed Single Use Device",
+    ],
+    "ivdr": [
+        "New Device (IVDR)",
+    ],
 }
 
 
@@ -309,7 +351,10 @@ class BetaXMLExporter:
                         else:
                             self._validate_market_rows(errors, item)
                     self._validate_package_rows(errors, item)
+                    self._validate_number_of_reuses(errors, warnings, item)
                     self._validate_mdr_detail_rows(errors, warnings, item)
+                    self._warn_blank_udi_booleans(warnings, item)
+                    self._warn_quantity_of_device(warnings, item)
                     basic_code = str(item.get("basic_code") or payload.get("Parent Basic UDI-DI") or "").strip()
                     if basic_code and basic_code not in checked_basic_enum_codes:
                         checked_basic_enum_codes.add(basic_code)
@@ -317,6 +362,7 @@ class BetaXMLExporter:
                         if basic:
                             self._validate_basic_enum_fields(errors, basic["basic_code"], basic["payload"])
                             self._validate_cmr_rows(errors, basic["basic_code"], basic.get("cmr_rows") or [])
+                            self._warn_blank_basic_booleans(warnings, basic["basic_code"], basic["payload"])
                 if service_type == "MARKET_INFO.PATCH":
                     self._validate_market_rows(errors, item, require_rows=True)
                 if service_type == "PACKAGE_UDI.PATCH":
@@ -476,6 +522,89 @@ class BetaXMLExporter:
             if risk == "Class B":
                 return self._is_true(payload.get("Self-Testing (IVDR)")) or self._is_true(payload.get("Near Patient Testing (IVDR)"))
         return False
+
+    def _validate_number_of_reuses(self, errors: list[str], warnings: list[str], item: dict):
+        payload = item.get("payload") or {}
+        raw = payload.get("Max Number of Reuses")
+        if self._is_true(payload.get("Single Use Device")):
+            if self._has_value(raw):
+                normalized = self._normalised_number_of_reuses(raw)
+                if normalized != "0":
+                    warnings.append(
+                        f"UDI-DI {item.get('udi_code')} 是一次性使用器械，Max Number of Reuses 将按官方 XML 输出 0；"
+                        "请在模板中留空或填 0，避免误解。"
+                    )
+            return
+        if not self._has_value(raw):
+            return
+        normalized = self._normalised_number_of_reuses(raw)
+        if normalized is None:
+            errors.append(
+                f"UDI-DI {item.get('udi_code')} 的 Max Number of Reuses 必须填写整数："
+                "一次性使用填 0；可重复使用但未声明最大次数请留空或填 -1；有明确上限时填正整数。"
+            )
+            return
+        if int(normalized) < -1:
+            errors.append(
+                f"UDI-DI {item.get('udi_code')} 的 Max Number of Reuses 不能小于 -1。"
+            )
+
+    def _legislation_group(self, legislation) -> str:
+        leg = str(legislation or "").strip().upper()
+        if leg in {"MDR", "MDD", "AIMDD"}:
+            return "mdr_mdd"
+        if leg in {"IVDR", "IVDD"}:
+            return "ivdr_ivdd"
+        return ""
+
+    def _is_blank_bool(self, value) -> bool:
+        return str(value or "").strip() == ""
+
+    def _warn_blank_basic_booleans(self, warnings: list[str], basic_code: str, basic_payload: dict):
+        profile = self._profile(basic_payload)
+        if profile == "PR":
+            return
+        group = self._legislation_group(basic_payload.get("Applicable Legislation"))
+        fields = list(MANDATORY_BASIC_BOOLEANS.get("common_device", []))
+        if group:
+            fields += MANDATORY_BASIC_BOOLEANS.get(group, [])
+        blank = [f for f in fields if self._is_blank_bool(basic_payload.get(f))]
+        if blank:
+            warnings.append(
+                f"Basic UDI-DI {basic_code} 的必填布尔字段留空，导出将按 false 处理，"
+                f"请确认是否确为 FALSE：{', '.join(blank)}"
+            )
+
+    def _warn_blank_udi_booleans(self, warnings: list[str], item: dict):
+        payload = item.get("payload") or {}
+        basic_payload = item.get("basic_payload") or {}
+        profile = self._profile(basic_payload or payload)
+        group = self._legislation_group(basic_payload.get("Applicable Legislation") or payload.get("Applicable Legislation"))
+        fields = list(MANDATORY_UDI_BOOLEANS.get("all", []))
+        if group:
+            fields += MANDATORY_UDI_BOOLEANS.get(group, [])
+        if profile == "IVDR":
+            fields += MANDATORY_UDI_BOOLEANS.get("ivdr", [])
+        blank = [f for f in fields if self._is_blank_bool(payload.get(f))]
+        if blank:
+            warnings.append(
+                f"UDI-DI {item.get('udi_code')} 的必填布尔字段留空，导出将按 false 处理，"
+                f"请确认是否确为 FALSE：{', '.join(blank)}"
+            )
+
+    def _warn_quantity_of_device(self, warnings: list[str], item: dict):
+        payload = item.get("payload") or {}
+        profile = self._profile(item.get("basic_payload") or payload)
+        value = payload.get("Quantity of Device")
+        if profile in {"MDR", "IVDR"} and not self._has_value(value):
+            warnings.append(
+                f"UDI-DI {item.get('udi_code')} 是 Regulation Device，Quantity of Device 为空；"
+                "EUDAMED 可能要求填写销售单元中的设备数量。"
+            )
+        if profile in {"MDEU", "IVDEU"} and self._has_value(value):
+            warnings.append(
+                f"UDI-DI {item.get('udi_code')} 是 Legacy Device，Quantity of Device 不会输出到 XML。"
+            )
 
     def plan_export_batches(self, service_type: str, records: list[dict]) -> list[dict]:
         if service_type == "DEVICE.POST":
@@ -1157,7 +1286,7 @@ class BetaXMLExporter:
         self._append_warnings(parent, item["warning_rows"])
         self._text(parent, "udidi", "numberOfReuses", self._number_of_reuses(data))
         self._append_market_information(parent, item["market_rows"])
-        if self._has_value(data.get("Quantity of Device")):
+        if profile in {"MDR", "IVDR"} and self._has_value(data.get("Quantity of Device")):
             self._text(parent, "udidi", "baseQuantity", data.get("Quantity of Device"))
 
         self._append_device_marking(parent, data)
@@ -1567,12 +1696,34 @@ class BetaXMLExporter:
         return ISSUING_ENTITY_MAP.get(str(value or "GS1").strip(), str(value or "GS1").strip() or "GS1")
 
     def _number_of_reuses(self, data: dict):
-        raw = data.get("Max Number of Reuses")
-        if self._has_value(raw):
-            return raw
         if self._is_true(data.get("Single Use Device")):
             return "0"
-        return "1"
+        raw = data.get("Max Number of Reuses")
+        if self._has_value(raw):
+            normalized = self._normalised_number_of_reuses(raw)
+            return normalized if normalized is not None else raw
+        # Official XSD annotation for numberOfReuses:
+        # -1 = maximum number of reuses not defined / not applicable
+        #  0 = single-use device
+        # >0 = limited maximum number of reuses
+        return "-1"
+
+    def _normalised_number_of_reuses(self, value):
+        text = str(value or "").strip()
+        if not text:
+            return None
+        compact = text.upper().replace(" ", "")
+        if text in {"-", "不适用", "未定义", "无"} or compact in {
+            "N/A",
+            "NA",
+            "NOTAPPLICABLE",
+            "NOTDEFINED",
+            "UNDEFINED",
+        }:
+            return "-1"
+        if not re.fullmatch(r"[+-]?\d+", text):
+            return None
+        return str(int(text))
 
     def _text(self, parent: ET.Element, prefix: str, tag: str, value):
         if value in (None, ""):

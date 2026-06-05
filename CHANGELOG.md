@@ -6,6 +6,11 @@
 
 - 概览首页新增轻量更新提示：检测到 GitHub/Gitee 有新版本时引导用户到帮助页下载，检查结果缓存 12 小时以避免频繁请求。
 - 旧模板导入/迁移增加 v2.7 字段风险提示：自动归一 Special Device Type / Substance Type 时显示 warning，无法归一时继续报错，提醒用户重点核对 v2.6-v2.7 后变化字段。
+- 修复 Special Device Type 归一警告误报：当前模板下拉值（`代码 - 标签` 格式）剥离为代码属正常操作，不再误报「已自动归一」；只有真正的旧写法/别名才提示核对。
+- 修正 Maximum number of reuses 导出逻辑：一次性使用器械始终按官方 XSD 输出 `0`；可重复使用但未声明最大重复使用次数时输出 `-1`，不再默认输出 `1`；模板说明同步补充 `0 / -1 / 正整数` 的填写规则。
+- 新增必填布尔字段留空提示（同类问题）：Implantable、Active Device、Measuring Function 等官方必填布尔留空时仍按 false 输出，但导出预检会按法规给出 warning「该字段留空，将按 false 处理，请确认」，避免漏填被无声声明为 FALSE。
+- 默认模板升级为 `EUDAMED_Template_v2.8.xlsx`：IVDR/IVDD 主表新增人源/动物源字段，Market Info 明确同一 UDI-DI 多国家应逐行填写。
+- 修复 IVD 字段适用性：IVDR/IVDD 不再要求 `Containing Latex`，`New Device (IVDR)` 仅 IVDR Regulation Device 输出，Legacy Device 不再输出 `baseQuantity`。
 
 ## 0.9.1 - 2026-06-04
 

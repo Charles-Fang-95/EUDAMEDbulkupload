@@ -12,7 +12,7 @@ COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.7"
+TEMPLATE_VERSION = "v2.8"
 
 
 def _col(
@@ -225,8 +225,8 @@ MAIN_COLUMNS = [
     _col("Basic", "Basic - Administer Medicine", "basic", "Administer Medicine", False, "boolean", "是否用于给药。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Basic", "Basic - Implantable", "basic", "Implantable", False, "boolean", "是否为植入式器械。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Basic", "Basic - Reusable Surgical Instrument", "basic", "Reusable Surgical Instrument", False, "boolean", "是否为可重复使用的外科器械。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
-    _col("Basic", "Basic - Presence of Human Tissues", "basic", "Presence of Human Tissues", False, "boolean", "是否含有人源组织。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
-    _col("Basic", "Basic - Presence of Animal Tissues", "basic", "Presence of Animal Tissues", False, "boolean", "是否含有动物源组织。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
+    _col("Basic", "Basic - Presence of Human Tissues", "basic", "Presence of Human Tissues", False, "boolean", "是否含有人源组织。MDR/MDD/AIMDD/IVDR/IVDD 均需确认；留空导出会按 FALSE 处理。", "FALSE", "TRUE / FALSE", requirement="conditional"),
+    _col("Basic", "Basic - Presence of Animal Tissues", "basic", "Presence of Animal Tissues", False, "boolean", "是否含有动物源组织。MDR/MDD/AIMDD/IVDR/IVDD 均需确认；留空导出会按 FALSE 处理。", "FALSE", "TRUE / FALSE", requirement="conditional"),
     _col("Basic", "Basic - Medicinal Product Device", "basic", "Medicinal Product Device", False, "boolean", "是否含药品/药物相关属性。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Basic", "Basic - Companion Diagnostic (IVDR)", "basic", "Companion Diagnostic (IVDR)", False, "boolean", "IVDR 下是否为伴随诊断。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Near Patient Testing (IVDR)", "basic", "Near Patient Testing (IVDR)", False, "boolean", "IVDR 下是否为近患者检测。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
@@ -236,7 +236,7 @@ MAIN_COLUMNS = [
     _col("Basic", "Basic - Microbial Origin (IVDR)", "basic", "Microbial Origin (IVDR)", False, "boolean", "IVDR 下是否具有微生物来源。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Additional Description", "basic", "Additional Description", False, None, "Basic UDI-DI 层级附加描述；不要填写随 UDI-DI 变化的尺寸规格。", "", "文本"),
     _col("Basic", "Basic - Device Model", "basic", "Device Model", False, None, "仅在 EUDAMED 中 Model 适用于 Basic UDI-DI 时填写；不适用则留空。", "", "文本"),
-    _col("Basic", "Basic - Is it a Kit", "basic", "Is it a Kit", False, "boolean", "是否为 Kit。当前按官方 XSD 在 IVDR/IVDD 相关 kit 字段输出；旧模板中的 Basic - Kit (IVDR) 已合并到本列。MDR/MDD 暂无安全输出位置，不会强行写入 XML。", "FALSE", "TRUE / FALSE"),
+    _col("Basic", "Basic - Is it a Kit", "basic", "Is it a Kit", False, "boolean", "是否为 Kit。IVDR/IVDD 会按官方 XSD 输出，必须确认 TRUE/FALSE；MDR/MDD 暂无安全输出位置，不会强行写入 XML。", "FALSE", "TRUE / FALSE", requirement="conditional"),
     _col("Basic", "Basic - Authorised Representative SRN", "basic", "Authorised Representative SRN", False, None, "非欧盟/EEA 制造商的欧盟授权代表 SRN。", "NL-AR-000000247", "文本"),
     _col("Basic", "Basic - Special Device Type", "basic", "Special Device Type", False, None, "特殊设备类型。仅软件、眼镜/隐形眼镜、骨科、定制等官方特殊类型适用；普通器械留空。System/Procedure Pack 通常不提供。", "MDR_SOFTWARE - Software", "法规专属下拉选择"),
     _col("Basic", "Basic - Reagent", "basic", "Reagent", False, "boolean", "IVDR 下是否为试剂。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
@@ -246,14 +246,14 @@ MAIN_COLUMNS = [
     _col("UDI", "UDI - UDI-DI Code*", "udi", "UDI-DI Code", True, None, "具体 UDI-DI 的唯一代码。", "06942495390010", "8-50 位字母数字"),
     _col("UDI", "UDI - UDI-DI Issuing Entity*", "udi", "UDI-DI Issuing Entity", True, "issuing_entity", "UDI-DI 签发机构。普通 UDI 通常按实际发码机构选择 GS1/HIBCC/ICCBBA/IFA；EUDAMED 通常用于 EUDAMED DI 等 legacy 场景。", "GS1", "下拉选择"),
     _col("UDI", "UDI - Device Status*", "udi", "Device Status", True, "device_status", "设备状态。On the EU market 时必须在 Market Info 填市场国家，且每个 UDI-DI 只能有一个首次投放市场国家。国家/市场信息错误应优先通过 update/create new version 修正，不应默认删除 UDI-DI 重建。", "On the EU market", "下拉选择"),
-    _col("UDI", "UDI - Quantity of Device", "udi", "Quantity of Device", False, None, "销售单元中的设备数量。", "1", "数字"),
+    _col("UDI", "UDI - Quantity of Device", "udi", "Quantity of Device", False, None, "销售单元中的设备数量。MDR/IVDR Regulation Device 建议填写；MDD/AIMDD/IVDD Legacy 不输出到 XML。", "1", "正整数", requirement="conditional"),
     _col("UDI", "UDI - Single Use Device*", "udi", "Single Use Device", True, "boolean", "是否为一次性使用器械。", "TRUE", "TRUE / FALSE"),
-    _col("UDI", "UDI - Max Number of Reuses", "udi", "Max Number of Reuses", False, None, "如果可重复使用，填写最大重复使用次数。一次性使用通常填 0。", "0", "数字"),
+    _col("UDI", "UDI - Max Number of Reuses", "udi", "Max Number of Reuses", False, None, "条件填写：一次性使用填 0；可重复使用但未声明最大次数请留空或填 -1（工具会按官方 XML 输出 -1）；有明确上限时填正整数。不要填空标签或普通横杠。", "0 / -1 / 100", "整数；-1 表示未定义/不适用", requirement="conditional"),
     _col("UDI", "UDI - Device Labelled as Sterile*", "udi", "Device Labelled as Sterile", True, "boolean", "标签上是否标示为无菌。", "FALSE", "TRUE / FALSE"),
-    _col("UDI", "UDI - Needs Sterilisation Before Use", "udi", "Needs Sterilisation Before Use", False, "boolean", "使用前是否需要灭菌。", "FALSE", "TRUE / FALSE"),
+    _col("UDI", "UDI - Needs Sterilisation Before Use", "udi", "Needs Sterilisation Before Use", False, "boolean", "使用前是否需要灭菌。官方 XML 必须确认 TRUE/FALSE；留空导出会按 FALSE 处理。", "FALSE", "TRUE / FALSE", requirement="conditional"),
     _col("UDI", "UDI - Containing Latex*", "udi", "Containing Latex", True, "boolean", "是否含天然橡胶乳胶。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("UDI", "UDI - Reprocessed Single Use Device", "udi", "Reprocessed Single Use Device", False, "boolean", "是否为重复处理的一次性使用器械。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
-    _col("UDI", "UDI - New Device (IVDR)", "udi", "New Device (IVDR)", False, "boolean", "IVDR 下是否为新设备。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
+    _col("UDI", "UDI - New Device (IVDR)", "udi", "New Device (IVDR)", False, "boolean", "仅 IVDR Regulation Device 输出；IVDD Legacy 不输出。IVDR 下必须确认 TRUE/FALSE，留空导出会按 FALSE 处理。", "FALSE", "TRUE / FALSE", "ivdr_ivdd", requirement="conditional"),
     _col("UDI", "UDI - Direct Marking", "udi", "Direct Marking", False, "boolean", "是否进行直接标识。", "FALSE", "TRUE / FALSE"),
     _col("UDI", "UDI - DM DI Same as UDI-DI", "udi", "DM DI Same as UDI-DI", False, "boolean", "直接标识 DI 是否与 UDI-DI 相同。", "TRUE", "TRUE / FALSE"),
     _col("UDI", "UDI - DM Issuing Entity", "udi", "DM Issuing Entity", False, "issuing_entity", "直接标识 DI 的签发机构。", "GS1", "下拉选择"),
@@ -296,8 +296,8 @@ RELATED_SHEETS = OrderedDict(
         "Market Info": {
             "target": "Market Information",
             "columns": [
-                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：当主表 Device Status 为 On the EU market，或使用 Update market information service 时填写 Market Info。若填写 Market Info 行，本列必须关联主表 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
-                _related_col("Country Code*", "Country Code", True, "country_code", "条件必填：若填写 Market Info 行，本列为 UDI-DI 层 made available / 市场国家代码，必须填写；希腊使用官方代码 EL，不是 GR。", "IT", "下拉选择", requirement="conditional"),
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：当主表 Device Status 为 On the EU market，或使用 Update market information service 时填写 Market Info。同一 UDI-DI 有多个国家时，请用多行重复填写同一个 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("Country Code*", "Country Code", True, "country_code", "条件必填：每行填写一个 made available / 市场国家代码；多个国家请新增多行，不是在一个单元格多选。希腊使用官方代码 EL，不是 GR。", "IT", "下拉选择", requirement="conditional"),
                 _related_col("Placed on Market", "Placed on Market", False, "boolean", "条件必填/业务核对：若填写 Market Info 行，建议说明该国家是否已投放市场。", "TRUE", "TRUE / FALSE", requirement="conditional"),
                 _related_col("Start Date", "Start Date", False, None, "条件必填：若该国家已投放或将投放市场，建议填写上市开始日期；无法确认时先与客户核对。", "2026-01-01", "YYYY-MM-DD", requirement="conditional"),
                 _related_col("End Date", "End Date", False, None, "条件必填：仅当该国家已经或计划停止上市时填写结束日期；仍在销售则留空。", "", "YYYY-MM-DD", requirement="conditional"),

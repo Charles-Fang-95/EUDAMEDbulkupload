@@ -38,7 +38,7 @@ Feedback case/3# feedback/
 
 ```text
 01_APP-DTX-000061870.xml
-02_EUDAMED_Template_v2.7.xlsx
+02_EUDAMED_Template_v2.8.xlsx
 ```
 
 每封邮件一个 case 文件夹。若从 `.eml` 或 Outlook 邮件读取，还会保存 `email_context.txt`，包含主题、发件人和正文，便于后续复查。
