@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDocumentType/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:rd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDocumentType/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:simpleType name="MsuReportDocumentTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MSU_FINAL_INSPECTION_REPORT_DOCUMENT">
+                <xs:annotation>
+                    <xs:documentation>Final Inspection Reports</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MSU_ANNUAL_SUMMARY_REPORT_DOCUMENT">
+                <xs:annotation>
+                    <xs:documentation>Annual Summary Reports</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MSU_FOUR_YEARS_REPORT_DOCUMENT">
+                <xs:annotation>
+                    <xs:documentation>Four Years Review Reports</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MSU_FOUR_YEARS_SUMMARY_REPORT_DOCUMENT">
+                <xs:annotation>
+                    <xs:documentation>Four Years Review Reports</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="ReportDocumentType">
+        <xs:sequence>
+            <xs:element name="DocumentType" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="type" type="rd:MsuReportDocumentTypeEnum" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element name="ReportDocumentType" type="rd:ReportDocumentType"/>
+</xs:schema>

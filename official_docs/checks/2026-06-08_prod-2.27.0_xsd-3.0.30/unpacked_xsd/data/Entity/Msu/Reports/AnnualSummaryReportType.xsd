@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/AnnualSummaryReport/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:r="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDataType/v1"
+           xmlns:asr="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/AnnualSummaryReport/v1"
+           xmlns:rd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDocumentType/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDataType/v1" schemaLocation="ReportDataType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDocumentType/v1" schemaLocation="ReportDocumentType.xsd"/>
+    <xs:complexType name="AnnualSummaryReportType">
+        <xs:complexContent>
+            <xs:extension base="r:ReportDataType">
+                <xs:sequence>
+                    <xs:element name="abstractSummaryText" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="reportingYear" type="xs:int" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="reportDocumentType" type="rd:ReportDocumentType"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:element name="AnnualSummaryReportType" type="asr:AnnualSummaryReportType"/>
+</xs:schema>

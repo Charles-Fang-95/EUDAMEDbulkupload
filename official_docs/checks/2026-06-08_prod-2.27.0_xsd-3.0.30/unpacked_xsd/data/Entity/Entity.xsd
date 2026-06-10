@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" elementFormDefault="qualified">
+	<xs:simpleType name="StateEnum">
+		<xs:annotation>
+			<xs:documentation>The combination of states are defined per entity, these are all the possible values within EUDAMED.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="DELETED"/>
+			<xs:enumeration value="DRAFT"/>
+			<xs:enumeration value="REGISTERED"/>
+			<xs:enumeration value="SUBMITTED"/>
+			<xs:enumeration value="DISCARDED"/>
+			<xs:enumeration value="OTHER"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Entity" abstract="true">
+		<xs:annotation>
+			<xs:documentation>Abstract class representing en entity of the EUDAMED DTX entity model.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="state" type="e:StateEnum" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>This is the version number</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="versionDate" type="xs:dateTime" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Date when the version was initially created</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

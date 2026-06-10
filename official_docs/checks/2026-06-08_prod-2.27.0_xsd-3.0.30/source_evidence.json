@@ -1,0 +1,155 @@
+{
+  "checked_at": "2026-06-08T09:07:35+08:00",
+  "official_scope": "EUDAMED / European Commission production help pages and direct file URLs only.",
+  "http_metadata": {
+    "technical_documentation_page": {
+      "url": "https://webgate.ec.europa.eu/eudamed-help/en/documentation/technical-documentation.html",
+      "date": "Mon, 08 Jun 2026 01:01:43 GMT",
+      "last_modified": "Tue, 26 May 2026 12:19:44 GMT",
+      "etag": "\"4630-652b7829bb800\"",
+      "content_length": 17968,
+      "content_type": "text/html",
+      "publication_date": "May 18, 2026",
+      "observed_version_note": "The XSD schemas above version (v 3.0.30) relate to the current platform release (v 2.27.0).",
+      "footer_version": "European Commission-v.2.27.0"
+    },
+    "support_page": {
+      "url": "https://webgate.ec.europa.eu/eudamed-help/en/data-exchange/machine-to-machine/support/technical-documentation.html",
+      "publication_date": "May 18, 2026",
+      "footer_version": "European Commission-v.2.27.0"
+    },
+    "downloads": {
+      "xsd_schemas": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/XSD%20schemas.zip",
+        "date": "Mon, 08 Jun 2026 01:01:43 GMT",
+        "last_modified": "Tue, 26 May 2026 12:19:44 GMT",
+        "etag": "\"209bd-652b7829bb800\"",
+        "content_length": 133565,
+        "content_type": "application/zip"
+      },
+      "eo_xml_samples": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/EOs%20-%20XML%20samples.zip",
+        "date": "Mon, 08 Jun 2026 01:01:43 GMT",
+        "last_modified": "Tue, 26 May 2026 12:19:44 GMT",
+        "etag": "\"fcd3-652b7829bb800\"",
+        "content_length": 64723,
+        "content_type": "application/zip"
+      },
+      "data_dictionary": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20data%20dictionary.xlsx",
+        "date": "Mon, 08 Jun 2026 01:01:43 GMT",
+        "last_modified": "Tue, 26 May 2026 12:19:44 GMT",
+        "etag": "\"2263e-652b7829bb800\"",
+        "content_length": 140862,
+        "content_type": "application/vnd.ms-excel"
+      },
+      "business_rules": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20business%20rules.pdf",
+        "date": "Mon, 08 Jun 2026 01:01:57 GMT",
+        "last_modified": "Tue, 26 May 2026 12:19:44 GMT",
+        "etag": "\"c984a-652b7829bb800\"",
+        "content_length": 825418,
+        "content_type": "application/pdf"
+      },
+      "services_definition": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/DTX%20for%20EOs%20-%20services%20definition.pdf",
+        "date": "Mon, 08 Jun 2026 01:01:57 GMT",
+        "last_modified": "Tue, 26 May 2026 12:19:44 GMT",
+        "etag": "\"983668-652b7829bb800\"",
+        "content_length": 9975400,
+        "content_type": "application/pdf"
+      },
+      "enumerations": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20enumerations.pdf",
+        "date": "Mon, 08 Jun 2026 01:01:57 GMT",
+        "last_modified": "Tue, 26 May 2026 12:19:44 GMT",
+        "etag": "\"11de6b1-652b7829bb800\"",
+        "content_length": 18736817,
+        "content_type": "application/pdf"
+      }
+    }
+  },
+  "comparison": {
+    "xsd_schemas": {
+      "old_path": "official_docs/XSD_schemas_production_3.0.30.zip",
+      "new_path": "official_docs/checks/2026-06-08_prod-2.27.0_xsd-3.0.30/downloads/XSD_schemas.zip",
+      "old_size": 133565,
+      "new_size": 133565,
+      "old_sha256": "e3c7621a69340b1ad01d375994a6df6a131073626e2a4ae01048e0ffa04b1c3b",
+      "new_sha256": "e3c7621a69340b1ad01d375994a6df6a131073626e2a4ae01048e0ffa04b1c3b",
+      "binary_identical": true,
+      "xsd_diff": {
+        "added_files": [],
+        "removed_files": [],
+        "modified_files": []
+      }
+    },
+    "eo_xml_samples": {
+      "old_path": "official_docs/EOs_XML_samples.zip",
+      "new_path": "official_docs/checks/2026-06-08_prod-2.27.0_xsd-3.0.30/downloads/EOs_XML_samples.zip",
+      "old_size": 65580,
+      "new_size": 64723,
+      "old_sha256": "40934d2a64b9ab9e6b80008e68ee95e3349c858b8e2339d9ae41b888a381c6e8",
+      "new_sha256": "583d92b7ba59df6d4d66116cfc868fe9fe21d2abc14100d8a7ba6ce3663b7bf5",
+      "binary_identical": false,
+      "added_entries": [],
+      "removed_entries": [
+        "EOs - XML samples/SAMPLE_DTX_ACT_001.02.xml"
+      ]
+    },
+    "data_dictionary": {
+      "old_path": "official_docs/UDI_Devices_data_dictionary.xlsx",
+      "new_path": "official_docs/checks/2026-06-08_prod-2.27.0_xsd-3.0.30/downloads/UDI_Devices_data_dictionary.xlsx",
+      "old_size": 137871,
+      "new_size": 140862,
+      "old_sha256": "5a9fb37b618c173e2b097c1ac4d78213a33b9d1f74cae3d47bad1190ac3d7bb0",
+      "new_sha256": "480a170ba563712a54c6858400fb5b0b55c11e88e66de0e9fc9f54d5d9e2e6b1",
+      "binary_identical": false,
+      "added_entries": [
+        "[trash]/0000.dat"
+      ],
+      "removed_entries": [],
+      "notable_string_delta": {
+        "added": [
+          "2.27.0",
+          "Release 3.25.0 PG, 2.25.0 PROD",
+          "Release 3.27.0 PG, 2.27.0 PROD"
+        ],
+        "removed": [
+          "Release 3.25.0 PG, 3.25.1 hotfix PG, 2.25.0 PROD"
+        ]
+      }
+    },
+    "business_rules": {
+      "old_path": "official_docs/UDI_Devices_business_rules.pdf",
+      "new_path": "official_docs/checks/2026-06-08_prod-2.27.0_xsd-3.0.30/downloads/UDI_Devices_business_rules.pdf",
+      "old_size": 822918,
+      "new_size": 825418,
+      "old_sha256": "344fd158c2bc3a51b5a122e155bd01e12c2018eb7daa32a5512d5edd63ad9526",
+      "new_sha256": "b836cd8c8a32690244335eb6a1a38136ff77aa7149077906c79ffd9c062b39a3",
+      "binary_identical": false
+    },
+    "enumerations": {
+      "old_path": "official_docs/UDI_Devices_enumerations.pdf",
+      "new_path": "official_docs/checks/2026-06-08_prod-2.27.0_xsd-3.0.30/downloads/UDI_Devices_enumerations.pdf",
+      "old_size": 5775015,
+      "new_size": 18736817,
+      "old_sha256": "dfa91ce25996b73ce1a87a41f1a217eaa5aa9f290f84776421f208714dac0120",
+      "new_sha256": "e3a6a544fb3c404a208e87b13aeacdacb0e3c106d57d6b19653a3a742e23170b",
+      "binary_identical": false
+    },
+    "services_definition": {
+      "old_path": "official_docs/DTX_for_EOs_services_definition.pdf",
+      "new_path": "official_docs/checks/2026-06-08_prod-2.27.0_xsd-3.0.30/downloads/DTX_for_EOs_services_definition.pdf",
+      "old_size": 947381,
+      "new_size": 9975400,
+      "old_sha256": "1f66c9819a63203711c9cc2a39d30ea379927b65e4c6f304694d7b9fba65de0f",
+      "new_sha256": "3ba4058f14827e856d4c2d1600e8d655c93f7160350ed52c4c67e16ef6491257",
+      "binary_identical": false
+    }
+  },
+  "observed_impacts": {
+    "xsd_version": "No change; official page still states XSD v3.0.30 for platform v2.27.0.",
+    "tooling_risk": "Low immediate code risk; main impact is local official-doc baseline drift for samples, data dictionary, business rules, enumerations, and services definition."
+  }
+}

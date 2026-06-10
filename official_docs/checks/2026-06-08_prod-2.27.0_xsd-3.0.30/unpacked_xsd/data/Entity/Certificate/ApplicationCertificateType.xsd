@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:appcrtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1"
+		   xmlns:dt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1"
+		   xmlns:crtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/v1"
+		   xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+		   xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+		   xmlns:crtfcecp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1"
+		   elementFormDefault="qualified">
+
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/v1" schemaLocation="CertificateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" schemaLocation="../Common/DecisionType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1" schemaLocation="CECPType.xsd"/>
+
+	<xs:simpleType name="CertificateRefusalReasonEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="FAILURE_CLOSE_NON_CONFORMITIES">
+				<xs:annotation>
+					<xs:documentation>Compliance: failure to close non-conformitie</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="QUALITY_MGMT_SYSTEM_FAILURE">
+				<xs:annotation>
+					<xs:documentation>Compliance: Quality Management System failure.
+						Is applicable only in case of QMS/QA certificates</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="PRODUCT_QUALITY_ISSUES">
+				<xs:annotation>
+					<xs:documentation>Compliance: product quality issues</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="MDR_IVDR_REGULATIONS_REQ_NOT_MET">
+				<xs:annotation>
+					<xs:documentation>Compliance: Requirements of MDR/IVDR Regulations not met</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="MNF_OUT_OF_BUSINESS">
+				<xs:annotation>
+					<xs:documentation>Client: manufacturer has gone out of business</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="FAILURE_CONTRACTUAL_OBLIGATIONS">
+				<xs:annotation>
+					<xs:documentation>Client: fails to meet contractual obligations</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="OTHER">
+				<xs:annotation>
+					<xs:documentation>Other</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ApplicationRefusalReasonEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="APPLICATION_NOT_COMPLETE">
+				<xs:annotation>
+					<xs:documentation>Application not complete</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="WRONG_QUALIFICATION_DEVICE">
+				<xs:annotation>
+					<xs:documentation>Wrong qualification of product/classification of the device</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="WRONG_CONFORMITY_ASSESSMENT_PROCEDURE">
+				<xs:annotation>
+					<xs:documentation>Wrong conformity assessment procedure chosen</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="OUT_OF_SCOPE_NB">
+				<xs:annotation>
+					<xs:documentation>Outside the scope of the notified body’s designation</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="NOT_SUFFICIENT_RESOURCES_NB">
+				<xs:annotation>
+					<xs:documentation>Insufficient notified body resources</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="OTHER">
+				<xs:annotation>
+					<xs:documentation>Other</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ApplicationDecisionEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="WITHDRAWN_APPLICATION">
+				<xs:annotation>
+					<xs:documentation>WITHDRAWN APPLICATION (by MF)</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="APPLICATION_REFUSAL">
+				<xs:annotation>
+					<xs:documentation>APPLICATION REFUSAL (by NB)</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="REFUSED_CERTIFICATE">
+				<xs:annotation>
+					<xs:documentation>REFUSED CERTIFICATE (by NB)</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="LinkedApplicationType">
+		<xs:sequence>
+			<xs:element name="applicationDecision" type="appcrtf:ApplicationDecisionEnum" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>
+						Indicates (enumeration) if the application for conformity assessment is refused by the
+						NB, or withdrawn by the MF or the conformity assessment lead to a certificate refusal by
+						the NB.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="applicationReference" type="xs:string" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>FLD-CRF-314 - An application reference number provided by the NB. The application reference number is unique per NB.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ApplicationType">
+		<xs:complexContent>
+			<xs:extension base="dt:DecisionType">
+				<xs:sequence>
+					<xs:element name="applicationDecision" type="appcrtf:ApplicationDecisionEnum" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>
+								Indicates (enumeration) if the application for conformity assessment is refused by the NB, or
+								withdrawn by the MF or the conformity assessment lead to a certificate refusal by the NB.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="applicationReference" type="xs:string" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>FLD-CRF-314 - An application reference number provided by the NB. The application reference number is unique per NB.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CECP" type="crtfcecp:CECPType" minOccurs="0" maxOccurs="1"/>
+					<xs:choice minOccurs="1" maxOccurs="1">
+						<xs:element name="productProcedure" type="crtf:ProductProcedureType" minOccurs="1" maxOccurs="1"/>
+						<xs:element name="qualityProcedure" type="crtf:QualityProcedureType" minOccurs="1" maxOccurs="1"/>
+					</xs:choice>
+					<xs:element name="reasonRefusedCertificate" type="appcrtf:CertificateRefusalReasonEnum" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="reasonRefusedApplication" type="appcrtf:ApplicationRefusalReasonEnum" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="refusalReferenceNumber" type="commonbasic:stringSType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="otherDecisionReason" type="lsn:LanguageSpecificTextType" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="certificateRefusalDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="applicationSubmissionDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="submissionByMF" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="registrationDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:element name="Application" type="appcrtf:ApplicationType"/>
+</xs:schema>

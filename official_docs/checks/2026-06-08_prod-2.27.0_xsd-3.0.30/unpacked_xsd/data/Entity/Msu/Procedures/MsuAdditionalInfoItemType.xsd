@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/AdditionalInfo/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:vd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1"
+           xmlns:addinfo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/AdditionalInfo/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1" schemaLocation="../VersionDataType.xsd"/>
+    <xs:complexType name="MsuAdditionalInfoItemType">
+        <xs:complexContent>
+            <xs:extension base="vd:VersionDataType">
+                <xs:sequence>
+                    <xs:element name="procedureIdentifier" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                    <xs:element name="identifier" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="initiatingCa" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="additionalInformation" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="documents" type="doct:OptionalDocumentsType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MsuAdditionalInfosType">
+        <xs:sequence>
+            <xs:element name="additionalInfoType" type="addinfo:MsuAdditionalInfoItemType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

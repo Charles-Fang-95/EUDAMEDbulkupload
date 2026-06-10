@@ -808,8 +808,13 @@ class WorkbookImporter:
                 errors.append(self._validation_error(row, "Device Certificates", "Certificate Type", certificate_type, "Certificate Type 不在官方 GenericCertificateTypeEnum 中。"))
             if not nb_actor:
                 errors.append(self._validation_error(row, "Device Certificates", "Notified Body ID", "", "Device Certificates 行缺少 Notified Body ID。"))
+            elif not self._valid_nb_actor_code(nb_actor):
+                errors.append(self._validation_error(row, "Device Certificates", "Notified Body ID", nb_actor, "Notified Body ID / NANDO ID 必须为 4 位数字，例如 0483。"))
             if expiry and not re.match(r"^\d{4}-\d{2}-\d{2}$", expiry):
                 errors.append(self._validation_error(row, "Device Certificates", "Expiry Date", expiry, "Expiry Date 必须使用 YYYY-MM-DD 格式。"))
+
+    def _valid_nb_actor_code(self, value) -> bool:
+        return bool(re.fullmatch(r"\d{4}", str(value or "").strip()))
 
     def _validate_market_rules(self, parsed: dict, errors: list[dict]):
         udi_rows = {str(row.get("UDI-DI Code", "")).strip(): row for row in parsed.get("UDI-DI", [])}

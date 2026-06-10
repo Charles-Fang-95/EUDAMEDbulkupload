@@ -2,6 +2,14 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.9.3 - 2026-06-10
+
+- 修复 MDR/IVDR UDI-DI XML 中 `deviceMarking` 与 `baseQuantity` 的 XSD sequence 顺序：Direct Marking / Unit of Use DI 与 Quantity of Device 同时填写时不再因元素顺序被官方 XSD 拒绝。
+- 修复 System / Procedure Pack（PR/SPP）UDI-DI XML 结构：不再输出官方 `PRUDIDIDataType` 不允许的 `numberOfReuses`、`marketInfos`、`deviceMarking`、`baseQuantity`、`latex`、`reprocessed` 等字段。
+- 对 PR/SPP 中填写了官方 XML 不支持输出的 UDI-DI 字段增加导出预检 warning，明确这些值仅本地保留，不会写入 XML。
+- 增加 Device Certificates 的 Notified Body ID / NANDO ID 格式提示：导入时拦截非 4 位数字，导出预检提示旧库中的无效 NB ID，避免官方 XSD 才报错。
+- 扩展官方 XSD 回归测试，覆盖 PR/SPP 正常通过和 `deviceMarking` + `baseQuantity` 共存场景，防止顺序/结构问题复发。
+
 ## 0.9.2 - 2026-06-05
 
 - 概览首页新增轻量更新提示：检测到 GitHub/Gitee 有新版本时引导用户到帮助页下载，检查结果缓存 12 小时以避免频繁请求。

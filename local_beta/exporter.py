@@ -355,6 +355,7 @@ class BetaXMLExporter:
                     self._validate_mdr_detail_rows(errors, warnings, item)
                     self._warn_blank_udi_booleans(warnings, item)
                     self._warn_quantity_of_device(warnings, item)
+                    self._warn_pr_ignored_udi_fields(warnings, item)
                     basic_code = str(item.get("basic_code") or payload.get("Parent Basic UDI-DI") or "").strip()
                     if basic_code and basic_code not in checked_basic_enum_codes:
                         checked_basic_enum_codes.add(basic_code)
@@ -460,6 +461,16 @@ class BetaXMLExporter:
                 "请在模板 Device Certificates sheet 填写 Certificate Type、Notified Body ID 等字段。"
             )
             return
+        invalid_nb_codes = sorted({
+            str(row.get("Notified Body ID") or "").strip()
+            for row in cert_rows
+            if row.get("Notified Body ID") and not self._valid_nb_actor_code(row.get("Notified Body ID"))
+        })
+        if invalid_nb_codes:
+            warnings.append(
+                f"Basic UDI-DI {basic.get('basic_code')} 的 Device Certificates 中 Notified Body ID / NANDO ID "
+                f"格式可能无效：{', '.join(invalid_nb_codes)}。应填写 4 位数字，例如 0483；否则官方 XSD 可能拒绝 XML。"
+            )
         # 方案 A：只检查【跨法规】证书（法规内部的 class→证书类型匹配规则模糊、易误报，交给用户判断）。
         # 例如 MDR 器械挂了 MDD/AIMDD/IVDD/IVDR 体系的证书类型 → 几乎肯定填错了法规。
         legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
@@ -503,6 +514,9 @@ class BetaXMLExporter:
         """从 Certificate Type 枚举值（如 MDR_TYPE_EXAMINATION）取法规家族前缀（MDR）。"""
         value = str(cert_type or "").strip().upper()
         return value.split("_", 1)[0] if value else ""
+
+    def _valid_nb_actor_code(self, value) -> bool:
+        return bool(re.fullmatch(r"\d{4}", str(value or "").strip()))
 
     def _may_require_certificate_info(self, payload: dict) -> bool:
         legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
@@ -605,6 +619,37 @@ class BetaXMLExporter:
             warnings.append(
                 f"UDI-DI {item.get('udi_code')} 是 Legacy Device，Quantity of Device 不会输出到 XML。"
             )
+
+    def _warn_pr_ignored_udi_fields(self, warnings: list[str], item: dict):
+        payload = item.get("payload") or {}
+        profile = self._profile(item.get("basic_payload") or payload)
+        if profile != "PR":
+            return
+        ignored = []
+        if item.get("market_rows"):
+            ignored.append("Market Info")
+        if self._has_value(payload.get("Quantity of Device")):
+            ignored.append("Quantity of Device")
+        if (
+            self._is_true(payload.get("Direct Marking"))
+            or self._has_value(payload.get("DM DI Code"))
+            or self._has_value(payload.get("Unit of Use DI Code"))
+        ):
+            ignored.append("Direct Marking / Unit of Use DI")
+        if self._is_true(payload.get("Single Use Device")) or self._has_value(payload.get("Max Number of Reuses")):
+            ignored.append("Single Use / Max Number of Reuses")
+        if self._is_true(payload.get("Containing Latex")):
+            ignored.append("Containing Latex")
+        if self._is_true(payload.get("Reprocessed Single Use Device")):
+            ignored.append("Reprocessed Single Use Device")
+        if self._is_true(payload.get("New Device (IVDR)")):
+            ignored.append("New Device (IVDR)")
+        if not ignored:
+            return
+        warnings.append(
+            f"UDI-DI {item.get('udi_code')} 是 System / Procedure Pack；官方 PRUDIDIDataType 不支持输出 "
+            f"{', '.join(ignored)}。这些值仅本地保留，不会写入 XML。"
+        )
 
     def plan_export_batches(self, service_type: str, records: list[dict]) -> list[dict]:
         if service_type == "DEVICE.POST":
@@ -1284,12 +1329,13 @@ class BetaXMLExporter:
         self._append_storage_conditions(parent, item["storage_rows"])
         self._append_packages(parent, item["package_rows"], data)
         self._append_warnings(parent, item["warning_rows"])
+        if profile == "PR":
+            return
         self._text(parent, "udidi", "numberOfReuses", self._number_of_reuses(data))
         self._append_market_information(parent, item["market_rows"])
+        self._append_device_marking(parent, data)
         if profile in {"MDR", "IVDR"} and self._has_value(data.get("Quantity of Device")):
             self._text(parent, "udidi", "baseQuantity", data.get("Quantity of Device"))
-
-        self._append_device_marking(parent, data)
 
         if profile == "MDR":
             self._append_annex_xvi(parent, item.get("annex_xvi_rows") or [])

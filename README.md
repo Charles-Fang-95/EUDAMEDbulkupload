@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.9.2 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.9.2 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.9.3 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.9.3 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -113,7 +113,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **0.9.2 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.9.3 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -234,7 +234,7 @@ Structure of `EUDAMED_Template_v2.8.xlsx`:
 
 ## Version history
 
-Current **0.9.2 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.9.3 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

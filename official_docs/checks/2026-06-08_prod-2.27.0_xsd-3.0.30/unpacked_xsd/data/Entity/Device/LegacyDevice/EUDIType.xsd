@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDI/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:eudi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDI/v1" xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" xmlns:links="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" xmlns:basicudi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1" xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1" schemaLocation="../RegulationDevice/BasicUDIType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" schemaLocation="../../Links/LinkType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../CommonDeviceType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../../Entity.xsd"/>
+	<xs:complexType name="MDEUDIType">
+		<xs:annotation>
+			<xs:documentation>Class contains the Properties of a Device Model (BASIC UDI DI) specific to a device that has MDR, MDD or AIMDD as Applicable legislation.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="basicudi:MDRBasicUDIType">
+				<xs:sequence>
+					<xs:element name="applicableLegislation" type="eudi:MDDApplicableLegislationEnum" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-UDID-11# - Applicable Legislation. Applicable Legislation of the Device. The device can have only one Applicable Legislation. Either a Regulation value can be selected/provided (MDR or IVDR) or a Directive Regulation value (MDD, AIMDD or IVDD) - in the case of Directive Devices.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="MDDApplicableLegislationEnum">
+		<xs:annotation>
+			<xs:documentation>The Class describes the Applicable Legislation`s for Medical Devices.
+
+Two major classes of devices are depicted : Medical Devices and In Vitro medical Devices. 
+
+The legislation`s applicable for medical devices are :
+- MDR;
+- MDD;
+- AIMDD;
+
+Legislation`s applicable for In vitro Medical Devices are :
+- IVDR ;
+- IVDD ;</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="MDD">
+				<xs:annotation>
+					<xs:documentation>MDD (Council Directive 93/42/EEC on Medical devices )</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="AIMDD">
+				<xs:annotation>
+					<xs:documentation>AIMDD (Council Directive 90/385/EEC - Approximation of the laws of the Member States relating to active implantable medical devices )</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="IVDEUDIType">
+		<xs:annotation>
+			<xs:documentation>Class contains the properties of a Device Model (BASIC UDI DI) specific to a device that has IVDR or IVDD as Applicable legislation.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="basicudi:IVDRBasicUDIType">
+				<xs:sequence/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

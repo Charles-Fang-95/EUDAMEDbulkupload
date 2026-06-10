@@ -27,6 +27,7 @@ mac_app/.swiftpm/
 __pycache__/
 *.py[cod]
 .DS_Store
+~$*
 .build-cache/
 .claude/
 .codex/

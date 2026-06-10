@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:marketinfo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1" xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" xmlns:country="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" schemaLocation="../Common/CountryEnum.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../Device/CommonDeviceType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+	<xs:complexType name="DTXMarketInfoType">
+		<xs:annotation>
+			<xs:documentation>Entity used in the MarketInfo service as the wrapper entity for un update on MarketInfo. Must contain the reference to the UDI-DI in the uDIDIIdentifier field.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="uDIDIIdentifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="marketInfos" type="marketinfo:MarketInfosType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="deviceCriterion" type="commondi:deviceCriterionType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MarketInfoType">
+		<xs:annotation>
+			<xs:documentation>Stores the relationship between the UDI DI and the Market Info and represent the country were the Device is Made available on the market</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="country" type="country:EUCountryWithSpecialEnum" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-137# - Member State of the placing on the EU market of the device. Defines the Country were the device has been placed on the Market (Member State in which the device is to or has been placed on the market in the Union).
+#FLD-UDID-252# - Member State were the device is or is to be made available. Details regarding the Countries were the Device (UDI-DI) is made available on the market. There can be a Start Date (optional) and an End Date (also optional) of making available on a specific market the product. Field stores details about the Country were the Device is made available on the market. To be used in combination with originalPlacedOnTheMarket.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="endDate" type="xs:date" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-251# - End date. Details regarding the Countries were the Device (UDI-DI) is made available on the market. There can be a Start Date (optional) and an End Date (also optional) of making available on a specific market the product. Field stores details about the End Date when the Device is made available on the marked.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="originalPlacedOnTheMarket" type="xs:boolean" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-137# - Member State of the placing on the EU market of the device. Defines the Country were the device has been placed on the Market (Member State in which the device is to or has been placed on the market in the Union).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="startDate" type="xs:date" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-250# - Start date. Details regarding the Countries were the Device (UDI-DI) is made available on the market. There can be a Start Date (optional) and an End Date (also optional) of making available on a specific market the product. Field stores details about the Start Date when the Device is made available on the market.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MarketInfosType">
+		<xs:complexContent>
+			<xs:extension base="e:Entity">
+				<xs:sequence>
+					<xs:element name="marketInfo" type="marketinfo:MarketInfoType" minOccurs="1" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="OCMMarketInfoType">
+		<xs:annotation>
+			<xs:documentation>Stores the relationship between the OCM device and the Market Info and represent the country were the Device is Made available on the market</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="country" type="country:EUCountryWithSpecialEnum" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-137# - Member State of the placing on the EU market of the device. Defines the Country were the device has been placed on the Market (Member State in which the device is to or has been placed on the market in the Union).
+#FLD-UDID-252# - Member State were the device is or is to be made available. Details regarding the Countries were the Device (UDI-DI) is made available on the market. There can be a Start Date (optional) and an End Date (also optional) of making available on a specific market the product. Field stores details about the Country were the Device is made available on the market. To be used in combination with originalPlacedOnTheMarket.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>
