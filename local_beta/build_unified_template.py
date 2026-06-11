@@ -39,7 +39,15 @@ OUTPUTS = [
     ROOT / f"EUDAMED_Template_{TEMPLATE_VERSION}.xlsx",
     ROOT / "EUDAMED_TOOL_v2" / "templates" / f"EUDAMED_Template_{TEMPLATE_VERSION}.xlsx",
 ]
-MAX_DATA_ROWS = 1000
+DEFAULT_MAX_DATA_ROWS = 3000
+HIGH_VOLUME_RELATED_SHEETS = {
+    "Trade Names",
+    "Market Info",
+    "Package Info",
+    "Critical Warnings",
+    "Storage Conditions",
+}
+HIGH_VOLUME_MAX_DATA_ROWS = 10000
 DATA_START_ROW = 4
 PROTECTION_PASSWORD = "eudamed"
 
@@ -103,15 +111,16 @@ def build_workbook():
 
 
 def _build_entry_sheet(ws, sheet_name: str):
-    _build_table_sheet(ws, columns_for_entry_sheet(sheet_name))
+    _build_table_sheet(ws, columns_for_entry_sheet(sheet_name), max_data_rows=DEFAULT_MAX_DATA_ROWS)
     ws.sheet_view.showGridLines = True
 
 
 def _build_related_sheet(ws, sheet_name: str, columns: list[dict]):
-    _build_table_sheet(ws, columns)
+    max_data_rows = HIGH_VOLUME_MAX_DATA_ROWS if sheet_name in HIGH_VOLUME_RELATED_SHEETS else DEFAULT_MAX_DATA_ROWS
+    _build_table_sheet(ws, columns, max_data_rows=max_data_rows)
 
 
-def _build_table_sheet(ws, columns: list[dict]):
+def _build_table_sheet(ws, columns: list[dict], max_data_rows: int):
     for col_idx, item in enumerate(columns, start=1):
         header = ws.cell(1, col_idx, item["header"])
         header.font = _header_font(item)
@@ -140,9 +149,9 @@ def _build_table_sheet(ws, columns: list[dict]):
     last_col = get_column_letter(len(columns))
     ws.freeze_panes = "A4"
     ws.auto_filter.ref = f"A1:{last_col}1"
-    _unlock_data_area(ws, len(columns))
-    _format_data_area(ws, len(columns))
-    _add_data_validations(ws, columns)
+    _unlock_data_area(ws, len(columns), max_data_rows)
+    _format_data_area(ws, len(columns), max_data_rows)
+    _add_data_validations(ws, columns, max_data_rows)
     _protect_sheet(ws)
 
 
@@ -163,14 +172,14 @@ def _header_font(item: dict):
     return HEADER_FONT
 
 
-def _unlock_data_area(ws, column_count: int):
-    for row in ws.iter_rows(min_row=DATA_START_ROW, max_row=MAX_DATA_ROWS, min_col=1, max_col=column_count):
+def _unlock_data_area(ws, column_count: int, max_data_rows: int):
+    for row in ws.iter_rows(min_row=DATA_START_ROW, max_row=max_data_rows, min_col=1, max_col=column_count):
         for cell in row:
             cell.protection = UNLOCKED
 
 
-def _format_data_area(ws, column_count: int):
-    for row in ws.iter_rows(min_row=DATA_START_ROW, max_row=MAX_DATA_ROWS, min_col=1, max_col=column_count):
+def _format_data_area(ws, column_count: int, max_data_rows: int):
+    for row in ws.iter_rows(min_row=DATA_START_ROW, max_row=max_data_rows, min_col=1, max_col=column_count):
         for cell in row:
             cell.font = ENGLISH_FONT
             cell.number_format = "@"
@@ -226,7 +235,9 @@ def _build_how_to_use(ws):
         ("8. 多语言 Trade Name", HELP_HEAD),
         ("主表 Trade Name 是快捷列；同一 UDI-DI 有多个商品名或多语言时，请在 Trade Names sheet 中逐行填写。", None),
         ("Trade Name 的 Language 可选 ANY，表示该商品名不限定具体语言；ANY 不会自动翻译，也不代表只能填写一个商品名。", None),
-        ("如果同一 UDI-DI 有不同语言或多个商品名，可在 Trade Names sheet 填多行；能确定语言时建议选择具体语言代码。", None),
+        ("如果同一商品名不限定具体语言，Language 请选择 ANY，不需要为 27 种官方语言重复建立 27 行。", None),
+        ("只有同一 UDI-DI 在不同语言下确实有不同商品名/译名时，才需要在 Trade Names sheet 按语言逐行填写。", None),
+        ("v2.9 起 Trade Names、Market Info、Package Info、Critical Warnings、Storage Conditions 等高频一对多明细表预设到第 10000 行；主表和低频明细表预设到第 3000 行，以兼顾容量和 Excel 性能。", None),
         ("9. Reference Number", HELP_HEAD),
         ("UDI - Reference Number* 是 EUDAMED XML 必填字段。没有内部 reference/catalogue number 时，请先与客户确认可提交的 reference。", None),
         ("10. Storage / Critical Warning 枚举", HELP_HEAD),
@@ -355,7 +366,7 @@ def _split_enum(value: str) -> tuple[str, str]:
     return value, ""
 
 
-def _add_data_validations(ws, columns: list[dict]):
+def _add_data_validations(ws, columns: list[dict], max_data_rows: int):
     enum_col_map = {name: idx for idx, name in enumerate(ENUM_SOURCES.keys(), start=1)}
     for col_idx, item in enumerate(columns, start=1):
         if not item["validation"]:
@@ -368,7 +379,7 @@ def _add_data_validations(ws, columns: list[dict]):
         dv = DataValidation(type="list", formula1=formula, allow_blank=True)
         dv.prompt = item["description"]
         dv.error = "请输入下拉列表中的有效值。"
-        target = f"{get_column_letter(col_idx)}{DATA_START_ROW}:{get_column_letter(col_idx)}{MAX_DATA_ROWS}"
+        target = f"{get_column_letter(col_idx)}{DATA_START_ROW}:{get_column_letter(col_idx)}{max_data_rows}"
         dv.add(target)
         ws.add_data_validation(dv)
 

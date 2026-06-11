@@ -2,6 +2,12 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.9.4 - 2026-06-11
+
+- 默认模板升级为 `EUDAMED_Template_v2.9.xlsx`，将 Trade Names、Market Info、Package Info、Critical Warnings、Storage Conditions 等高频一对多明细表扩展到第 10000 行；主表和低频明细表保持第 3000 行，兼顾容量和 Excel 性能。
+- 强化 Trade Names 说明：同一商品名不限定具体语言时应选择 `ANY`，不需要为 27 种官方语言重复建立 27 行；只有不同语言确有不同商品名/译名时才逐语言填写。
+- 优化导入性能：导入器按最后一行真实数据扫描，不再被模板预设样式行拖慢。
+
 ## 0.9.3 - 2026-06-10
 
 - 修复 MDR/IVDR UDI-DI XML 中 `deviceMarking` 与 `baseQuantity` 的 XSD sequence 顺序：Direct Marking / Unit of Use DI 与 Quantity of Device 同时填写时不再因元素顺序被官方 XSD 拒绝。

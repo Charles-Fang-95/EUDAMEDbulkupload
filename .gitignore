@@ -46,6 +46,8 @@ Feedback case/
 !EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.7.xlsx
 !EUDAMED_Template_v2.8.xlsx
 !EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.8.xlsx
+!EUDAMED_Template_v2.9.xlsx
+!EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.9.xlsx
 
 # Official source downloads kept locally; production XSD files are tracked after unpacking.
 official_docs/*.pdf

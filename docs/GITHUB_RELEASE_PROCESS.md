@@ -45,7 +45,7 @@
 2. 选择 `Release` workflow。
 3. 点击 `Run workflow`。
 4. `version` 填不带 `v` 的版本号，例如 `0.7.1`。该版本必须与 `local_beta/constants.py` 的 `TOOL_VERSION` 和 `CHANGELOG.md` 顶部章节一致。
-5. workflow 会生成 `dist/EUDAMED_Local_Beta_Windows.zip`，并把它和 `EUDAMED_Template_v2.8.xlsx` 上传到 GitHub Release。
+5. workflow 会生成 `dist/EUDAMED_Local_Beta_Windows.zip`，并把它和 `EUDAMED_Template_v2.9.xlsx` 上传到 GitHub Release。
 6. 同一 workflow 会调用 Gitee API 创建/更新同 tag 的 Gitee Release，并上传同名附件；重复运行会删除同名旧附件后重新上传。
 
 Gitee Release 附件限制：普通项目单个附件不能超过 100M，仓库总附件容量普通项目不能超过 1G。Windows ZIP 如果超过限制，需要改用 OSS/COS/网盘等备用下载源。
@@ -55,12 +55,12 @@ Gitee Release 附件限制：普通项目单个附件不能超过 100M，仓库�
 1. 打开仓库页面，进入 `Releases`。
 2. 点击 `Draft a new release`。
 3. 创建 tag，例如 `v0.7.0`。tag 需要和 `TOOL_VERSION` 对齐。
-4. Release title 写当前版本，例如 `v0.9.3 - 公开测试版`。
+4. Release title 写当前版本，例如 `v0.9.4 - 公开测试版`。
 5. Release notes 粘贴 `CHANGELOG.md` 中对应版本的内容。
 6. 上传二进制附件，例如：
    - `EUDAMED_Local_Beta_Windows.zip`
    - `EUDAMED_Local_Beta_macOS.zip`（如有）
-   - `EUDAMED_Template_v2.8.xlsx`（可选，方便用户单独下载模板）
+   - `EUDAMED_Template_v2.9.xlsx`（可选，方便用户单独下载模板）
 7. 公开测试阶段可勾选 `Set as a pre-release`；稳定后取消。
 8. 发布后确认 Release 页面能看到附件下载链接。
 

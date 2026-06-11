@@ -254,7 +254,7 @@ class WorkbookImporter:
         headers = self._headers(ws)
         schema_by_header = {item["header"]: item for item in columns_for_entry_sheet(ws.title)}
 
-        for row_idx in range(DATA_START_ROW, ws.max_row + 1):
+        for row_idx in range(DATA_START_ROW, self._last_data_row(ws, headers) + 1):
             raw, has_data = self._row_values(ws, headers, row_idx)
             if not has_data:
                 continue
@@ -322,7 +322,7 @@ class WorkbookImporter:
         headers = self._headers(ws)
         schema_by_header = {item["header"]: item for item in columns}
         rows = []
-        for row_idx in range(DATA_START_ROW, ws.max_row + 1):
+        for row_idx in range(DATA_START_ROW, self._last_data_row(ws, headers) + 1):
             raw, has_data = self._row_values(ws, headers, row_idx)
             if not has_data:
                 continue
@@ -366,6 +366,16 @@ class WorkbookImporter:
                 break
             headers.append(str(cell.value).strip())
         return headers
+
+    def _last_data_row(self, ws, headers: list[str]) -> int:
+        if not headers:
+            return DATA_START_ROW - 1
+        max_col = len(headers)
+        for row_idx in range(ws.max_row, DATA_START_ROW - 1, -1):
+            for col_idx in range(1, max_col + 1):
+                if ws.cell(row_idx, col_idx).value not in (None, ""):
+                    return row_idx
+        return DATA_START_ROW - 1
 
     def _row_values(self, ws, headers: list[str], row_idx: int) -> tuple[dict, bool]:
         row_data = {}
@@ -421,7 +431,7 @@ class WorkbookImporter:
                 "value": label,
                 "warning_type": "TEMPLATE_VERSION_RISK",
                 "message": f"检测到该文件可能不是当前 {TEMPLATE_VERSION} 模板，系统已按当前规则重新校验。",
-                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info、IVD 人源/动物源字段等 v2.6-v2.8 后变化字段；建议先使用迁移模板功能生成当前模板。",
+                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info、IVD 人源/动物源字段、Trade Names 行数等 v2.6-v2.9 后变化字段；建议先使用迁移模板功能生成当前模板。",
             }
         )
         return warnings

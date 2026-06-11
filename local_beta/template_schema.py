@@ -12,7 +12,7 @@ COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.8"
+TEMPLATE_VERSION = "v2.9"
 
 
 def _col(
@@ -290,7 +290,7 @@ RELATED_SHEETS = OrderedDict(
             "columns": [
                 _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：主表 Trade Name 快捷列不够用、需要多语言/多个商品名时才填写本 sheet。若填写 Trade Names 行，本列必须关联主表 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
                 _related_col("Trade Name*", "Trade Name", True, None, "条件必填：若填写 Trade Names 行，本列为 UDI-DI 层商品名，必须填写；可同语言多名称或不同语言多名称。", "Trade name", "文本", requirement="conditional"),
-                _related_col("Language*", "Language", True, "language_any", "条件必填：若填写 Trade Names 行，本列为商品名语言，必须填写。ANY 表示不限定具体语言；不会自动翻译，也不代表只能有一个 Trade Name。", "ANY", "下拉选择", requirement="conditional"),
+                _related_col("Language*", "Language", True, "language_any", "条件必填：若填写 Trade Names 行，本列为商品名语言，必须填写。若同一商品名不限定具体语言，优先选择 ANY，不需要为 27 种语言重复建 27 行；ANY 不会自动翻译。", "ANY", "下拉选择", requirement="conditional"),
             ],
         },
         "Market Info": {
