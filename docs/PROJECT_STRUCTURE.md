@@ -9,7 +9,7 @@
 | `run_local_beta.py` | 启动入口 | 启动本地 web server，默认端口 `8765` |
 | `local_beta/` | 当前应用代码 | 本地网页端、导入、存储、导出、模板生成 |
 | `local_beta/static/style.css` | UI 样式 | 本地网页端样式 |
-| `EUDAMED_Template_v2.9.xlsx` | 当前用户模板 | 首页下载模板默认指向这里 |
+| `EUDAMED_Template_v2.10.xlsx` | 当前用户模板 | 首页下载模板默认指向这里 |
 | `EUDAMED_TOOL_v2/lib/` | 打包依赖 | 当前工具使用的 vendored Python 依赖 |
 | `EUDAMED_TOOL_v2/validator.py` | 复用模块 | 当前 importer 仍调用四层验证器 |
 
@@ -46,7 +46,7 @@
 | `Test sample/UM-QR-9.0-12-02 UDI-DI清单(1) 新 - 副本.xls` | 客户原始 UDI-DI 清单 |
 | `Test sample/EUDAMED_Customer_Test_Template_Unimax*.xlsx` | 历史测试输出，可归档 |
 
-正式测试优先使用当前 `EUDAMED_Template_v2.9.xlsx`，或使用迁移工具生成的 v2.9 样例。
+正式测试优先使用当前 `EUDAMED_Template_v2.10.xlsx`，或使用迁移工具生成的 v2.10 样例。
 
 ## 5. 旧工具和历史文件
 
@@ -103,7 +103,7 @@ EUDAMED 官方会随平台版本更新 XSD。工具导出 XML 时会读取本地
 
 - `local_beta/`
 - `run_local_beta.py`
-- `EUDAMED_Template_v2.9.xlsx`
+- `EUDAMED_Template_v2.10.xlsx`
 - `EUDAMED_TOOL_v2/lib/`、`EUDAMED_TOOL_v2/validator.py`
 - `official_docs/unpacked/`、`official_docs/XSD_schemas_production.zip`
 - `local_beta_data/eudamed_beta.db`（用户数据，删除即清空本地库）

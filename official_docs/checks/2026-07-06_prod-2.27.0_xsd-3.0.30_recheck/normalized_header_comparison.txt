@@ -1,0 +1,24 @@
+## raw_headers/technical_documentation_page.headers.txt
+MATCH after removing Date header
+
+## raw_headers/support_page.headers.txt
+MATCH after removing Date header
+
+## raw_headers/xsd_schemas.headers.txt
+MATCH after removing Date header
+
+## raw_headers/eo_xml_samples.headers.txt
+MATCH after removing Date header
+
+## raw_headers/data_dictionary.headers.txt
+MATCH after removing Date header
+
+## raw_headers/business_rules.headers.txt
+MATCH after removing Date header
+
+## raw_headers/enumerations.headers.txt
+MATCH after removing Date header
+
+## raw_headers/services_definition.headers.txt
+MATCH after removing Date header
+

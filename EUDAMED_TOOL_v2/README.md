@@ -2,7 +2,7 @@
 
 > 当前主工具已经迁移到根目录的本地网页端：`python3 run_local_beta.py`。
 >
-> 本目录是旧命令行转换器和 vendored 依赖目录。当前 `local_beta/` 仍复用这里的 `lib/` 和 `validator.py`，所以不能整体删除；但这里的旧 README 内容、旧模板和历史报告不代表当前 v2.9 本地网页端的使用方式。
+> 本目录是旧命令行转换器和 vendored 依赖目录。当前 `local_beta/` 仍复用这里的 `lib/` 和 `validator.py`，所以不能整体删除；但这里的旧 README 内容、旧模板和历史报告不代表当前 v2.10 本地网页端的使用方式。
 
 当前推荐阅读：
 
@@ -130,7 +130,7 @@ python eudamed_converter_integrated.py --input templates/EUDAMED_Template_v2.xls
 
 #### 1. 必填字段（标记为 *）
 - **Basic UDI-DI**: Basic UDI-DI Code, Issuing Entity, Manufacturer SRN, Risk Class, Applicable Legislation, Device Type, EMDN Code, Is it a Kit, Reagent, Presence of Medicinal Substance
-- **UDI-DI**: Parent Basic UDI-DI, UDI-DI Code, UDI-DI Issuing Entity, Device Status, Single Use Device, Device Labelled as Sterile, Containing Latex, Trade Name Applicable, PI Lot/Batch Number, PI Expiration Date, Nomenclature Code
+- **UDI-DI**: Parent Basic UDI-DI, UDI-DI Code, UDI-DI Issuing Entity, Device Status, Single Use Device, Device Labelled as Sterile, Trade Name Applicable, Nomenclature Code。Containing Latex 仅 MDR/MDD/AIMDD 适用；UDI-PI 类型字段仅 MDR/IVDR Regulation Device 或 SPP 条件适用，MDD/AIMDD/IVDD Legacy 不输出。
 
 #### 2. 数据格式要求
 

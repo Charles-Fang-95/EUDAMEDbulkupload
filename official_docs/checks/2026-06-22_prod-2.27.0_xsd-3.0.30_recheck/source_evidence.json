@@ -1,0 +1,109 @@
+{
+  "checked_at": "2026-06-22T09:02:07+08:00",
+  "official_scope": "EUDAMED / European Commission production help pages and direct file URLs only.",
+  "recheck_reason": "Scheduled automation recheck after the 2026-06-15 snapshot to confirm whether the production technical-documentation page or direct download metadata changed again.",
+  "official_pages": {
+    "support_page": {
+      "url": "https://webgate.ec.europa.eu/eudamed-help/en/data-exchange/machine-to-machine/support/technical-documentation.html",
+      "publication_date": "May 18, 2026",
+      "footer_version": "European Commission-v.2.27.0",
+      "observed_facts": [
+        "Lists DTX XSD, XML samples, service definition, business rules, enumerations, and data dictionaries as the official technical-document set."
+      ]
+    },
+    "download_index": {
+      "url": "https://webgate.ec.europa.eu/eudamed-help/en/documentation/technical-documentation.html",
+      "publication_date": "May 18, 2026",
+      "footer_version": "European Commission-v.2.27.0",
+      "observed_version_note": "The XSD schemas above version (v 3.0.30) relate to the current platform release (v 2.27.0)."
+    }
+  },
+  "http_metadata": {
+    "technical_documentation_page": {
+      "url": "https://webgate.ec.europa.eu/eudamed-help/en/documentation/technical-documentation.html",
+      "date": "Mon, 22 Jun 2026 01:01:58 GMT",
+      "last_modified": "Wed, 10 Jun 2026 12:37:37 GMT",
+      "etag": "\"4630-653e5822f0640\"",
+      "content_length": 17968,
+      "content_type": "text/html"
+    },
+    "downloads": {
+      "xsd_schemas": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/XSD%20schemas.zip",
+        "date": "Mon, 22 Jun 2026 01:01:58 GMT",
+        "last_modified": "Wed, 10 Jun 2026 12:37:38 GMT",
+        "etag": "\"209bd-653e5823e4880\"",
+        "content_length": 133565,
+        "content_type": "application/zip"
+      },
+      "eo_xml_samples": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/EOs%20-%20XML%20samples.zip",
+        "date": "Mon, 22 Jun 2026 01:01:58 GMT",
+        "last_modified": "Wed, 10 Jun 2026 12:37:37 GMT",
+        "etag": "\"fcd3-653e5822f0640\"",
+        "content_length": 64723,
+        "content_type": "application/zip"
+      },
+      "data_dictionary": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20data%20dictionary.xlsx",
+        "date": "Mon, 22 Jun 2026 01:01:58 GMT",
+        "last_modified": "Wed, 10 Jun 2026 12:37:38 GMT",
+        "etag": "\"2263e-653e5823e4880\"",
+        "content_length": 140862,
+        "content_type": "application/vnd.ms-excel"
+      },
+      "business_rules": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20business%20rules.pdf",
+        "date": "Mon, 22 Jun 2026 01:02:07 GMT",
+        "last_modified": "Wed, 10 Jun 2026 12:37:38 GMT",
+        "etag": "\"c984a-653e5823e4880\"",
+        "content_length": 825418,
+        "content_type": "application/pdf"
+      },
+      "enumerations": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20enumerations.pdf",
+        "date": "Mon, 22 Jun 2026 01:02:07 GMT",
+        "last_modified": "Wed, 10 Jun 2026 12:37:38 GMT",
+        "etag": "\"11de6b1-653e5823e4880\"",
+        "content_length": 18736817,
+        "content_type": "application/pdf"
+      },
+      "services_definition": {
+        "url": "https://webgate.ec.europa.eu/eudamed-help/en/files/DTX%20for%20EOs%20-%20services%20definition.pdf",
+        "date": "Mon, 22 Jun 2026 01:02:07 GMT",
+        "last_modified": "Wed, 10 Jun 2026 12:37:37 GMT",
+        "etag": "\"983668-653e5822f0640\"",
+        "content_length": 9975400,
+        "content_type": "application/pdf"
+      }
+    }
+  },
+  "comparison_to_prior_snapshot": {
+    "prior_snapshot_dir": "official_docs/checks/2026-06-15_prod-2.27.0_xsd-3.0.30",
+    "result": "No official metadata drift detected since 2026-06-15; all checked page and file headers matched exactly.",
+    "matching_fields": [
+      "download-index Last-Modified / ETag / Content-Length",
+      "XSD zip Last-Modified / ETag / Content-Length",
+      "EO XML samples zip Last-Modified / ETag / Content-Length",
+      "UDI data dictionary Last-Modified / ETag / Content-Length",
+      "UDI business rules Last-Modified / ETag / Content-Length",
+      "UDI enumerations Last-Modified / ETag / Content-Length",
+      "EO services definition Last-Modified / ETag / Content-Length",
+      "page publication date and footer platform version"
+    ]
+  },
+  "reused_artifacts": {
+    "reason": "Because official HTTP metadata was unchanged versus 2026-06-15, the earlier downloaded files remain the current raw official snapshot and were reused as the raw-artifact baseline for this recheck.",
+    "prior_raw_snapshot_dir": "official_docs/checks/2026-06-15_prod-2.27.0_xsd-3.0.30",
+    "checksums": "official_docs/checks/2026-06-22_prod-2.27.0_xsd-3.0.30_recheck/official_files_checksums.sha256",
+    "xsd_zip_entries": "official_docs/checks/2026-06-22_prod-2.27.0_xsd-3.0.30_recheck/xsd_zip_entries.txt",
+    "xsd_file_manifest": "official_docs/checks/2026-06-22_prod-2.27.0_xsd-3.0.30_recheck/xsd_file_manifest.tsv",
+    "eo_samples_zip_entries": "official_docs/checks/2026-06-22_prod-2.27.0_xsd-3.0.30_recheck/eo_samples_zip_entries.txt",
+    "eo_samples_diff": "official_docs/checks/2026-06-22_prod-2.27.0_xsd-3.0.30_recheck/eo_samples_diff.tsv"
+  },
+  "impact_summary": {
+    "xsd_version": "No change; official production page still states XSD v3.0.30 for platform v2.27.0.",
+    "schema_structure": "No new XSD package was needed because the official zip metadata exactly matched the 2026-06-15 snapshot whose binary and file-level XSD diff was empty versus 2026-06-08.",
+    "tooling_risk": "Low immediate code risk; no exporter, importer, validator, or template change is indicated by this recheck."
+  }
+}

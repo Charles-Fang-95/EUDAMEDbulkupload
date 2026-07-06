@@ -21,7 +21,7 @@ except ImportError:
 
 APPENDIX_PATH = ROOT / "Test sample" / "5432_Appendix A_B_C (MDR_EN ISO 13485) - Details on Types of Devices, Facilities and Suppliers_Rev.10.xlsx"
 UDI_LIST_PATH = ROOT / "Test sample" / "UM-QR-9.0-12-02 UDI-DI清单(1) 新 - 副本.xls"
-OUTPUT_PATH = ROOT / "Test sample" / "EUDAMED_Customer_Test_Template_Unimax_v2.9.xlsx"
+OUTPUT_PATH = ROOT / "Test sample" / "EUDAMED_Customer_Test_Template_Unimax_v2.10.xlsx"
 ROW_LIMIT = 10
 
 
@@ -107,8 +107,8 @@ def main():
             "UDI - Trade Name": trade_name,
             "UDI - Trade Name Language": "en",
             "UDI - Reference Number*": reference,
-            "UDI - PI Lot/Batch Number*": "TRUE",
-            "UDI - PI Expiration Date*": "TRUE",
+            "UDI - PI Lot/Batch Number": "TRUE",
+            "UDI - PI Expiration Date": "TRUE",
             "UDI - PI Manufacturing Date": "TRUE",
             "UDI - PI Serial Number": "FALSE",
             "UDI - PI Software Identification": "FALSE",

@@ -356,6 +356,7 @@ class BetaXMLExporter:
                     self._warn_blank_udi_booleans(warnings, item)
                     self._warn_quantity_of_device(warnings, item)
                     self._warn_pr_ignored_udi_fields(warnings, item)
+                    self._warn_legacy_production_identifiers(warnings, item)
                     basic_code = str(item.get("basic_code") or payload.get("Parent Basic UDI-DI") or "").strip()
                     if basic_code and basic_code not in checked_basic_enum_codes:
                         checked_basic_enum_codes.add(basic_code)
@@ -650,6 +651,18 @@ class BetaXMLExporter:
             f"UDI-DI {item.get('udi_code')} 是 System / Procedure Pack；官方 PRUDIDIDataType 不支持输出 "
             f"{', '.join(ignored)}。这些值仅本地保留，不会写入 XML。"
         )
+
+    def _warn_legacy_production_identifiers(self, warnings: list[str], item: dict):
+        payload = item.get("payload") or {}
+        profile = self._profile(item.get("basic_payload") or payload)
+        if profile not in {"MDEU", "IVDEU"}:
+            return
+        selected = [field for field in PRODUCTION_IDENTIFIER_MAP if self._is_true(payload.get(field))]
+        if selected:
+            warnings.append(
+                f"UDI-DI {item.get('udi_code')} 是 Legacy Device（MDD/AIMDD/IVDD）；"
+                f"UDI-PI 类型字段 {', '.join(selected)} 不会输出到 XML。"
+            )
 
     def plan_export_batches(self, service_type: str, records: list[dict]) -> list[dict]:
         if service_type == "DEVICE.POST":
@@ -1301,7 +1314,7 @@ class BetaXMLExporter:
         self._text(parent, "udidi", "MDNCodes", mdn_codes)
 
         production_values = [code for field, code in PRODUCTION_IDENTIFIER_MAP.items() if self._is_true(data.get(field))]
-        if production_values:
+        if production_values and profile not in {"MDEU", "IVDEU"}:
             self._text(parent, "udidi", "productionIdentifier", " ".join(production_values))
 
         self._text(parent, "udidi", "referenceNumber", data.get("Reference Number"))

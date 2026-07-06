@@ -295,7 +295,6 @@ class DataValidator:
             'Parent Basic UDI-DI', 'UDI-DI Code', 'UDI-DI Issuing Entity',
             'Device Status', 'Single Use Device', 'Device Labelled as Sterile',
             'Trade Name Applicable',
-            'PI Lot/Batch Number', 'PI Expiration Date',  # 这些是布尔字段！
             'Nomenclature Code'
         ]
         

@@ -12,7 +12,7 @@ COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.9"
+TEMPLATE_VERSION = "v2.10"
 
 
 def _col(
@@ -269,11 +269,11 @@ MAIN_COLUMNS = [
     _col("UDI", "UDI - Reference Number*", "udi", "Reference Number", True, None, "Reference / Catalogue Number；EUDAMED XML 必填。", "REF-001", "文本"),
     _col("UDI", "UDI - Product Designer SRN", "udi", "Product Designer SRN", False, None, "产品原始制造商/设计者 SRN；当前独立 update service 未实现。", "", "文本"),
     _col("UDI", "UDI - Product Designer ID", "udi", "Product Designer ID", False, None, "产品设计者内部 ID；当前独立 update service 未实现。", "", "文本"),
-    _col("UDI", "UDI - PI Lot/Batch Number*", "udi", "PI Lot/Batch Number", True, "boolean", "生产标识是否包含批号/批次号。", "TRUE", "TRUE / FALSE"),
-    _col("UDI", "UDI - PI Expiration Date*", "udi", "PI Expiration Date", True, "boolean", "生产标识是否包含失效日期。", "TRUE", "TRUE / FALSE"),
-    _col("UDI", "UDI - PI Manufacturing Date", "udi", "PI Manufacturing Date", False, "boolean", "生产标识是否包含生产日期。", "TRUE", "TRUE / FALSE"),
-    _col("UDI", "UDI - PI Serial Number", "udi", "PI Serial Number", False, "boolean", "生产标识是否包含序列号。", "FALSE", "TRUE / FALSE"),
-    _col("UDI", "UDI - PI Software Identification", "udi", "PI Software Identification", False, "boolean", "生产标识是否包含软件识别号。", "FALSE", "TRUE / FALSE"),
+    _col("UDI", "UDI - PI Lot/Batch Number", "udi", "PI Lot/Batch Number", False, "boolean", "条件填写：MDR/IVDR Regulation Device 或 SPP 需要声明适用的 UDI-PI 类型时填写 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出。", "TRUE", "TRUE / FALSE", requirement="conditional"),
+    _col("UDI", "UDI - PI Expiration Date", "udi", "PI Expiration Date", False, "boolean", "条件填写：MDR/IVDR Regulation Device 或 SPP 需要声明适用的 UDI-PI 类型时填写 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出。", "TRUE", "TRUE / FALSE", requirement="conditional"),
+    _col("UDI", "UDI - PI Manufacturing Date", "udi", "PI Manufacturing Date", False, "boolean", "条件填写：MDR/IVDR Regulation Device 或 SPP 需要声明适用的 UDI-PI 类型时填写 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出。", "TRUE", "TRUE / FALSE", requirement="conditional"),
+    _col("UDI", "UDI - PI Serial Number", "udi", "PI Serial Number", False, "boolean", "条件填写：MDR/IVDR Regulation Device 或 SPP 需要声明适用的 UDI-PI 类型时填写 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出。", "FALSE", "TRUE / FALSE", requirement="conditional"),
+    _col("UDI", "UDI - PI Software Identification", "udi", "PI Software Identification", False, "boolean", "条件填写：MDR/IVDR Regulation Device 或 SPP 需要声明适用的 UDI-PI 类型时填写 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出。", "FALSE", "TRUE / FALSE", requirement="conditional"),
     _col("UDI", "UDI - Nomenclature Code*", "udi", "Nomenclature Code", True, None, "命名代码，例如 EMDN。", "M0201030201", "文本"),
     _col("UDI", "UDI - Nomenclature System", "udi", "Nomenclature System", False, None, "命名系统。通常为 EMDN。", "EMDN", "文本"),
     _col("UDI", "UDI - Additional Description", "udi", "Additional Description", False, None, "UDI-DI 层级附加描述；可填写尺寸、规格、包装形式等随单个 UDI-DI 变化的信息。", "40S, 15 threads, 10x10cm-4ply", "文本"),

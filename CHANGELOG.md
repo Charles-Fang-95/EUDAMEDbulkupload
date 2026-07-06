@@ -2,6 +2,12 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.9.5 - 2026-07-01
+
+- 默认模板升级为 `EUDAMED_Template_v2.10.xlsx`，将 UDI-PI 类型字段（Lot/Batch、Expiration Date、Manufacturing Date、Serial Number、Software Identification）从通用必填改为条件适用，避免 IVDD/MDD/AIMDD Legacy 产品被错误要求填写。
+- 修复旧 validator：`PI Lot/Batch Number` 和 `PI Expiration Date` 不再作为所有 UDI-DI 的通用必填字段；IVDD 产品留空不再报“必填字段缺失”。
+- 修复 Legacy Device XML 输出：MDD/AIMDD/IVDD 不再输出 `productionIdentifier`；若旧数据中填写了 UDI-PI 类型，导出预检会提示这些值仅本地保留、不会写入 XML。
+
 ## 0.9.4 - 2026-06-11
 
 - 默认模板升级为 `EUDAMED_Template_v2.9.xlsx`，将 Trade Names、Market Info、Package Info、Critical Warnings、Storage Conditions 等高频一对多明细表扩展到第 10000 行；主表和低频明细表保持第 3000 行，兼顾容量和 Excel 性能。

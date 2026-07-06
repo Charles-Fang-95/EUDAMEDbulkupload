@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Date: Mon, 06 Jul 2026 01:01:40 GMT
+Last-Modified: Wed, 10 Jun 2026 12:37:38 GMT
+ETag: "2263e-653e5823e4880"
+Accept-Ranges: bytes
+Content-Length: 140862
+Content-Type: application/vnd.ms-excel
+Server: Europa
+Connection: keep-alive
+

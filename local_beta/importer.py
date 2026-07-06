@@ -252,7 +252,7 @@ class WorkbookImporter:
         migration_warnings: list[dict],
     ):
         headers = self._headers(ws)
-        schema_by_header = {item["header"]: item for item in columns_for_entry_sheet(ws.title)}
+        schema_by_header = self._schema_by_header(columns_for_entry_sheet(ws.title))
 
         for row_idx in range(DATA_START_ROW, self._last_data_row(ws, headers) + 1):
             raw, has_data = self._row_values(ws, headers, row_idx)
@@ -265,7 +265,7 @@ class WorkbookImporter:
             udi_version = ""
 
             for header, value in raw.items():
-                item = schema_by_header.get(header)
+                item = schema_by_header.get(header) or schema_by_header.get(self._canonical_header(header))
                 if not item:
                     continue
                 self._collect_format_risks(ws, row_idx, headers.index(header) + 1, item["field"], value, format_warnings)
@@ -320,7 +320,7 @@ class WorkbookImporter:
         migration_warnings: list[dict],
     ) -> list[dict]:
         headers = self._headers(ws)
-        schema_by_header = {item["header"]: item for item in columns}
+        schema_by_header = self._schema_by_header(columns)
         rows = []
         for row_idx in range(DATA_START_ROW, self._last_data_row(ws, headers) + 1):
             raw, has_data = self._row_values(ws, headers, row_idx)
@@ -328,7 +328,7 @@ class WorkbookImporter:
                 continue
             row_data = {}
             for header, value in raw.items():
-                item = schema_by_header.get(header)
+                item = schema_by_header.get(header) or schema_by_header.get(self._canonical_header(header))
                 if item:
                     self._collect_format_risks(ws, row_idx, headers.index(header) + 1, item["field"], value, format_warnings)
                     if item.get("validation") in {
@@ -366,6 +366,19 @@ class WorkbookImporter:
                 break
             headers.append(str(cell.value).strip())
         return headers
+
+    def _schema_by_header(self, columns: list[dict]) -> dict[str, dict]:
+        mapping = {}
+        for item in columns:
+            header = str(item.get("header") or "").strip()
+            if not header:
+                continue
+            mapping[header] = item
+            mapping.setdefault(self._canonical_header(header), item)
+        return mapping
+
+    def _canonical_header(self, header: str) -> str:
+        return str(header or "").strip().rstrip("*").strip().casefold()
 
     def _last_data_row(self, ws, headers: list[str]) -> int:
         if not headers:
@@ -431,7 +444,7 @@ class WorkbookImporter:
                 "value": label,
                 "warning_type": "TEMPLATE_VERSION_RISK",
                 "message": f"检测到该文件可能不是当前 {TEMPLATE_VERSION} 模板，系统已按当前规则重新校验。",
-                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info、IVD 人源/动物源字段、Trade Names 行数等 v2.6-v2.9 后变化字段；建议先使用迁移模板功能生成当前模板。",
+                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info、IVD 人源/动物源字段、Trade Names 行数、IVDD UDI-PI 适用性等 v2.6-v2.10 后变化字段；建议先使用迁移模板功能生成当前模板。",
             }
         )
         return warnings

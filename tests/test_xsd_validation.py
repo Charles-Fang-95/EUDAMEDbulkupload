@@ -315,6 +315,22 @@ class FieldVariants(XSDValidationBase):
                 )
                 self._assert_valid("DEVICE.POST", [uid], f"{profile}(maximal-applicable)")
 
+    def test_legacy_profiles_do_not_export_production_identifier(self):
+        for profile in ["MDD", "AIMDD", "IVDD"]:
+            with self.subTest(profile=profile):
+                _, uid = self._seed(
+                    profile,
+                    udi_over={
+                        "PI Lot/Batch Number": "TRUE",
+                        "PI Expiration Date": "TRUE",
+                        "PI Manufacturing Date": "TRUE",
+                        "PI Serial Number": "TRUE",
+                        "PI Software Identification": "TRUE",
+                    },
+                )
+                xml = self._xmls("DEVICE.POST", [uid])[0]
+                self.assertNotIn(b"productionIdentifier", xml)
+
 
 class NegativePreflight(XSDValidationBase):
     """非法输入应被预检拦下（拦截逻辑不退化）。"""
