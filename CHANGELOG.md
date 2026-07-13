@@ -7,6 +7,7 @@
 - 默认模板升级为 `EUDAMED_Template_v2.10.xlsx`，将 UDI-PI 类型字段（Lot/Batch、Expiration Date、Manufacturing Date、Serial Number、Software Identification）从通用必填改为条件适用，避免 IVDD/MDD/AIMDD Legacy 产品被错误要求填写。
 - 修复旧 validator：`PI Lot/Batch Number` 和 `PI Expiration Date` 不再作为所有 UDI-DI 的通用必填字段；IVDD 产品留空不再报“必填字段缺失”。
 - 修复 Legacy Device XML 输出：MDD/AIMDD/IVDD 不再输出 `productionIdentifier`；若旧数据中填写了 UDI-PI 类型，导出预检会提示这些值仅本地保留、不会写入 XML。
+- 调整发布流程：Gitee Release 镜像改为尽力同步，50MB Windows ZIP 上传超时不再导致 GitHub 主 Release 失败；帮助页下载逻辑也避免把模板附件误当作 Windows ZIP。
 
 ## 0.9.4 - 2026-06-11
 

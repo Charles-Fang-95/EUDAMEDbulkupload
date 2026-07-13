@@ -184,6 +184,7 @@ jobs:
           gh release view "$TAG" --json url -q .url
 
       - name: Create or update Gitee Release
+        continue-on-error: true
         shell: bash
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
@@ -196,8 +197,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${GITEE_TOKEN:-}" ]; then
-            echo "::error::GITEE_TOKEN secret 未配置。请在 GitHub repo Settings → Secrets and variables → Actions 添加 GITEE_TOKEN。"
-            exit 1
+            echo "::warning::GITEE_TOKEN secret 未配置；已跳过 Gitee 镜像同步，GitHub Release 不受影响。"
+            exit 0
           fi
           python - <<'PY'
           import json
@@ -222,10 +223,10 @@ jobs:
           title = tag
           notes = pathlib.Path("release_notes.md").read_text(encoding="utf-8")
           assets = [
-              pathlib.Path("dist/EUDAMED_Local_Beta_Windows.zip"),
               pathlib.Path("EUDAMED_Template_v2.10.xlsx"),
+              pathlib.Path("dist/EUDAMED_Local_Beta_Windows.zip"),
           ]
-          UPLOAD_TIMEOUT_SECONDS = 900
+          UPLOAD_TIMEOUT_SECONDS = int(os.environ.get("GITEE_UPLOAD_TIMEOUT_SECONDS", "1800"))
           UPLOAD_RETRIES = 3
           GITEE_MAX_ASSET_BYTES = 100 * 1024 * 1024
 
@@ -366,26 +367,38 @@ jobs:
                   f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}/attach_files",
               )
           )
-          asset_names = {asset.name for asset in assets}
-          for item in existing:
-              name = item.get("name") or item.get("filename") or item.get("file_name")
-              attach_id = item.get("id")
-              if name in asset_names and attach_id:
-                  print(f"Deleting old Gitee asset: {name}")
-                  request_json(
-                      "DELETE",
-                      f"/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}/releases/{release_id}/attach_files/{attach_id}",
-                  )
+          existing_names = {
+              item.get("name") or item.get("filename") or item.get("file_name")
+              for item in existing
+          }
 
+          failed_assets = []
           for asset in assets:
               if not asset.exists():
                   raise SystemExit(f"Missing asset for Gitee release: {asset}")
+              if asset.name in existing_names:
+                  print(f"Gitee asset already exists, keeping existing copy: {asset.name}")
+                  continue
               if asset.stat().st_size > GITEE_MAX_ASSET_BYTES:
-                  raise SystemExit(
+                  print(
+                      "::warning::"
                       f"Gitee 普通项目单个 Release 附件上限约 100MB，{asset.name} 当前为 "
-                      f"{asset.stat().st_size / 1024 / 1024:.1f} MB。请改用 OSS/COS/网盘或压缩包瘦身。"
+                      f"{asset.stat().st_size / 1024 / 1024:.1f} MB。已跳过该附件。"
                   )
-              upload_with_retry(release_id, asset)
+                  failed_assets.append(asset.name)
+                  continue
+              try:
+                  upload_with_retry(release_id, asset)
+              except SystemExit as exc:
+                  print(f"::warning::Gitee asset upload failed but GitHub Release will remain valid: {exc}")
+                  failed_assets.append(asset.name)
 
-          print(f"Gitee Release synced: https://gitee.com/{owner}/{repo}/releases/tag/{tag}")
+          if failed_assets:
+              print(
+                  "::warning::"
+                  f"Gitee Release metadata synced but some assets failed: {', '.join(failed_assets)}. "
+                  "Users can still download from GitHub Release."
+              )
+          else:
+              print(f"Gitee Release synced: https://gitee.com/{owner}/{repo}/releases/tag/{tag}")
           PY

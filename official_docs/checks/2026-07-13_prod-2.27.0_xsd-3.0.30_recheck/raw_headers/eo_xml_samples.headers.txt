@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Date: Mon, 13 Jul 2026 01:03:25 GMT
+Last-Modified: Wed, 10 Jun 2026 12:37:37 GMT
+ETag: "fcd3-653e5822f0640"
+Accept-Ranges: bytes
+Content-Length: 64723
+Content-Type: application/zip
+Server: Europa
+Connection: keep-alive
+

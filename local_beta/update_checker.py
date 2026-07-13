@@ -267,6 +267,12 @@ def _release_page_url(source: str) -> str:
 def _preferred_asset(assets: list[dict]) -> dict:
     if not assets:
         return {}
+    package_assets = [
+        asset for asset in assets
+        if str(asset.get("name") or "").lower().endswith((".zip", ".exe", ".dmg", ".pkg"))
+    ]
+    if not package_assets:
+        return {}
     system = platform.system().lower()
     if system == "windows":
         keywords = ("windows", "win", ".exe")
@@ -281,7 +287,7 @@ def _preferred_asset(assets: list[dict]) -> dict:
         package_score = 1 if name.endswith((".zip", ".exe", ".dmg", ".pkg")) else 0
         return (platform_score, package_score)
 
-    return max(assets, key=score)
+    return max(package_assets, key=score)
 
 
 def compare_versions(a: str, b: str) -> int:

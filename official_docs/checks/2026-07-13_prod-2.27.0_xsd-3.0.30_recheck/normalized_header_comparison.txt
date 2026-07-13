@@ -1,0 +1,63 @@
+## technical_documentation_page
+last_modified: current='Wed, 10 Jun 2026 12:37:37 GMT' previous='Wed, 10 Jun 2026 12:37:37 GMT' match=True
+etag: current='"4630-653e5822f0640"' previous='"4630-653e5822f0640"' match=True
+content_length: current=17968 previous=17968 match=True
+content_type: current='text/html' previous='text/html' match=True
+date: current='Mon, 13 Jul 2026 01:04:11 GMT' previous='Mon, 06 Jul 2026 01:01:37 GMT'
+date_changed_only: True
+
+## support_page
+last_modified: current='Wed, 10 Jun 2026 12:37:37 GMT' previous='Wed, 10 Jun 2026 12:37:37 GMT' match=True
+etag: current='"3475-653e5822f0640"' previous='"3475-653e5822f0640"' match=True
+content_length: current=13429 previous=13429 match=True
+content_type: current='text/html' previous='text/html' match=True
+date: current='Mon, 13 Jul 2026 01:04:11 GMT' previous='Mon, 06 Jul 2026 01:01:37 GMT'
+date_changed_only: True
+
+## xsd_schemas
+last_modified: current='Wed, 10 Jun 2026 12:37:38 GMT' previous='Wed, 10 Jun 2026 12:37:38 GMT' match=True
+etag: current='"209bd-653e5823e4880"' previous='"209bd-653e5823e4880"' match=True
+content_length: current=133565 previous=133565 match=True
+content_type: current='application/zip' previous='application/zip' match=True
+date: current='Mon, 13 Jul 2026 01:03:26 GMT' previous='Mon, 06 Jul 2026 01:01:38 GMT'
+date_changed_only: True
+
+## eo_xml_samples
+last_modified: current='Wed, 10 Jun 2026 12:37:37 GMT' previous='Wed, 10 Jun 2026 12:37:37 GMT' match=True
+etag: current='"fcd3-653e5822f0640"' previous='"fcd3-653e5822f0640"' match=True
+content_length: current=64723 previous=64723 match=True
+content_type: current='application/zip' previous='application/zip' match=True
+date: current='Mon, 13 Jul 2026 01:03:25 GMT' previous='Mon, 06 Jul 2026 01:01:39 GMT'
+date_changed_only: True
+
+## data_dictionary
+last_modified: current='Wed, 10 Jun 2026 12:37:38 GMT' previous='Wed, 10 Jun 2026 12:37:38 GMT' match=True
+etag: current='"2263e-653e5823e4880"' previous='"2263e-653e5823e4880"' match=True
+content_length: current=140862 previous=140862 match=True
+content_type: current='application/vnd.ms-excel' previous='application/vnd.ms-excel' match=True
+date: current='Mon, 13 Jul 2026 01:03:26 GMT' previous='Mon, 06 Jul 2026 01:01:40 GMT'
+date_changed_only: True
+
+## business_rules
+last_modified: current='Wed, 10 Jun 2026 12:37:38 GMT' previous='Wed, 10 Jun 2026 12:37:38 GMT' match=True
+etag: current='"c984a-653e5823e4880"' previous='"c984a-653e5823e4880"' match=True
+content_length: current=825418 previous=825418 match=True
+content_type: current='application/pdf' previous='application/pdf' match=True
+date: current='Mon, 13 Jul 2026 01:03:25 GMT' previous='Mon, 06 Jul 2026 01:01:40 GMT'
+date_changed_only: True
+
+## enumerations
+last_modified: current='Wed, 10 Jun 2026 12:37:38 GMT' previous='Wed, 10 Jun 2026 12:37:38 GMT' match=True
+etag: current='"11de6b1-653e5823e4880"' previous='"11de6b1-653e5823e4880"' match=True
+content_length: current=18736817 previous=18736817 match=True
+content_type: current='application/pdf' previous='application/pdf' match=True
+date: current='Mon, 13 Jul 2026 01:03:26 GMT' previous='Mon, 06 Jul 2026 01:01:41 GMT'
+date_changed_only: True
+
+## services_definition
+last_modified: current='Wed, 10 Jun 2026 12:37:37 GMT' previous='Wed, 10 Jun 2026 12:37:37 GMT' match=True
+etag: current='"983668-653e5822f0640"' previous='"983668-653e5822f0640"' match=True
+content_length: current=9975400 previous=9975400 match=True
+content_type: current='application/pdf' previous='application/pdf' match=True
+date: current='Mon, 13 Jul 2026 01:03:26 GMT' previous='Mon, 06 Jul 2026 01:01:42 GMT'
+date_changed_only: True
