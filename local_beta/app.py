@@ -20,6 +20,7 @@ from .constants import (
     GITEE_RELEASES_API_URL,
     RELEASES_API_URL,
     STATIC_DIR,
+    TEMPLATE_EN_PATH,
     TEMPLATE_PATH,
     TOOL_VERSION,
     UDI_FIELDS,
@@ -329,7 +330,9 @@ class App:
                 return self.not_found(request, t("文件不存在", "File not found"))
             return self.respond_file(request, STATIC_DIR / filename, content_type, inline=True)
         if request.command == "GET" and path == "/download-template":
-            return self.respond_file(request, TEMPLATE_PATH, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            locale = (query.get("locale", [""])[0] or "").lower()
+            template_path = TEMPLATE_EN_PATH if locale == "en" or (not locale and self._lang_from_request(request) == "en") else TEMPLATE_PATH
+            return self.respond_file(request, template_path, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         if request.command == "GET" and path.startswith("/download/"):
             filename = path.split("/")[-1]
             return self.respond_file(request, EXPORT_DIR / filename, self._download_content_type(filename))

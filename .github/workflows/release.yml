@@ -111,13 +111,13 @@ jobs:
               "1. Download `EUDAMED_Local_Beta_Windows.zip` from the assets below.",
               "2. Unzip it to a local folder, then run the launcher inside the folder.",
               "3. Your local data is stored separately under `local_beta_data/`; replacing the tool package does not delete your database or exports.",
-              "4. Download `EUDAMED_Template_v2.10.xlsx` if you need the latest template.",
+              "4. Download `EUDAMED_Template_v2.10.xlsx` for the Chinese template or `EUDAMED_Template_v2.10_EN.xlsx` for the English template.",
               "",
               "中文说明：",
               "1. 在下方 Assets 下载 `EUDAMED_Local_Beta_Windows.zip`。",
               "2. 解压到本地文件夹，运行其中的启动程序。",
               "3. 本地数据默认保存在 `local_beta_data/`，替换新版程序不会删除数据库或导出文件。",
-              "4. 如需最新版模板，请同时下载 `EUDAMED_Template_v2.10.xlsx`。",
+              "4. 如需最新版模板，中文模板下载 `EUDAMED_Template_v2.10.xlsx`，英文模板下载 `EUDAMED_Template_v2.10_EN.xlsx`。",
           ])
           body = guide.strip() + "\n\n" + body
           with open("release_notes.md", "w", encoding="utf-8") as f:
@@ -147,6 +147,7 @@ jobs:
           set -euo pipefail
           test -f "dist/EUDAMED_Local_Beta_Windows.zip" || { echo "::error::Windows ZIP 未生成"; exit 1; }
           test -f "EUDAMED_Template_v2.10.xlsx" || { echo "::error::模板 xlsx 缺失"; exit 1; }
+          test -f "EUDAMED_Template_v2.10_EN.xlsx" || { echo "::error::英文模板 xlsx 缺失"; exit 1; }
           ls -la dist/
 
       - name: Create or update GitHub Release
@@ -168,6 +169,7 @@ jobs:
             gh release upload "$TAG" \
               "dist/EUDAMED_Local_Beta_Windows.zip" \
               "EUDAMED_Template_v2.10.xlsx" \
+              "EUDAMED_Template_v2.10_EN.xlsx" \
               --clobber
           else
             # 不带 --target 时，workflow_dispatch 会在当前 commit 上自动创建 tag
@@ -177,7 +179,8 @@ jobs:
               $PRE_FLAG \
               --target "${{ github.sha }}" \
               "dist/EUDAMED_Local_Beta_Windows.zip" \
-              "EUDAMED_Template_v2.10.xlsx"
+              "EUDAMED_Template_v2.10.xlsx" \
+              "EUDAMED_Template_v2.10_EN.xlsx"
           fi
 
           echo "Release URL:"
@@ -200,7 +203,7 @@ jobs:
             echo "::warning::GITEE_TOKEN secret 未配置；已跳过 Gitee 镜像同步，GitHub Release 不受影响。"
             exit 0
           fi
-          python - <<'PY'
+          python - <<'PY' || { echo "::warning::Gitee Release sync failed before completion; GitHub Release remains valid."; exit 0; }
           import json
           import mimetypes
           import os
@@ -224,6 +227,7 @@ jobs:
           notes = pathlib.Path("release_notes.md").read_text(encoding="utf-8")
           assets = [
               pathlib.Path("EUDAMED_Template_v2.10.xlsx"),
+              pathlib.Path("EUDAMED_Template_v2.10_EN.xlsx"),
               pathlib.Path("dist/EUDAMED_Local_Beta_Windows.zip"),
           ]
           UPLOAD_TIMEOUT_SECONDS = int(os.environ.get("GITEE_UPLOAD_TIMEOUT_SECONDS", "1800"))
@@ -252,6 +256,8 @@ jobs:
                   if exc.code == 404 and not_found_none:
                       return None
                   raise SystemExit(f"Gitee API {method} {path} failed: HTTP {exc.code} {body}") from exc
+              except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                  raise SystemExit(f"Gitee API {method} {path} failed due to network/SSL timeout: {exc}") from exc
 
           def normalize_attachments(payload):
               if isinstance(payload, list):

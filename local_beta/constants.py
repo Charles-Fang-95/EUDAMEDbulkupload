@@ -20,6 +20,8 @@ STYLE_PATH = STATIC_DIR / "style.css"
 TEMPLATE_VERSION = "v2.10"
 TEMPLATE_FILENAME = f"EUDAMED_Template_{TEMPLATE_VERSION}.xlsx"
 TEMPLATE_PATH = RESOURCE_ROOT / TEMPLATE_FILENAME
+TEMPLATE_EN_FILENAME = f"EUDAMED_Template_{TEMPLATE_VERSION}_EN.xlsx"
+TEMPLATE_EN_PATH = RESOURCE_ROOT / TEMPLATE_EN_FILENAME
 VENDOR_LIB = RESOURCE_ROOT / "EUDAMED_TOOL_v2" / "lib"
 TOOL_DIR = RESOURCE_ROOT / "EUDAMED_TOOL_v2"
 OFFICIAL_DOCS_DIR = RESOURCE_ROOT / "official_docs"
@@ -35,9 +37,9 @@ BULK_UPLOAD_LIMIT_SOURCE = (
 
 # 工具自身版本与最近更新日期（页脚展示，由维护者更新）
 # TOOL_VERSION 是语义化版本号，用于「检查更新」比对；TOOL_VERSION_LABEL 给人看，可带中文修饰。
-TOOL_VERSION = "0.9.5"
-TOOL_VERSION_LABEL = "0.9.5 · 公开测试版"
-TOOL_UPDATED = "2026-07-01"
+TOOL_VERSION = "0.9.6"
+TOOL_VERSION_LABEL = "0.9.6 · 公开测试版"
+TOOL_UPDATED = "2026-07-14"
 
 # 检查更新：优先 GitHub Releases API，失败时尝试 Gitee Release API；留空时帮助页显示「未配置更新源」。
 RELEASES_API_URL = "https://api.github.com/repos/Charles-Fang-95/EUDAMEDbulkupload/releases/latest"

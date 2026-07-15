@@ -7,9 +7,23 @@ local_beta_data/
 # Generated exports, responses, reports
 exports/
 uploads/
+output/
+hatch_runs/
 *.xml
 eudamed_report_*.html
 eudamed_report_*.json
+*.mp4
+*.mov
+*.m4v
+*.avi
+*.mkv
+*.webm
+*.mp3
+*.wav
+*.aac
+*.m4a
+*.srt
+*.ass
 
 # Build artifacts
 dist/
@@ -50,6 +64,8 @@ Feedback case/
 !EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.9.xlsx
 !EUDAMED_Template_v2.10.xlsx
 !EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.10.xlsx
+!EUDAMED_Template_v2.10_EN.xlsx
+!EUDAMED_TOOL_v2/templates/EUDAMED_Template_v2.10_EN.xlsx
 
 # Official source downloads kept locally; production XSD files are tracked after unpacking.
 official_docs/*.pdf

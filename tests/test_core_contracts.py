@@ -1,8 +1,12 @@
 import unittest
 import importlib.util
+import re
 from pathlib import Path
 
+from openpyxl import Workbook
+
 from local_beta import constants, template_schema
+from local_beta import build_unified_template, views
 from local_beta.exporter import BULK_UPLOAD_ENTITY_LIMIT, BetaXMLExporter
 from local_beta.importer import WorkbookImporter
 
@@ -19,7 +23,88 @@ class VersionContractTests(unittest.TestCase):
     def test_template_version_constants_stay_aligned(self):
         self.assertEqual(constants.TEMPLATE_VERSION, template_schema.TEMPLATE_VERSION)
         self.assertEqual(constants.TEMPLATE_FILENAME, f"EUDAMED_Template_{constants.TEMPLATE_VERSION}.xlsx")
+        self.assertEqual(constants.TEMPLATE_EN_FILENAME, f"EUDAMED_Template_{constants.TEMPLATE_VERSION}_EN.xlsx")
         self.assertEqual(constants.SCHEMA_VERSION, "3.0.30")
+
+    def test_release_template_assets_exist(self):
+        root = Path(__file__).resolve().parents[1]
+        expected = [
+            root / constants.TEMPLATE_FILENAME,
+            root / constants.TEMPLATE_EN_FILENAME,
+            root / "EUDAMED_TOOL_v2" / "templates" / constants.TEMPLATE_FILENAME,
+            root / "EUDAMED_TOOL_v2" / "templates" / constants.TEMPLATE_EN_FILENAME,
+        ]
+        self.assertEqual([str(path) for path in expected if not path.is_file()], [])
+
+
+class EnglishTemplateCopyTests(unittest.TestCase):
+    def test_schema_fields_have_english_copy_without_cjk(self):
+        cjk = re.compile(r"[\u3400-\u9fff]")
+        missing = []
+        leaked = []
+        for item in template_schema.ALL_COLUMNS:
+            for key in ("description_en", "format_en"):
+                value = str(item.get(key) or "")
+                if not value:
+                    missing.append(f"{item['header']}:{key}")
+                if cjk.search(value):
+                    leaked.append(f"{item['header']}:{key}={value}")
+
+        self.assertEqual(missing, [])
+        self.assertEqual(leaked, [])
+
+    def test_context_sensitive_english_copy_matches_field_semantics(self):
+        by_header = {item["header"]: item for item in template_schema.MAIN_COLUMNS}
+        medicinal = by_header["Basic - Presence of Medicinal Substance"]
+        basic_description = by_header["Basic - Additional Description"]
+
+        self.assertIn("not exported separately", medicinal["description_en"])
+        self.assertIn("Basic UDI-DI-level", basic_description["description_en"])
+
+        trade_name_columns = template_schema.RELATED_SHEETS["Trade Names"]["columns"]
+        trade_name_copy = {item["field"]: item["description_en"] for item in trade_name_columns}
+        self.assertIn("Trade Names row", trade_name_copy["Trade Name"])
+        self.assertIn("Choose ANY", trade_name_copy["Language"])
+
+    def test_english_how_to_use_matches_chinese_scope(self):
+        zh = build_unified_template._how_to_use_lines_zh()
+        en = build_unified_template._how_to_use_lines_en()
+
+        self.assertEqual(len(en), len(zh))
+        english_text = "\n".join(text for text, _ in en)
+        for phrase in (
+            "Update container package service",
+            "Clinical Sizes",
+            "Greece is EL, not GR",
+            "IFA",
+            "WPS / Excel compatibility",
+            "Presence of Medicinal Substance",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, english_text)
+
+    def test_dropdown_validation_displays_guidance_and_blocks_invalid_values(self):
+        workbook = Workbook()
+        worksheet = workbook.active
+        boolean_column = next(item for item in template_schema.MAIN_COLUMNS if item["validation"] == "boolean")
+
+        build_unified_template._add_data_validations(worksheet, [boolean_column], 20, "en")
+
+        validation = list(worksheet.data_validations.dataValidation)[0]
+        self.assertTrue(validation.showInputMessage)
+        self.assertTrue(validation.showErrorMessage)
+        self.assertEqual(validation.errorStyle, "stop")
+        self.assertEqual(validation.promptTitle, "Field guidance")
+
+    def test_english_web_fields_show_english_guidance_and_version_label(self):
+        views.set_lang("en")
+        try:
+            field_html = views.field_input("Presence of Medicinal Substance", "")
+            self.assertIn("field-hint", field_html)
+            self.assertIn("not exported separately", field_html)
+            self.assertEqual(views.version_label(), f"{constants.TOOL_VERSION} · Public Beta")
+        finally:
+            views.set_lang("zh")
 
 
 class ImportHeaderCompatibilityTests(unittest.TestCase):

@@ -15,6 +15,169 @@ LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
 TEMPLATE_VERSION = "v2.10"
 
 
+_FORMAT_EN = {
+    "": "",
+    "自由文本": "Free text",
+    "文本": "Text",
+    "数字或文本": "Number or text",
+    "数字": "Number",
+    "正整数": "Positive integer",
+    "整数；-1 表示未定义/不适用": "Integer; use -1 for undefined/not applicable",
+    "8-50 位字母数字": "8-50 alphanumeric characters",
+    "下拉选择": "Select from the dropdown",
+    "法规专属下拉选择": "Select from the regulation-specific dropdown",
+    "TRUE / FALSE": "TRUE / FALSE",
+    "YYYY-MM-DD": "YYYY-MM-DD",
+    "URL": "URL",
+    "邮箱": "Email address",
+}
+
+
+_DESCRIPTION_EN_BY_ZH = {
+    "制造商 SRN。非欧盟/EEA 制造商必须填写授权代表 SRN。": "Manufacturer SRN. For non-EU/EEA manufacturers, the authorised representative SRN must also be provided.",
+    "Basic UDI-DI 层级附加描述；不要填写随 UDI-DI 变化的尺寸规格。": "Basic UDI-DI-level additional description. Do not enter sizes or specifications that vary by UDI-DI here.",
+    "仅在 EUDAMED 中 Model 适用于 Basic UDI-DI 时填写；不适用则留空。": "Fill this only when Model applies at Basic UDI-DI level in EUDAMED; otherwise leave it blank.",
+    "非欧盟/EEA 制造商的欧盟授权代表 SRN。": "EU authorised representative SRN for a non-EU/EEA manufacturer.",
+    "IVDR 下是否为试剂。": "For IVDR devices, confirm whether the device is a reagent.",
+    "待审计字段：当前 XML 不单独输出；目前导出的是 Basic - Medicinal Product Device。": "Mapping-under-review field. It is not exported separately in the current XML; the exporter currently uses Basic - Medicinal Product Device instead.",
+    "条件必填：主表 Trade Name 快捷列不够用、需要多语言/多个商品名时才填写本 sheet。若填写 Trade Names 行，本列必须关联主表 UDI-DI Code。": "Use the Trade Names sheet when the main-sheet shortcut is insufficient or multiple/language-specific names are needed. Every populated row must link to a main-sheet UDI-DI Code.",
+    "条件必填：若填写 Trade Names 行，本列为 UDI-DI 层商品名，必须填写；可同语言多名称或不同语言多名称。": "Required for every populated Trade Names row. Enter the UDI-DI-level trade name; multiple names may use the same or different languages.",
+    "条件必填：若填写 Trade Names 行，本列为商品名语言，必须填写。若同一商品名不限定具体语言，优先选择 ANY，不需要为 27 种语言重复建 27 行；ANY 不会自动翻译。": "Required for every populated Trade Names row. Choose ANY when the same name is not language-specific; do not create 27 duplicate rows. ANY does not translate the name.",
+    "条件必填：当主表 Device Status 为 On the EU market，或使用 Update market information service 时填写 Market Info。同一 UDI-DI 有多个国家时，请用多行重复填写同一个 UDI-DI Code。": "Fill Market Info when Device Status is On the EU market or when using Update Market Information. Repeat the same UDI-DI Code on separate rows for multiple countries.",
+    "条件必填：只有产品存在 container package / 多层包装 DI 时才需要填写 Package Info。若填写本 sheet 任意包装行，本列用于关联主表 UDI-DI Code，必须填写；无包装层级时整张 sheet 可留空。": "Use Package Info only when container-package or multi-level packaging DIs exist. Every populated row must link to the main UDI-DI Code; leave the whole sheet blank when no package DI exists.",
+    "条件必填：仅 MDR 设备存在结构化 Clinical Sizes 时填写。若填写 Clinical Sizes 行，本列必须关联主表 UDI-DI Code。": "Use Clinical Sizes only for MDR devices with structured clinical-size data. Every populated row must link to a main-sheet UDI-DI Code.",
+    "条件必填：填写 Clinical Size Type Description 时说明语言。": "Required when Clinical Size Type Description is filled; select the description language.",
+    "条件必填：仅 MDR Annex XVI 非医疗目的产品填写。若填写 Annex XVI Purposes 行，本列必须关联主表 UDI-DI Code。": "Use this sheet only for MDR Annex XVI products without an intended medical purpose. Every populated row must link to a main-sheet UDI-DI Code.",
+    "条件必填：只有产品标签/说明书存在 critical warning 或 contraindication 时填写本 sheet。若填写 Critical Warnings 行，本列必须关联主表 UDI-DI Code。": "Use Critical Warnings only when the label or instructions contain a critical warning or contraindication. Every populated row must link to a main-sheet UDI-DI Code.",
+    "条件必填：CW999 - OTHER 需要具体语言；非 OTHER 且填写 Comment 时导出为 ANY。": "CW999 - OTHER requires a specific language and does not allow ANY. For non-OTHER warnings, a provided Comment is exported with ANY.",
+    "条件必填：只有产品存在储存/处理条件时填写本 sheet。若填写 Storage Conditions 行，本列必须关联主表 UDI-DI Code。": "Use Storage Conditions only when storage or handling conditions apply. Every populated row must link to a main-sheet UDI-DI Code.",
+    "条件必填：SHC099 - OTHER 需要具体语言；非 OTHER 且填写 Description 时导出为 ANY。": "SHC099 - OTHER requires a specific language and does not allow ANY. For non-OTHER conditions, a provided Description is exported with ANY.",
+    "条件必填：只有 Basic UDI-DI 涉及 CMR / endocrine disrupting substances 时填写本 sheet。若填写 CMR 行，本列必须关联主表 Basic UDI-DI Code。": "Use CMR Substances only when the Basic UDI-DI involves CMR or endocrine-disrupting substances. Every populated row must link to a main-sheet Basic UDI-DI Code.",
+    "条件必填：若填写 Substance Name，本列用于说明物质名称语言；不限定具体语言时可用 ANY。": "Required when Substance Name is filled; select its language, or use ANY when the name is not language-specific.",
+    "条件必填：只有需要 NB validation / product certificate 覆盖的 Basic UDI-DI 才填写本 sheet。若填写证书行，本列必须关联主表 Basic UDI-DI Code。": "Use Device Certificates only when the Basic UDI-DI requires NB validation or product-certificate coverage. Every populated row must link to a main-sheet Basic UDI-DI Code.",
+}
+
+
+_DESCRIPTION_EN_OVERRIDES = {
+    "record_id": "Optional local row identifier for your own tracking only.",
+    "basic_version": "Conditionally required only for Update Basic UDI / Basic_UDI.PATCH. Fill the current Basic version shown in EUDAMED in column B; leave blank for new uploads.",
+    "Basic UDI-DI Code": "Unique Basic UDI-DI code. One Basic UDI-DI may have multiple UDI-DIs.",
+    "Issuing Entity": "Issuing entity for the Basic UDI-DI. For normal UDI codes, choose the actual issuing entity; EUDAMED is usually used for legacy EUDAMED DI scenarios.",
+    "Manufacturer SRN": "Manufacturer SRN. For non-EU/EEA manufacturers, the authorised representative SRN may also be required.",
+    "Risk Class": "Device risk class. The available values differ between MDR/MDD/AIMDD and IVDR/IVDD.",
+    "Applicable Legislation": "Applicable legislation. MDR/IVDR are exported as Regulation Device; MDD/AIMDD/IVDD are exported as Legacy Device / EUDI.",
+    "Device Type": "Device type. Use Regular Device for normal devices.",
+    "Device Name/Model": "Basic UDI-DI level device name. If Model does not apply at Basic level in EUDAMED, fill this column and leave Basic - Device Model blank.",
+    "EMDN Code": "EMDN classification code used by EUDAMED.",
+    "Presence of Human Tissues": "Confirm whether the device contains human tissues/cells. Applies to MDR/MDD/AIMDD/IVDR/IVDD; blank values are exported as FALSE.",
+    "Presence of Animal Tissues": "Confirm whether the device contains animal tissues/cells. Applies to MDR/MDD/AIMDD/IVDR/IVDD; blank values are exported as FALSE.",
+    "Is it a Kit": "Confirm whether the device is a kit. IVDR/IVDD values are exported to XML; MDR/MDD are not force-output by this tool.",
+    "Special Device Type": "Official special device type enum. Leave blank for ordinary devices. System/Procedure Pack usually does not provide this value.",
+    "Is Suture/Staple/Filling/Brace (IIb Implant)": "Only applies to Class IIb implantable devices to identify suture/staple/dental filling/dental brace exceptions. Leave blank or FALSE if not applicable.",
+    "udi_version": "Conditionally required only for Update of UDI-DI / Master UDI-DI (UDI_DI.PATCH). Fill the current UDI-DI version shown in EUDAMED; leave blank for new uploads.",
+    "UDI-DI Code": "Unique UDI-DI code for the specific device.",
+    "UDI-DI Issuing Entity": "Issuing entity for the UDI-DI. For normal UDI codes, choose the actual issuing entity.",
+    "Device Status": "Device status. If On the EU market, Market Info rows are required and exactly one country must be marked as originally placed on market.",
+    "Quantity of Device": "Base quantity in the unit of sale. Recommended/conditional for MDR/IVDR Regulation Device; not exported for MDD/AIMDD/IVDD Legacy.",
+    "Single Use Device": "Confirm whether this is a single-use device.",
+    "Max Number of Reuses": "Conditional: enter 0 for single-use; leave blank or use -1 for reusable devices with no declared maximum; enter a positive integer only when a maximum is declared.",
+    "Device Labelled as Sterile": "Confirm whether the device label states it is sterile.",
+    "Needs Sterilisation Before Use": "Confirm whether the device needs sterilisation before use. Blank values are exported as FALSE.",
+    "Containing Latex": "MDR/MDD/AIMDD only. Confirm whether the device contains natural rubber latex.",
+    "Reprocessed Single Use Device": "MDR/MDD/AIMDD only. Confirm whether this is a reprocessed single-use device.",
+    "New Device (IVDR)": "IVDR Regulation Device only. IVDD Legacy does not export this field. Blank IVDR values are exported as FALSE.",
+    "Direct Marking": "Confirm whether direct marking is applied.",
+    "DM DI Same as UDI-DI": "Confirm whether the Direct Marking DI is the same as the UDI-DI.",
+    "DM Issuing Entity": "Issuing entity for the Direct Marking DI.",
+    "DM DI Code": "Direct Marking DI code.",
+    "Unit of Use DI Code": "Unit of Use DI code.",
+    "Unit of Use Issuing Entity": "Issuing entity for the Unit of Use DI.",
+    "Secondary UDI-DI Code": "Secondary UDI-DI code.",
+    "Secondary Issuing Entity": "Issuing entity for the secondary UDI-DI.",
+    "Trade Name Applicable": "Confirm whether the trade name field applies. If TRUE, Trade Name is usually expected.",
+    "Trade Name": "Quick trade name column. Use the Trade Names sheet for multiple trade names or language-specific names.",
+    "Trade Name Language": "Language for the quick trade name column. ANY means no specific language is declared; it does not translate the name and does not limit you to one trade name.",
+    "eIFU URL": "Electronic instructions for use URL. This field is collected for review but is not currently exported to ordinary UDI-DI XML.",
+    "Reference Number": "Reference / catalogue number. Required in EUDAMED XML.",
+    "Product Designer SRN": "Product designer / original manufacturer SRN. The separate update service is not implemented yet.",
+    "Product Designer ID": "Product designer internal ID. The separate update service is not implemented yet.",
+    "PI Lot/Batch Number": "Conditional: for MDR/IVDR Regulation Device or SPP, indicate whether this UDI-PI type applies. Not exported for MDD/AIMDD/IVDD Legacy.",
+    "PI Expiration Date": "Conditional: for MDR/IVDR Regulation Device or SPP, indicate whether this UDI-PI type applies. Not exported for MDD/AIMDD/IVDD Legacy.",
+    "PI Manufacturing Date": "Conditional: for MDR/IVDR Regulation Device or SPP, indicate whether this UDI-PI type applies. Not exported for MDD/AIMDD/IVDD Legacy.",
+    "PI Serial Number": "Conditional: for MDR/IVDR Regulation Device or SPP, indicate whether this UDI-PI type applies. Not exported for MDD/AIMDD/IVDD Legacy.",
+    "PI Software Identification": "Conditional: for MDR/IVDR Regulation Device or SPP, indicate whether this UDI-PI type applies. Not exported for MDD/AIMDD/IVDD Legacy.",
+    "Nomenclature Code": "Nomenclature code, usually EMDN.",
+    "Nomenclature System": "Nomenclature system, usually EMDN.",
+    "Additional Description": "Additional description. Use UDI-DI level descriptions for size/specification/package details that vary by UDI-DI.",
+    "Description Language": "Language of the additional description.",
+    "Public Website": "Public product website.",
+    "Public Email": "Public contact email. This field is collected for review but is not currently exported to ordinary UDI-DI XML.",
+    "Country Code": "One made-available market country per row. Use EL for Greece, not GR.",
+    "Placed on Market": "Recommended business check for whether the device is or has been placed on the market in this country.",
+    "Start Date": "Market availability start date for this country, if known.",
+    "End Date": "Market availability end date for this country, only when the device is no longer or will no longer be available there.",
+    "Originally Placed on Market": "For one On the EU market UDI-DI, exactly one Market Info row must be TRUE; all other made-available countries should be FALSE.",
+    "Package Level": "Optional local note only, such as middle box or outer carton. Not exported to EUDAMED XML.",
+    "Package Type": "Optional local note only, such as box/carton/pallet. Not exported to EUDAMED XML.",
+    "Package UDI-DI Code": "Package DI for this packaging level. Required when a Package Info row is used.",
+    "Package Issuing Entity": "Issuing entity for the Package DI. Required when a Package Info row is used.",
+    "Contains DI Code": "Direct child DI contained by this package. It may be the main UDI-DI or another Package DI in the same packaging structure. Blank means the main UDI-DI.",
+    "Contains DI Issuing Entity": "Issuing entity for the child DI. Blank lets the tool infer it from the main UDI-DI or package DI.",
+    "Quantity per Package": "Quantity of the child DI contained in each package. Must be a positive integer.",
+    "Clinical Size Type": "Official ClinicalSizeTypeEnum. CST999 - OTHER requires a type description.",
+    "Clinical Size Type Description": "Required only when Clinical Size Type is CST999 - OTHER.",
+    "Precision": "Range = minimum/maximum, Value = single numeric value, Text = text value.",
+    "Minimum": "Minimum value when Precision is Range.",
+    "Maximum": "Maximum value when Precision is Range.",
+    "Value": "Single numeric value when Precision is Value.",
+    "Text Value": "Text size value when Precision is Text.",
+    "Measure Unit": "Official ClinicalSizeUnitEnum for Range or Value. MU999 - OTHER requires a unit description.",
+    "Measure Unit Description": "Required only when Measure Unit is MU999 - OTHER.",
+    "Measure Unit Description Language": "Language of the measure unit description.",
+    "Non-Medical Device Type": "Official NonMedicalDeviceEnum for MDR Annex XVI non-medical purpose devices.",
+    "Warning Type": "Official CriticalWarningEnum. CW999 - OTHER requires Comment and a specific Language, not ANY.",
+    "Language": "Language code. ANY means no specific language is declared where permitted.",
+    "Comment": "Required for CW999 - OTHER; otherwise use only when an extra comment is needed.",
+    "Storage Condition Type": "Official StorageHandlingConditionEnum. SHC099 - OTHER requires Description and a specific Language, not ANY.",
+    "Description": "Required for SHC099 - OTHER; otherwise use only when an extra description is needed.",
+    "Substance Type": "Select one of the substance types currently supported by this tool.",
+    "CAS Code": "CAS code. Exported only for supported CMR 1A/1B or Endocrine Disrupting substance rows.",
+    "EC Code": "EC code. Exported only for supported CMR 1A/1B or Endocrine Disrupting substance rows.",
+    "Substance Name": "Substance name, recommended when a CMR/Substance row is used.",
+    "Certificate Type": "Official GenericCertificateTypeEnum, for example MDR_TYPE_EXAMINATION, MDR_TECHNICAL_DOCUMENTATION or MDD_III.",
+    "Notified Body ID": "NANDO ID / NB Actor Code of the Notified Body issuing the product certificate, for example 0483.",
+    "Certificate Number": "Certificate number. Usually required for legacy directive certificates; recommended when available for regulation certificates.",
+    "Revision Number": "Certificate revision number, if any.",
+    "Expiry Date": "Certificate expiry date, if any. Legacy directive certificates usually require it.",
+}
+
+
+def _format_en(fmt: str, validation=None) -> str:
+    if fmt in _FORMAT_EN:
+        return _FORMAT_EN[fmt]
+    if validation:
+        return "Select from the dropdown"
+    return "Text"
+
+
+def _description_en(header: str, field: str, description="", validation=None, requirement=None) -> str:
+    contextual = _DESCRIPTION_EN_BY_ZH.get(description)
+    if contextual:
+        return contextual
+    key = field or header.rstrip("*")
+    text = _DESCRIPTION_EN_OVERRIDES.get(key) or _DESCRIPTION_EN_OVERRIDES.get(header.rstrip("*"))
+    if text:
+        return text
+    label = key or header.rstrip("*")
+    if validation == "boolean":
+        return f"Confirm TRUE or FALSE for {label}."
+    if validation:
+        return f"Select the applicable value for {label} from the dropdown."
+    if requirement == "conditional":
+        return f"Conditionally required field for {label}; fill it only when applicable."
+    return f"Fill {label} where applicable."
+
+
 def _col(
     group,
     header,
@@ -27,18 +190,23 @@ def _col(
     fmt="",
     applies="all",
     requirement=None,
+    description_en="",
+    fmt_en="",
 ):
+    effective_requirement = requirement or ("required" if required else "optional")
     return {
         "group": group,
         "header": header,
         "entity": entity,
         "field": field,
         "required": required,
-        "requirement": requirement or ("required" if required else "optional"),
+        "requirement": effective_requirement,
         "validation": validation,
         "description": description,
+        "description_en": description_en or _description_en(header, field, description, validation, effective_requirement),
         "example": example,
         "format": fmt,
+        "format_en": fmt_en or _format_en(fmt, validation),
         "applies": applies,
     }
 

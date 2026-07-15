@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.9.5 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.9.5 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.9.6 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.9.6 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -69,7 +69,7 @@ http://127.0.0.1:8765
 
 ## 工具怎么用
 
-1. **下载模板**：顶栏「下载模板」，或直接用仓库里的 `EUDAMED_Template_v2.10.xlsx`。
+1. **下载模板**：顶栏「下载模板」，或直接用仓库里的中文模板 `EUDAMED_Template_v2.10.xlsx`；海外用户可使用英文模板 `EUDAMED_Template_v2.10_EN.xlsx`。
 2. **填写 Excel**：在 Excel / WPS 里填数据（填写规则见下一节）。
 3. **导入 Excel**：在「导入 Excel」页上传，系统立即校验并显示新增 / 已更新 / 错误行。
 4. **产品库**：浏览、搜索、按 Manufacturer SRN 切换不同 actor；详情页可做临时修正（正式维护建议回到 Excel）。
@@ -82,10 +82,10 @@ http://127.0.0.1:8765
 
 ## 模板怎么用
 
-模板 `EUDAMED_Template_v2.10.xlsx` 的结构：
+模板 `EUDAMED_Template_v2.10.xlsx` / `EUDAMED_Template_v2.10_EN.xlsx` 的字段结构完全一致：
 
 - **两个主录入表**：`MDR_MDD`（医疗器械）、`IVDR_IVDD`（体外诊断）。
-  - 第 1 行 = 字段名，第 2 行 = 中文说明，第 3 行 = 示例（前三行已锁定，请勿改）。
+  - 第 1 行 = 字段名，第 2 行 = 填写说明（中文模板为中文，英文模板为英文），第 3 行 = 示例（前三行已锁定，请勿改）。
   - **正式数据从第 4 行开始填**。
 - **9 个明细表**：`Trade Names`、`Market Info`、`Package Info`、`Device Certificates`、`Clinical Sizes`、`Annex XVI Purposes`、`Critical Warnings`、`Storage Conditions`、`CMR Substances`，通过 `UDI-DI Code` / `Basic UDI-DI Code` 与主表关联。
 - 下拉选项（语言、国家、签发机构、储存 / 警告类型等）直接来自官方 XSD，会随 XSD 升级自动更新。
@@ -114,7 +114,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **0.9.5 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.9.6 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -191,7 +191,7 @@ http://127.0.0.1:8765
 
 ## Using the tool
 
-1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.10.xlsx` from the repo.
+1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.10_EN.xlsx` from the repo. The Chinese template remains available as `EUDAMED_Template_v2.10.xlsx`.
 2. **Fill in the Excel** (rules in the next section).
 3. **Import Excel**: upload on the "Import Excel" page; it validates immediately and shows created / updated / error rows.
 4. **Product Library**: browse, search, switch actor by Manufacturer SRN; the detail page allows quick fixes (for real maintenance, go back to Excel).
@@ -204,10 +204,10 @@ Helpers:
 
 ## Using the template
 
-Structure of `EUDAMED_Template_v2.10.xlsx`:
+`EUDAMED_Template_v2.10.xlsx` and `EUDAMED_Template_v2.10_EN.xlsx` have the same field structure:
 
 - **Two main entry sheets**: `MDR_MDD` (medical devices), `IVDR_IVDD` (in-vitro diagnostics).
-  - Row 1 = field name, Row 2 = description, Row 3 = example (first three rows are locked — do not edit).
+  - Row 1 = field name, Row 2 = filling instruction (Chinese in the Chinese template, English in the English template), Row 3 = example (first three rows are locked — do not edit).
   - **Real data starts at Row 4.**
 - **Nine detail sheets**: `Trade Names`, `Market Info`, `Package Info`, `Device Certificates`, `Clinical Sizes`, `Annex XVI Purposes`, `Critical Warnings`, `Storage Conditions`, `CMR Substances`, linked to the main sheets via `UDI-DI Code` / `Basic UDI-DI Code`.
 - Dropdown options (languages, countries, issuing entities, storage / warning types, etc.) come straight from the official XSD and update automatically when the XSD is upgraded.
@@ -236,7 +236,7 @@ Structure of `EUDAMED_Template_v2.10.xlsx`:
 
 ## Version history
 
-Current **0.9.5 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.9.6 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

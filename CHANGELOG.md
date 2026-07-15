@@ -2,6 +2,16 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.9.6 - 2026-07-14
+
+- 新增英文版模板 `EUDAMED_Template_v2.10_EN.xlsx`，字段结构、sheet 名称、下拉、锁定规则和导入兼容性与中文模板完全一致；仅第 2 行说明、How to Use、Glossary、Critical Warning Glossary 等用户说明改为英文。
+- 中文模板 `EUDAMED_Template_v2.10.xlsx` 继续保留为中文界面默认模板；英文界面默认下载英文模板，帮助页同时提供中英文模板下载按钮。
+- Template Guide 英文界面改为显示英文字段说明，方便海外用户直接按网页指南填写。
+- Windows 打包和 GitHub/Gitee Release 附件增加英文模板，便于海外用户单独下载。
+- 修复英文说明按字段名复用造成的语义错误：Basic UDI-DI 附加描述、药物物质字段和各明细 sheet 现在按所在列显示准确英文说明。
+- 英文 How to Use 补齐为与中文相同的 21 个章节，并同步市场信息更新、包装层级、Clinical Sizes、Annex XVI、证书和当前不输出字段等提示。
+- 启用 Excel 下拉单元格的输入提示和无效值阻止提示；英文网页详情页同时显示英文字段说明，英文版本状态改为 `Public Beta`。
+
 ## 0.9.5 - 2026-07-01
 
 - 默认模板升级为 `EUDAMED_Template_v2.10.xlsx`，将 UDI-PI 类型字段（Lot/Batch、Expiration Date、Manufacturing Date、Serial Number、Software Identification）从通用必填改为条件适用，避免 IVDD/MDD/AIMDD Legacy 产品被错误要求填写。

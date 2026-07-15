@@ -23,10 +23,10 @@ from .constants import (
     STATIC_DIR,
     SUPPORT_EMAIL,
     TECHNICAL_DOCUMENTATION_URL,
+    TEMPLATE_EN_FILENAME,
     TEMPLATE_VERSION,
     TOOL_UPDATED,
     TOOL_VERSION,
-    TOOL_VERSION_LABEL,
     UDI_FIELDS,
 )
 from .template_schema import ENUM_SOURCES, ENTRY_SHEETS, MAIN_COLUMNS, RELATED_SHEETS, columns_for_entry_sheet
@@ -58,6 +58,10 @@ def sample_counts() -> dict:
 def t(zh: str, en: str) -> str:
     """界面框架文案：根据当前语言返回中文或英文。"""
     return en if current_lang() == "en" else zh
+
+
+def version_label() -> str:
+    return f"{TOOL_VERSION} · {t('公开测试版', 'Public Beta')}"
 
 
 SUPPORTED_SERVICES = {
@@ -297,9 +301,11 @@ def field_input(field: str, value) -> str:
     else:
         control = f'<input type="text" name="field_{esc(field)}" value="{esc(current)}">'
     star = ' <span class="req">*</span>' if spec and spec.get("required") else ""
-    desc = spec.get("description") if spec else ""
-    # 英文模式下隐藏中文字段说明
-    hint = f'<small class="field-hint">{esc(desc)}</small>' if desc and current_lang() == "zh" else ""
+    if spec:
+        desc = spec.get("description_en") if current_lang() == "en" else spec.get("description")
+    else:
+        desc = ""
+    hint = f'<small class="field-hint">{esc(desc)}</small>' if desc else ""
     label = label_with_hint(field)
     return f"""
         <label>
@@ -406,7 +412,7 @@ def page(title: str, body: str, active_path: str = "") -> str:
     """
     footer = f"""
     <footer class="site-footer">
-      <div>{esc(t("工具版本", "Tool version"))} {esc(TOOL_VERSION_LABEL)}
+      <div>{esc(t("工具版本", "Tool version"))} {esc(version_label())}
       · {esc(t("最近更新", "Updated"))} {esc(TOOL_UPDATED)}</div>
       <div class="footer-copyright">© {esc(COPYRIGHT_YEAR)} {esc(COPYRIGHT_HOLDER)} ·
       {esc(t("保留所有权利", "All rights reserved"))} ·
@@ -646,6 +652,7 @@ def dashboard_update_card(update_hint: dict | None) -> str:
 
 
 def quick_start_card() -> str:
+    template_href = "/download-template?locale=en" if current_lang() == "en" else "/download-template?locale=zh"
     return f"""
     <section class="panel quick-start">
       <h2>{t('快速开始', 'Quick start')}</h2>
@@ -655,7 +662,7 @@ def quick_start_card() -> str:
         <article class="card"><h3>3. {t('选择 service 导出', 'Choose service and export')}</h3><p>{t('先预检，再生成 XML/ZIP。', 'Pre-check first, then generate XML/ZIP.')}</p></article>
       </div>
       <div class="toolbar">
-        <a class="button primary" href="/download-template">{t('下载模板', 'Download template')}</a>
+        <a class="button primary" href="{template_href}">{t('下载模板', 'Download template')}</a>
         <form method="post" action="/sample-data/load">
           <button class="button secondary" type="submit">{t('载入示例数据', 'Load sample data')}</button>
         </form>
@@ -1400,14 +1407,17 @@ def download_update_help_block(check_result: dict | None = None) -> str:
       {update_section}
       <ol>
         <li>{t('优先使用 GitHub Releases；如果 GitHub 访问慢或失败，使用 Gitee 国内镜像。', 'Use GitHub Releases first; if GitHub is slow or unavailable, use the Gitee mirror.')}</li>
-        <li>{t('下载最新的 Windows ZIP 或模板附件。', 'Download the latest Windows ZIP or template asset.')}</li>
+        <li>{t('下载最新的 Windows ZIP；模板可按需要下载中文版或英文版。', 'Download the latest Windows ZIP; download the Chinese or English template as needed.')}</li>
         <li>{t('解压 ZIP 后运行其中的启动程序；旧版本不用卸载，但建议先关闭正在运行的工具。', 'Unzip it and run the launcher inside; no uninstall is needed, but close the old tool first.')}</li>
         <li>{t('本地数据默认在 local_beta_data，不会因为替换新版程序而被覆盖。', 'Local data is stored under local_beta_data by default and is not overwritten by replacing the program.')}</li>
       </ol>
       <p>
+        <a class="button primary" href="/download-template?locale=zh">{t('下载中文模板', 'Download Chinese template')}</a>
+        <a class="button primary" href="/download-template?locale=en">{t('下载英文模板', 'Download English template')}</a>
         <a class="button" href="{esc(RELEASES_PAGE_URL)}" target="_blank" rel="noopener">GitHub Releases</a>
         <a class="button" href="{esc(GITEE_RELEASES_PAGE_URL)}" target="_blank" rel="noopener">Gitee Releases</a>
       </p>
+      <p class="muted">{t('英文模板文件名：', 'English template file: ')}<code>{esc(TEMPLATE_EN_FILENAME)}</code></p>
     </div>
     """
 
@@ -1430,7 +1440,7 @@ def bulk_upload_help_block() -> str:
 def feedback_block() -> str:
     subject_prefix = json.dumps(f"EUDAMED tool test / issue report - v{TOOL_VERSION}")
     support_email = json.dumps(SUPPORT_EMAIL)
-    tool_info = json.dumps(f"Tool version: {TOOL_VERSION_LABEL}\\nXSD version: {SCHEMA_VERSION}\\nOS: {platform.platform()}")
+    tool_info = json.dumps(f"Tool version: {version_label()}\\nXSD version: {SCHEMA_VERSION}\\nOS: {platform.platform()}")
     copy_ok = json.dumps(t("已复制。请在邮件中粘贴，并附上勾选的文件。", "Copied. Paste it into your email and attach the selected files."))
     copy_fail = json.dumps(t("复制失败，请手动复制下方内容。", "Copy failed; please copy the text below manually."))
     return f"""
@@ -1554,7 +1564,7 @@ def _mailto_link() -> str:
             "",
             "请勿发送客户敏感信息，必要时请先脱敏。",
             "",
-            f"Tool version: {TOOL_VERSION_LABEL}",
+            f"Tool version: {version_label()}",
             f"XSD version: {SCHEMA_VERSION}",
             f"OS: {platform.platform()}",
             "Browser language: （请填写 / please fill in）",
@@ -1623,7 +1633,7 @@ def help_page(check_result: dict | None = None) -> str:
 
 def update_check_block(check_result: dict | None) -> str:
     """渲染「检查更新」区块。默认显示当前版本 + 按钮；点击后渲染结果。"""
-    current_label = f'<p class="muted">{esc(t("当前版本", "Current version"))}: <strong>{esc(TOOL_VERSION_LABEL)}</strong></p>'
+    current_label = f'<p class="muted">{esc(t("当前版本", "Current version"))}: <strong>{esc(version_label())}</strong></p>'
     if check_result is None:
         button = f'<a class="button" href="/check-update">{esc(t("检查更新", "Check for updates"))}</a>'
         if not RELEASES_API_URL:
@@ -1683,7 +1693,7 @@ def update_check_block(check_result: dict | None) -> str:
         return f"""
         <div class="alert success">
           <strong>{esc(t("已是最新版本", "You are up to date"))}</strong>
-          <p>{esc(t("当前版本", "Current version"))} <strong>{esc(TOOL_VERSION_LABEL)}</strong> {esc(t("等于线上最新", "matches the latest release"))} <strong>{esc(latest)}</strong>{prerelease_badge}. {esc(t("来源", "Source"))}: <strong>{esc(source_name)}</strong></p>
+          <p>{esc(t("当前版本", "Current version"))} <strong>{esc(version_label())}</strong> {esc(t("等于线上最新", "matches the latest release"))} <strong>{esc(latest)}</strong>{prerelease_badge}. {esc(t("来源", "Source"))}: <strong>{esc(source_name)}</strong></p>
           {source_downloads}
           {fallback_note}
         </div>
@@ -1692,7 +1702,7 @@ def update_check_block(check_result: dict | None) -> str:
         return f"""
         <div class="alert notice">
           <strong>{esc(t("当前本地版本高于线上最新发布版本", "Local version is newer than the latest online release"))}</strong>
-          <p>{esc(t("本地版本", "Local version"))}: <strong>{esc(TOOL_VERSION_LABEL)}</strong> · {esc(source_name)}: <strong>{esc(latest or t("未识别", "unknown"))}</strong></p>
+          <p>{esc(t("本地版本", "Local version"))}: <strong>{esc(version_label())}</strong> · {esc(source_name)}: <strong>{esc(latest or t("未识别", "unknown"))}</strong></p>
           <p class="muted">{esc(t("这通常表示你正在使用开发版/公开测试版，尚未发布成正式 Release。", "This usually means you are using a development/Public Beta build that has not been published as a formal Release yet."))}</p>
           {source_downloads}
           {fallback_note}
@@ -1871,6 +1881,8 @@ def template_guide_page() -> str:
 def _sheet_guide_section(sheet_name: str, columns: list[dict], target: str = "") -> str:
     rows = []
     for col in columns:
+        description = col.get("description_en") if current_lang() == "en" else col.get("description")
+        fmt = col.get("format_en") if current_lang() == "en" else col.get("format")
         requirement = {
             "required": t("必填", "Required"),
             "conditional": t("条件必填", "Conditional"),
@@ -1883,9 +1895,13 @@ def _sheet_guide_section(sheet_name: str, columns: list[dict], target: str = "")
                 target,
                 col.get("field"),
                 col.get("header"),
+                description,
                 col.get("description"),
+                col.get("description_en"),
                 col.get("example"),
+                fmt,
                 col.get("format"),
+                col.get("format_en"),
                 requirement,
             )
         ).lower()
@@ -1894,9 +1910,9 @@ def _sheet_guide_section(sheet_name: str, columns: list[dict], target: str = "")
             <tr data-guide-row="{esc(search_blob)}">
               <td>{label_with_hint(col.get('field') or col.get('header') or '')}<br><span class="muted">{esc(col.get('header', ''))}</span></td>
               <td><span class="badge requirement-{esc(col.get('requirement', 'optional'))}">{esc(requirement)}</span></td>
-              <td>{esc(col.get('description', ''))}</td>
+              <td>{esc(description or '')}</td>
               <td>{esc(col.get('example', ''))}</td>
-              <td>{esc(col.get('format', ''))}</td>
+              <td>{esc(fmt or '')}</td>
             </tr>
             """
         )
