@@ -252,6 +252,18 @@ class FieldVariants(XSDValidationBase):
                 _, uid = self._seed("MDR", udi_over={"Single Use Device": single, "Max Number of Reuses": maxr})
                 self._assert_valid("DEVICE.POST", [uid], f"reuses(single={single},max={maxr})")
 
+    def test_additional_information_url_exports_but_legacy_eifu_does_not(self):
+        _, legacy_uid = self._seed("MDR", udi_over={"eIFU URL": "https://example.com/legacy-eifu"})
+        legacy_xml = self._xmls("DEVICE.POST", [legacy_uid])[0]
+        self.assertNotIn(b"legacy-eifu", legacy_xml)
+        self.assertNotIn(b"<udidi:website", legacy_xml)
+        self.assertTrue(_schema().validate(ET.fromstring(legacy_xml)))
+
+        _, additional_uid = self._seed("MDR", udi_over={"Additional Information URL": "https://example.com/additional-info"})
+        additional_xml = self._xmls("DEVICE.POST", [additional_uid])[0]
+        self.assertIn(b"https://example.com/additional-info", additional_xml)
+        self.assertTrue(_schema().validate(ET.fromstring(additional_xml)))
+
     def test_device_marking_and_base_quantity_order_for_regulation_devices(self):
         clinical = [
             {"Clinical Size Type": "CST1 - Acidity", "Precision": "Value", "Value": "3.5", "Measure Unit": "MU01 - %"},

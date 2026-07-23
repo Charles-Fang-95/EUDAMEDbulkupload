@@ -20,7 +20,7 @@ Status meanings:
 
 ## Known Priority Findings
 
-- `eIFU URL` and `Public Email` are collected or partly represented, but not safely output to XML yet.
+- `URL for additional information` (`FLD-UDID-174`) is implemented as `UDI - Additional Information URL / eIFU webpage` and exported to `udidi:website`; direct import/export of old `UDI - eIFU URL` remains non-output for safety, while the explicit template migrator copies old eIFU URL values into the new field and records row-level migration results.
 - `Device Certificates` is implemented for Basic UDI-DI `deviceCertificateLinks`; PR/SPP certificate handling remains out of scope.
 - `Clinical Sizes` and `Annex XVI Purposes` are implemented for MDR UDI-DI via structured detail sheets.
 - `Is it a Kit` is unified in the template and exported where the current XSD provides `commondi:kit` (IVDR/IVDD paths).
@@ -121,7 +121,7 @@ Status meanings:
 | DD UDI-DI | FLD-UDID-167 | Labelled as single use | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-169 | Device labelled sterile | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-170 | Need for sterilisation before use | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-174 | URL for additional information | 0..1 |  | No | No | No |  | `not_in_template` |  |
+| DD UDI-DI | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy `eIFU URL`; explicit template migration copies legacy eIFU values into this field and records row-level results. |
 | DD UDI-DI | FLD-UDID-175 | Additional product Description | 0..1 Required for System or Procedure Packs that is a Device in itself | Description | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-179 | Trade name applicable | 1 | UDI - Trade Name Applicable* | Yes | Yes | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-176 | Trade name | 0..n | Trade Name* | Yes | Yes | Yes | tradeNames | `implemented` |  |
@@ -240,7 +240,7 @@ Status meanings:
 | DD Legacy Devices | FLD-UDID-167 | Labelled as single use | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-169 | Device labelled sterile | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-170 | Need for sterilisation before use | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-174 | URL for additional information | 0..1 |  | No | No | No |  | `not_in_template` |  |
+| DD Legacy Devices | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy `eIFU URL`; explicit template migration copies legacy eIFU values into this field and records row-level results. |
 | DD Legacy Devices | FLD-UDID-175 | Additional product Description | 0..1 Required for System or Procedure Packs that is a Device in itself | Description | Yes | Payload | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-179 | Trade name applicable | 1 | UDI - Trade Name Applicable* | Yes | Yes | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-176 | Trade name | 0..n | Trade Name* | Yes | Yes | Yes | tradeNames | `implemented` |  |
@@ -299,7 +299,7 @@ Status meanings:
 | DD UDI-DI_SPP | FLD-UDID-163 | Reference / Catalogue number | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI_SPP | FLD-UDID-169 | Labelled as sterile | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI_SPP | FLD-UDID-170 | Need for sterilisation before use | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI_SPP | FLD-UDID-174 | URL for additional information | 0..1 |  | No | No | No |  | `not_in_template` |  |
+| DD UDI-DI_SPP | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy `eIFU URL`; explicit template migration copies legacy eIFU values into this field and records row-level results. |
 | DD UDI-DI_SPP | FLD-UDID-175 | Additional product Description | 1 Required for System or Procedure Packs | Description | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI_SPP | FLD-UDID-176 | Trade name | 0..n | Trade Name* | Yes | Yes | Yes | tradeNames | `implemented` |  |
 | DD UDI-DI_SPP | FLD-UDID-177 | Version | 1 Managed by EUDAMED |  | No | No | No |  | `not_in_template` |  |

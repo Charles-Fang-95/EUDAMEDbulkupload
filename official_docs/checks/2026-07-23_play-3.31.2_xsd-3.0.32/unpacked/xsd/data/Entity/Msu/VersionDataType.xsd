@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+    <xs:complexType name="VersionDataType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="e:Entity">
+                <xs:sequence>
+                    <xs:element name="submissionDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="discardedDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

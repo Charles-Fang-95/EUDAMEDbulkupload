@@ -1,0 +1,37 @@
+{
+  "checked_at": "2026-07-23T23:09:32+08:00",
+  "official_scope": "EUDAMED / European Commission official Production and Playground help pages",
+  "production": {
+    "page_url": "https://webgate.ec.europa.eu/eudamed-help/en/documentation/technical-documentation.html",
+    "xsd_version": "3.0.30",
+    "platform_version": "2.27.0",
+    "publication_date": "May 18, 2026"
+  },
+  "playground": {
+    "page_url": "https://webgate.ec.europa.eu/eudamed-play-help/en/documentation/technical-documentation.html",
+    "xsd_version": "3.0.32",
+    "platform_version": "3.31.2",
+    "publication_date": "July 14, 2026",
+    "page_last_modified": "Thu, 16 Jul 2026 09:26:40 GMT",
+    "xsd_last_modified": "Thu, 16 Jul 2026 09:26:41 GMT",
+    "xsd_etag": "\"20c04-656b709a3d640\"",
+    "xsd_content_length": 134148,
+    "xsd_sha256": "129f9143a146564c8f9e32fe32e2cdb8bf04dcc160421d3248edeee3c5885217"
+  },
+  "comparison_3_0_30_to_3_0_32": {
+    "old_file_count": 68,
+    "new_file_count": 68,
+    "added": 0,
+    "removed": 0,
+    "modified": 9,
+    "unchanged": 59,
+    "message_version_change": "service/Message/MessageType.xsd fixed version 3.0.30 -> 3.0.32",
+    "device_udi_schema_changed": false
+  },
+  "maintenance_conclusion": {
+    "current_local_schema_version": "3.0.30",
+    "playground_requires": "3.0.32",
+    "production_still_documents": "3.0.30",
+    "recommended_strategy": "Do not blindly replace production 3.0.30. Add explicit environment-aware schema version handling and validate 3.0.32 against Playground before release."
+  }
+}

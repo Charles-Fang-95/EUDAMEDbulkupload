@@ -1,0 +1,14 @@
+Comparison baseline: official_docs/checks/2026-07-13_prod-2.27.0_xsd-3.0.30_recheck/raw_headers
+Current capture: official_docs/checks/2026-07-20_prod-2.27.0_xsd-3.0.30_recheck/raw_headers
+Normalization: ignore the response Date header; compare status, Last-Modified, ETag, Content-Length, and Content-Type only.
+
+technical_documentation_page: MATCH (Date only changed)
+support_page: MATCH (Date only changed)
+xsd_schemas: MATCH (Date only changed)
+eo_xml_samples: MATCH (Date only changed)
+data_dictionary: MATCH (Date only changed)
+business_rules: MATCH (Date only changed)
+enumerations: MATCH (Date only changed)
+services_definition: MATCH (Date only changed)
+
+Overall: all tracked drift-detection fields match the 2026-07-13 baseline.

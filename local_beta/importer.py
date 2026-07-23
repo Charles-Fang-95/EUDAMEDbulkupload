@@ -253,6 +253,18 @@ class WorkbookImporter:
     ):
         headers = self._headers(ws)
         schema_by_header = self._schema_by_header(columns_for_entry_sheet(ws.title))
+        if any(header in {"UDI - eIFU URL", "eIFU URL"} for header in headers):
+            migration_warnings.append(
+                {
+                    "sheet": ws.title,
+                    "row": "",
+                    "field": "UDI - eIFU URL",
+                    "value": "",
+                    "warning_type": "LEGACY_EIFU_URL_NOT_OUTPUT",
+                    "message": "检测到旧模板字段 UDI - eIFU URL。0.9.6 模板曾明确该字段不输出到 XML；本次导入不会自动把它映射到官方 URL for additional information。",
+                    "suggestion": "如该链接确实需要提交到 EUDAMED，请在当前 v2.11 模板中人工复制到 UDI - Additional Information URL / eIFU webpage 后再导入。",
+                }
+            )
 
         for row_idx in range(DATA_START_ROW, self._last_data_row(ws, headers) + 1):
             raw, has_data = self._row_values(ws, headers, row_idx)
@@ -444,7 +456,7 @@ class WorkbookImporter:
                 "value": label,
                 "warning_type": "TEMPLATE_VERSION_RISK",
                 "message": f"检测到该文件可能不是当前 {TEMPLATE_VERSION} 模板，系统已按当前规则重新校验。",
-                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info、IVD 人源/动物源字段、Trade Names 行数、IVDD UDI-PI 适用性等 v2.6-v2.10 后变化字段；建议先使用迁移模板功能生成当前模板。",
+                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info、IVD 人源/动物源字段、Trade Names 行数、IVDD UDI-PI 适用性、URL for additional information 等 v2.6-v2.11 后变化字段；建议先使用迁移模板功能生成当前模板。",
             }
         )
         return warnings

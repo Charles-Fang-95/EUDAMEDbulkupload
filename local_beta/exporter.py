@@ -357,6 +357,7 @@ class BetaXMLExporter:
                     self._warn_quantity_of_device(warnings, item)
                     self._warn_pr_ignored_udi_fields(warnings, item)
                     self._warn_legacy_production_identifiers(warnings, item)
+                    self._warn_website_url_selection(warnings, item)
                     basic_code = str(item.get("basic_code") or payload.get("Parent Basic UDI-DI") or "").strip()
                     if basic_code and basic_code not in checked_basic_enum_codes:
                         checked_basic_enum_codes.add(basic_code)
@@ -663,6 +664,30 @@ class BetaXMLExporter:
                 f"UDI-DI {item.get('udi_code')} 是 Legacy Device（MDD/AIMDD/IVDD）；"
                 f"UDI-PI 类型字段 {', '.join(selected)} 不会输出到 XML。"
             )
+
+    def _warn_website_url_selection(self, warnings: list[str], item: dict):
+        payload = item.get("payload") or {}
+        public_url = str(payload.get("Public Website") or "").strip()
+        additional_url = str(payload.get("Additional Information URL") or "").strip()
+        legacy_eifu_url = str(payload.get("eIFU URL") or "").strip()
+        if legacy_eifu_url:
+            warnings.append(
+                f"UDI-DI {item.get('udi_code')} 填写了旧字段 eIFU URL；0.9.6 模板曾明确该字段不输出到 XML，"
+                "因此本工具不会自动把它写入 EUDAMED。若该链接确实要作为官方 URL for additional information 提交，"
+                "请人工复制到当前模板的 UDI - Additional Information URL / eIFU webpage。"
+            )
+        if public_url and additional_url and public_url != additional_url:
+            warnings.append(
+                f"UDI-DI {item.get('udi_code')} 同时填写了 Public Website 和 URL for additional information；"
+                "EUDAMED DTX 只有一个 URL for additional information（XML 元素 udidi:website），"
+                "本工具将优先输出 Public Website。"
+            )
+
+    def _website_url(self, payload: dict) -> str:
+        return (
+            str(payload.get("Public Website") or "").strip()
+            or str(payload.get("Additional Information URL") or "").strip()
+        )
 
     def plan_export_batches(self, service_type: str, records: list[dict]) -> list[dict]:
         if service_type == "DEVICE.POST":
@@ -1338,7 +1363,7 @@ class BetaXMLExporter:
                 trade_names,
             )
 
-        self._text(parent, "udidi", "website", data.get("Public Website"))
+        self._text(parent, "udidi", "website", self._website_url(data))
         self._append_storage_conditions(parent, item["storage_rows"])
         self._append_packages(parent, item["package_rows"], data)
         self._append_warnings(parent, item["warning_rows"])

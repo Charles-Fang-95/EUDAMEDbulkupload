@@ -111,13 +111,13 @@ jobs:
               "1. Download `EUDAMED_Local_Beta_Windows.zip` from the assets below.",
               "2. Unzip it to a local folder, then run the launcher inside the folder.",
               "3. Your local data is stored separately under `local_beta_data/`; replacing the tool package does not delete your database or exports.",
-              "4. Download `EUDAMED_Template_v2.10.xlsx` for the Chinese template or `EUDAMED_Template_v2.10_EN.xlsx` for the English template.",
+              "4. Download `EUDAMED_Template_v2.11.xlsx` for the Chinese template or `EUDAMED_Template_v2.11_EN.xlsx` for the English template.",
               "",
               "中文说明：",
               "1. 在下方 Assets 下载 `EUDAMED_Local_Beta_Windows.zip`。",
               "2. 解压到本地文件夹，运行其中的启动程序。",
               "3. 本地数据默认保存在 `local_beta_data/`，替换新版程序不会删除数据库或导出文件。",
-              "4. 如需最新版模板，中文模板下载 `EUDAMED_Template_v2.10.xlsx`，英文模板下载 `EUDAMED_Template_v2.10_EN.xlsx`。",
+              "4. 如需最新版模板，中文模板下载 `EUDAMED_Template_v2.11.xlsx`，英文模板下载 `EUDAMED_Template_v2.11_EN.xlsx`。",
           ])
           body = guide.strip() + "\n\n" + body
           with open("release_notes.md", "w", encoding="utf-8") as f:
@@ -146,8 +146,8 @@ jobs:
         run: |
           set -euo pipefail
           test -f "dist/EUDAMED_Local_Beta_Windows.zip" || { echo "::error::Windows ZIP 未生成"; exit 1; }
-          test -f "EUDAMED_Template_v2.10.xlsx" || { echo "::error::模板 xlsx 缺失"; exit 1; }
-          test -f "EUDAMED_Template_v2.10_EN.xlsx" || { echo "::error::英文模板 xlsx 缺失"; exit 1; }
+          test -f "EUDAMED_Template_v2.11.xlsx" || { echo "::error::模板 xlsx 缺失"; exit 1; }
+          test -f "EUDAMED_Template_v2.11_EN.xlsx" || { echo "::error::英文模板 xlsx 缺失"; exit 1; }
           ls -la dist/
 
       - name: Create or update GitHub Release
@@ -168,8 +168,8 @@ jobs:
             gh release edit "$TAG" --notes-file release_notes.md --title "$TITLE" $PRE_FLAG
             gh release upload "$TAG" \
               "dist/EUDAMED_Local_Beta_Windows.zip" \
-              "EUDAMED_Template_v2.10.xlsx" \
-              "EUDAMED_Template_v2.10_EN.xlsx" \
+              "EUDAMED_Template_v2.11.xlsx" \
+              "EUDAMED_Template_v2.11_EN.xlsx" \
               --clobber
           else
             # 不带 --target 时，workflow_dispatch 会在当前 commit 上自动创建 tag
@@ -179,8 +179,8 @@ jobs:
               $PRE_FLAG \
               --target "${{ github.sha }}" \
               "dist/EUDAMED_Local_Beta_Windows.zip" \
-              "EUDAMED_Template_v2.10.xlsx" \
-              "EUDAMED_Template_v2.10_EN.xlsx"
+              "EUDAMED_Template_v2.11.xlsx" \
+              "EUDAMED_Template_v2.11_EN.xlsx"
           fi
 
           echo "Release URL:"
@@ -226,8 +226,8 @@ jobs:
           title = tag
           notes = pathlib.Path("release_notes.md").read_text(encoding="utf-8")
           assets = [
-              pathlib.Path("EUDAMED_Template_v2.10.xlsx"),
-              pathlib.Path("EUDAMED_Template_v2.10_EN.xlsx"),
+              pathlib.Path("EUDAMED_Template_v2.11.xlsx"),
+              pathlib.Path("EUDAMED_Template_v2.11_EN.xlsx"),
               pathlib.Path("dist/EUDAMED_Local_Beta_Windows.zip"),
           ]
           UPLOAD_TIMEOUT_SECONDS = int(os.environ.get("GITEE_UPLOAD_TIMEOUT_SECONDS", "1800"))

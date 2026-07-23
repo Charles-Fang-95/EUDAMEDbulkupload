@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:crtfissued="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1"
+		   xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1"
+		   xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+		   xmlns:crtfdecisionupdate="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/CertificateDecisionUpdate/v1"
+		   xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+		   xmlns:crtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/v1"
+		   xmlns:sscp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/SSCP/v1"
+		   xmlns:crtfscp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1"
+		   elementFormDefault="qualified">
+
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/v1" schemaLocation="CertificateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/CertificateDecisionUpdate/v1" schemaLocation="CertificateDecisionUpdateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" schemaLocation="../Common/RiskClassEnum.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/SSCP/v1" schemaLocation="../SSCP/SSCPType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1" schemaLocation="ScopeType.xsd"/>
+
+	<xs:complexType name="IssuedCertificateType">
+		<xs:complexContent>
+			<xs:extension base="e:Entity">
+				<xs:sequence>
+					<xs:element name="expiryDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="startValidityDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="identifier" type="crtfissued:CertificateIdentifierType" minOccurs="1" maxOccurs="1"/>
+					<xs:choice minOccurs="1" maxOccurs="1">
+						<xs:element name="productProcedure" type="crtf:ProductProcedureType" minOccurs="1" maxOccurs="1"/>
+						<xs:element name="qualityProcedure" type="crtf:QualityProcedureType" minOccurs="1" maxOccurs="1"/>
+					</xs:choice>
+					<xs:element name="precedingCertificates" type="crtfissued:PrecedingCertificateIdentifiersType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="status" type="crtfissued:CertificateStatusType" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="conditions" type="crtfissued:ConditionsType" minOccurs="0" maxOccurs="1"/>
+					<xs:choice minOccurs="0" maxOccurs="1">
+						<xs:element name="mechanismForScrutinyIVDR" type="crtfscp:MechanismForScrutinyIVDRType" minOccurs="1" maxOccurs="1"/>
+						<xs:element name="mechanismForScrutinyMDR" type="crtfscp:MechanismForScrutinyMDRType" minOccurs="1" maxOccurs="1"/>
+					</xs:choice>
+					<xs:element name="SSCP" type="sscp:SSCPType" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="acceptedDisclaimer" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ConditionsType">
+		<xs:sequence>
+			<xs:element name="condition" type="lsn:LanguageSpecificTextType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="CertificateStatusEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ISSUED">
+				<xs:annotation>
+					<xs:documentation>
+						The first certificate that is issued (this status applies only when a certificate which
+						a notified body has issued for a device/devices following an initial certification
+						for a given manufacturer (SRN) is registered in EUDAMED)
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="RESTRICTED">
+				<xs:annotation>
+					<xs:documentation>
+						Reduce certificate scope and/or add conditions/limitations or impose restrictions to a certificate
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="SUSPENDED">
+				<xs:annotation>
+					<xs:documentation>Suspend the validity of a certificate</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="REINSTATED">
+				<xs:annotation>
+					<xs:documentation>Re-instate a suspended certificate</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="WITHDRAWN">
+				<xs:annotation>
+					<xs:documentation>The certificate is withdrawn by a NB under specification of the reason(s)</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="AMENDED">
+				<xs:annotation>
+					<xs:documentation>
+						Any updates to a certificate except scope, validity period and conditions/limitations/restrictions
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="SUPPLEMENTED">
+				<xs:annotation>
+					<xs:documentation>
+						Extend certificate scope and/or remove conditions/limitations/restrictions
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="REISSUED">
+				<xs:annotation>
+					<xs:documentation>
+						Re-issue an existing certificate before its expiration
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="CANCELLED">
+				<xs:annotation>
+					<xs:documentation>
+						The certificate is canceled by the manufacturer because the device(s) are discontinued
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="CertificateIdentifierType">
+		<xs:sequence>
+			<xs:element name="certificateNumber" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-61# - Certificate Number. When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property stores the Certificate Number of the Product Certificate</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="certificateRevisionNumber" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-62# - Revision Number. When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property stores the Certificate Revision Number of the Product Certificate.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-63# - Notified Body. When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property stores the reference to the Notified Body that issued the Product Certificate.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="issuedDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="decisionDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PrecedingCertificateIdentifiersType">
+		<xs:sequence>
+			<xs:element name="identifier" type="crtfissued:CertificateIdentifierType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CertificateStatusType">
+		<xs:sequence>
+			<xs:element name="status" type="crtfissued:CertificateStatusEnum" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="decision" type="crtfdecisionupdate:CertificateStatusChangeDecisionType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="IssuedCertificate">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="crtfissued:IssuedCertificateType">
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

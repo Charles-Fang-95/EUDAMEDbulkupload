@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/AffectedCountry/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:affectedCountry="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/AffectedCountry/v1"
+           elementFormDefault="qualified">
+    <xs:complexType name="AffectedCountryType">
+        <xs:sequence>
+            <xs:element name="iso2Code" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="AffectedCountriesType">
+        <xs:sequence>
+            <xs:element name="country" type="affectedCountry:AffectedCountryType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

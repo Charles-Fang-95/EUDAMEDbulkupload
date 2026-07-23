@@ -1,12 +1,13 @@
 import unittest
 import importlib.util
 import re
+import tempfile
 from pathlib import Path
 
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 
 from local_beta import constants, template_schema
-from local_beta import build_unified_template, views
+from local_beta import build_unified_template, template_migrator, views
 from local_beta.exporter import BULK_UPLOAD_ENTITY_LIMIT, BetaXMLExporter
 from local_beta.importer import WorkbookImporter
 
@@ -106,6 +107,43 @@ class EnglishTemplateCopyTests(unittest.TestCase):
         finally:
             views.set_lang("zh")
 
+    def test_migration_page_shows_legacy_eifu_migration_details(self):
+        result = {
+            "output_filename": "migrated.xlsx",
+            "report": {
+                "mode": "current_unified_template",
+                "copied_rows": {"MDR_MDD": 1},
+                "unmapped_headers": {},
+                "legacy_eifu_migrations": [
+                    {
+                        "sheet": "MDR_MDD",
+                        "source_row": 4,
+                        "udi_code": "UDI-EIFU",
+                        "old_url": "https://example.com/old-eifu",
+                        "current_url": "",
+                        "result": "copied_to_additional_information_url",
+                    },
+                    {
+                        "sheet": "MDR_MDD",
+                        "source_row": 5,
+                        "udi_code": "UDI-CONFLICT",
+                        "old_url": "https://example.com/old",
+                        "current_url": "https://example.com/current",
+                        "result": "kept_existing_additional_information_url",
+                    },
+                ],
+            },
+        }
+
+        html = views.migrate_template_page("迁移完成", result, "warning")
+
+        self.assertIn("旧 eIFU URL 迁移明细", html)
+        self.assertIn("复制 1", html)
+        self.assertIn("冲突未覆盖 1", html)
+        self.assertIn("UDI-EIFU", html)
+        self.assertIn("https://example.com/old-eifu", html)
+        self.assertIn("冲突：保留现有新字段，未覆盖", html)
+
 
 class ImportHeaderCompatibilityTests(unittest.TestCase):
     def test_old_starred_pi_headers_map_to_current_fields(self):
@@ -119,6 +157,72 @@ class ImportHeaderCompatibilityTests(unittest.TestCase):
 
         self.assertEqual(lot_item["field"], "PI Lot/Batch Number")
         self.assertEqual(expiration_item["field"], "PI Expiration Date")
+
+    def test_old_eifu_header_does_not_map_to_output_field(self):
+        importer = WorkbookImporter(repository=None)
+        mapping = importer._schema_by_header(template_schema.columns_for_entry_sheet("MDR_MDD"))
+
+        old_item = mapping.get("UDI - eIFU URL") or mapping.get(importer._canonical_header("UDI - eIFU URL"))
+
+        self.assertIsNone(old_item)
+
+
+class TemplateMigrationTests(unittest.TestCase):
+    def _source_workbook(self, headers: list[str], values: list):
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "MDR_MDD"
+        for col_idx, header in enumerate(headers, start=1):
+            worksheet.cell(1, col_idx).value = header
+            worksheet.cell(4, col_idx).value = values[col_idx - 1]
+        return workbook
+
+    def test_migration_copies_legacy_eifu_url_to_additional_information_url(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_path = tmp / "old_template.xlsx"
+            workbook = self._source_workbook(
+                ["Basic - Basic UDI-DI Code*", "UDI - UDI-DI Code*", "UDI - eIFU URL"],
+                ["BUDI-EIFU", "UDI-EIFU", "https://example.com/old-eifu"],
+            )
+            workbook.save(source_path)
+
+            result = template_migrator.migrate_workbook(source_path, output_dir=tmp)
+            migrated = load_workbook(tmp / result["output_filename"], data_only=True)
+            worksheet = migrated["MDR_MDD"]
+            headers = [cell.value for cell in worksheet[1]]
+            target_col = headers.index("UDI - Additional Information URL / eIFU webpage") + 1
+
+            self.assertEqual(worksheet.cell(4, target_col).value, "https://example.com/old-eifu")
+            self.assertEqual(result["report"]["legacy_eifu_migrations"][0]["source_row"], 4)
+            self.assertEqual(result["report"]["legacy_eifu_migrations"][0]["udi_code"], "UDI-EIFU")
+            self.assertEqual(result["report"]["legacy_eifu_migrations"][0]["result"], "copied_to_additional_information_url")
+            report_values = [cell.value for row in migrated["Migration Report"].iter_rows() for cell in row]
+            self.assertIn("https://example.com/old-eifu", report_values)
+
+    def test_migration_does_not_overwrite_current_additional_information_url(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_path = tmp / "mixed_template.xlsx"
+            workbook = self._source_workbook(
+                [
+                    "Basic - Basic UDI-DI Code*",
+                    "UDI - UDI-DI Code*",
+                    "UDI - Additional Information URL / eIFU webpage",
+                    "UDI - eIFU URL",
+                ],
+                ["BUDI-EIFU", "UDI-EIFU", "https://example.com/current", "https://example.com/old-eifu"],
+            )
+            workbook.save(source_path)
+
+            result = template_migrator.migrate_workbook(source_path, output_dir=tmp)
+            migrated = load_workbook(tmp / result["output_filename"], data_only=True)
+            worksheet = migrated["MDR_MDD"]
+            headers = [cell.value for cell in worksheet[1]]
+            target_col = headers.index("UDI - Additional Information URL / eIFU webpage") + 1
+
+            self.assertEqual(worksheet.cell(4, target_col).value, "https://example.com/current")
+            self.assertEqual(result["report"]["legacy_eifu_migrations"][0]["result"], "kept_existing_additional_information_url")
 
 
 class ExportBatchPlanningTests(unittest.TestCase):
@@ -177,6 +281,46 @@ class NumberOfReusesTests(unittest.TestCase):
         for raw in ["-", "N/A", "不适用", "not defined"]:
             with self.subTest(raw=raw):
                 self.assertEqual(self.exporter._normalised_number_of_reuses(raw), "-1")
+
+
+class WebsiteUrlMappingTests(unittest.TestCase):
+    def setUp(self):
+        self.exporter = BetaXMLExporter(repository=None)
+
+    def test_additional_information_url_exports_when_public_website_blank(self):
+        value = self.exporter._website_url({
+            "Additional Information URL": "https://example.com/eifu",
+            "Public Website": "",
+        })
+
+        self.assertEqual(value, "https://example.com/eifu")
+
+    def test_public_website_wins_when_both_urls_are_filled(self):
+        value = self.exporter._website_url({
+            "Additional Information URL": "https://example.com/eifu",
+            "Public Website": "https://example.com/product",
+        })
+
+        self.assertEqual(value, "https://example.com/product")
+
+    def test_legacy_eifu_url_does_not_export_silently(self):
+        value = self.exporter._website_url({
+            "eIFU URL": "https://example.com/legacy-eifu",
+            "Public Website": "",
+            "Additional Information URL": "",
+        })
+
+        self.assertEqual(value, "")
+
+    def test_legacy_eifu_url_warns_before_export(self):
+        warnings = []
+        self.exporter._warn_website_url_selection(warnings, {
+            "udi_code": "UDI-LEGACY-EIFU",
+            "payload": {"eIFU URL": "https://example.com/legacy-eifu"},
+        })
+
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("不会自动把它写入 EUDAMED", warnings[0])
 
 
 class LegacyValidatorApplicabilityTests(unittest.TestCase):

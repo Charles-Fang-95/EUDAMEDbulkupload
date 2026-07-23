@@ -124,6 +124,7 @@ def _build_related_sheet(ws, sheet_name: str, columns: list[dict], locale: str):
 
 
 def _build_table_sheet(ws, columns: list[dict], max_data_rows: int, locale: str):
+    description_lengths = []
     for col_idx, item in enumerate(columns, start=1):
         header = ws.cell(1, col_idx, item["header"])
         header.font = _header_font(item)
@@ -131,7 +132,9 @@ def _build_table_sheet(ws, columns: list[dict], max_data_rows: int, locale: str)
         header.alignment = WRAP
         header.border = BOX
 
-        description = ws.cell(2, col_idx, _description_line(item, locale))
+        description_text = _description_line(item, locale)
+        description_lengths.append(len(description_text))
+        description = ws.cell(2, col_idx, description_text)
         description.font = ENGLISH_FONT if locale == "en" else CHINESE_FONT
         description.fill = PatternFill("solid", fgColor=REQUIREMENT_FILLS[item["requirement"]])
         description.alignment = WRAP
@@ -143,10 +146,15 @@ def _build_table_sheet(ws, columns: list[dict], max_data_rows: int, locale: str)
         example.alignment = WRAP
         example.border = BOX
 
-        width_base = max(len(item["header"]), len(str(item["example"] or "")))
-        ws.column_dimensions[get_column_letter(col_idx)].width = max(14, min(42, width_base * 0.95))
+        width_base = max(
+            len(item["header"]),
+            len(str(item["example"] or "")),
+            len(description_text) * 0.45,
+        )
+        ws.column_dimensions[get_column_letter(col_idx)].width = max(14, min(55, width_base * 0.95))
 
-    for row_idx, height in ((1, 42), (2, 84), (3, 50)):
+    description_height = max(84, min(150, (max(description_lengths or [0]) * 0.55)))
+    for row_idx, height in ((1, 42), (2, description_height), (3, 50)):
         ws.row_dimensions[row_idx].height = height
 
     last_col = get_column_letter(len(columns))
@@ -293,7 +301,7 @@ def _how_to_use_lines_zh():
         ("Clinical Sizes 仅适用于 MDR UDI-DI；请在 Clinical Sizes sheet 按 Type、Precision、数值/文本和单位逐行填写。IVDR/MDD/AIMDD/IVDD 填写后导出会忽略并提示。", None),
         ("Annex XVI Purposes 仅适用于 MDR Annex XVI 非医疗目的产品；一个 UDI-DI 可在 Annex XVI Purposes sheet 填多行 Non-Medical Device Type。", None),
         ("17. 当前不输出字段", HELP_HEAD),
-        ("eIFU URL、Public Email、Product Designer、Basic - Presence of Medicinal Substance 等字段仍在官方字段映射审计中；当前不会写入普通 UDI-DI XML。", None),
+        ("URL for additional information 会输出到官方 DTX XML 的 udidi:website；可填写产品信息页或 eIFU 网页入口。Public Email、Product Designer、Basic - Presence of Medicinal Substance 等字段仍在官方字段映射审计中。", None),
         ("18. 更新 service", HELP_HEAD),
         ("Basic_UDI.PATCH 需要在主表 B 列 Basic - Current Version 填写 EUDAMED 网页中的当前 Basic 版本号。", None),
         ("UDI_DI.PATCH 需要在主表 UDI 区域的 UDI - Current Version 列填写 EUDAMED 网页中的当前 UDI-DI 版本号。", None),
@@ -374,7 +382,7 @@ def _how_to_use_lines_en():
         ("Clinical Sizes apply only to MDR UDI-DIs. Fill Type, Precision, value/text and unit as separate Clinical Sizes rows. Values entered for IVDR/MDD/AIMDD/IVDD are ignored on export with a warning.", None),
         ("Annex XVI Purposes apply only to MDR Annex XVI products without an intended medical purpose. One UDI-DI may have multiple Non-Medical Device Type rows in Annex XVI Purposes.", None),
         ("17. Fields currently not exported", head_font),
-        ("eIFU URL, Public Email, Product Designer and Basic - Presence of Medicinal Substance remain under official field-mapping review and are not written to ordinary UDI-DI XML in the current tool.", None),
+        ("URL for additional information is exported to the official DTX XML element udidi:website and may point to a product information page or eIFU webpage. Public Email, Product Designer and Basic - Presence of Medicinal Substance remain under official field-mapping review.", None),
         ("18. Update services", head_font),
         ("For Basic_UDI.PATCH, fill Basic - Current Version in main-sheet column B with the current Basic version shown in EUDAMED.", None),
         ("For UDI_DI.PATCH, fill UDI - Current Version in the main-sheet UDI section with the current UDI-DI version shown in EUDAMED.", None),

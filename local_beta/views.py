@@ -808,6 +808,7 @@ def migrate_template_page(message: str = "", result: dict | None = None, message
         report = result.get("report") or {}
         copied = report.get("copied_rows") or {}
         unmapped = report.get("unmapped_headers") or {}
+        legacy_eifu = report.get("legacy_eifu_migrations") or []
         copied_rows = "".join(
             f"<tr><td>{esc(sheet)}</td><td>{esc(count)}</td></tr>"
             for sheet, count in sorted(copied.items())
@@ -817,6 +818,26 @@ def migrate_template_page(message: str = "", result: dict | None = None, message
             for sheet, headers in sorted(unmapped.items())
             if headers
         ) or f"<tr><td colspan='2'>{t('无', 'None')}</td></tr>"
+        legacy_eifu_rows = "".join(
+            f"""
+            <tr>
+              <td>{esc(item.get('sheet', ''))}</td>
+              <td>{esc(item.get('source_row', ''))}</td>
+              <td>{esc(item.get('udi_code', ''))}</td>
+              <td>{esc(item.get('old_url', ''))}</td>
+              <td>{esc(item.get('current_url', ''))}</td>
+              <td>{esc(_legacy_eifu_migration_label(item.get('result', '')))}</td>
+            </tr>
+            """
+            for item in legacy_eifu
+        ) or f"<tr><td colspan='6'>{t('未检测到旧 eIFU URL 字段或值', 'No legacy eIFU URL field/value detected')}</td></tr>"
+        legacy_eifu_copied = sum(1 for item in legacy_eifu if item.get("result") == "copied_to_additional_information_url")
+        legacy_eifu_conflicts = sum(1 for item in legacy_eifu if item.get("result") == "kept_existing_additional_information_url")
+        legacy_eifu_summary = (
+            f"{t('旧 eIFU URL 迁移', 'Legacy eIFU URL migration')}: "
+            f"{t('复制', 'Copied')} {legacy_eifu_copied} · "
+            f"{t('冲突未覆盖', 'Conflicts kept')} {legacy_eifu_conflicts}"
+        )
         download = ""
         if result.get("output_filename"):
             download = f'<p><a class="button primary" href="/download/{esc(result["output_filename"])}">{t("下载迁移后的新版模板", "Download migrated current template")}</a></p>'
@@ -835,6 +856,15 @@ def migrate_template_page(message: str = "", result: dict | None = None, message
               <div class="table-wrap"><table><thead><tr><th>Sheet</th><th>{t('字段', 'Headers')}</th></tr></thead><tbody>{unmapped_rows}</tbody></table></div>
             </article>
           </div>
+          <article class="panel inset">
+            <h3>{t('旧 eIFU URL 迁移明细', 'Legacy eIFU URL migration details')}</h3>
+            <p class="muted">{esc(legacy_eifu_summary)}</p>
+            <p class="muted">{t('仅“迁移模板”功能会把旧 eIFU URL 复制到新 URL for additional information 字段；直接导入旧模板和旧数据库导出仍不会静默上传旧 eIFU URL。', 'Only the template migrator copies legacy eIFU URL values into the new URL for additional information field. Direct old-template import and old database export still do not silently upload legacy eIFU URL values.')}</p>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Sheet</th><th>{t('源行号', 'Source row')}</th><th>UDI-DI</th><th>{t('旧 eIFU URL', 'Old eIFU URL')}</th><th>{t('现有新字段 URL', 'Current new-field URL')}</th><th>{t('处理结果', 'Result')}</th></tr></thead>
+              <tbody>{legacy_eifu_rows}</tbody>
+            </table></div>
+          </article>
           <p class="muted">{t('迁移工具只复制能明确匹配的字段；客户自定义字段不会被猜测映射。下载后请先检查 Migration Report sheet，再导入系统。', 'The migrator copies only clearly matched fields. Custom customer columns are not guessed. Check the Migration Report sheet before importing the result.')}</p>
         </section>
         """
@@ -852,6 +882,16 @@ def migrate_template_page(message: str = "", result: dict | None = None, message
     {result_html}
     """
     return page(t("迁移模板", "Migrate Template"), body, "/migrate-template")
+
+
+def _legacy_eifu_migration_label(result: str) -> str:
+    labels = {
+        "copied_to_additional_information_url": t("已复制到新字段", "Copied to new field"),
+        "already_same_as_current_field": t("新旧字段相同", "Old and new values match"),
+        "kept_existing_additional_information_url": t("冲突：保留现有新字段，未覆盖", "Conflict: kept existing new-field value"),
+        "skipped_no_target": t("未迁移：缺少目标字段", "Skipped: target field missing"),
+    }
+    return labels.get(str(result or ""), str(result or ""))
 
 
 def _import_change_row(item: dict) -> str:

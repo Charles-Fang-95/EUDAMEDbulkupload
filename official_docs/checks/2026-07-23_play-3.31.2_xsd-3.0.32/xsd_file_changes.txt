@@ -1,0 +1,20 @@
+Baseline: official_docs/unpacked/xsd_production (XSD 3.0.30)
+Current: official_docs/checks/2026-07-23_play-3.31.2_xsd-3.0.32/unpacked/xsd (XSD 3.0.32)
+
+Old file count: 68
+New file count: 68
+Added: 0
+Removed: 0
+Modified: 9
+Unchanged: 59
+
+Modified files:
+data/Entity/Actor/ActorType.xsd
+data/Entity/Certificate/CECPType.xsd
+data/Entity/Certificate/PostCertificateType.xsd
+data/Entity/Certificate/RefusedCertificateType.xsd
+data/Entity/Certificate/ScopeType.xsd
+data/Entity/SSCP/SSCPType.xsd
+data/Entity/Vigilance/v1/vigilance-commons.xsd
+data/Entity/Vigilance/v1/vigilance-elements.xsd
+service/Message/MessageType.xsd

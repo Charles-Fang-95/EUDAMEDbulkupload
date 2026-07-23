@@ -227,7 +227,7 @@ class DataValidator:
     
     def _validate_url_format(self, row: Dict, sheet: str):
         """验证URL格式"""
-        url_fields = ['eIFU URL', 'Public Website']
+        url_fields = ['Additional Information URL', 'eIFU URL', 'Public Website']
         
         for field in url_fields:
             value = row.get(field, '')

@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.9.6 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.9.6 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.9.7 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.9.7 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -69,7 +69,7 @@ http://127.0.0.1:8765
 
 ## 工具怎么用
 
-1. **下载模板**：顶栏「下载模板」，或直接用仓库里的中文模板 `EUDAMED_Template_v2.10.xlsx`；海外用户可使用英文模板 `EUDAMED_Template_v2.10_EN.xlsx`。
+1. **下载模板**：顶栏「下载模板」，或直接用仓库里的中文模板 `EUDAMED_Template_v2.11.xlsx`；海外用户可使用英文模板 `EUDAMED_Template_v2.11_EN.xlsx`。
 2. **填写 Excel**：在 Excel / WPS 里填数据（填写规则见下一节）。
 3. **导入 Excel**：在「导入 Excel」页上传，系统立即校验并显示新增 / 已更新 / 错误行。
 4. **产品库**：浏览、搜索、按 Manufacturer SRN 切换不同 actor；详情页可做临时修正（正式维护建议回到 Excel）。
@@ -77,12 +77,12 @@ http://127.0.0.1:8765
 6. **上传 EUDAMED**：按页面 / manifest 指引上传。**先在 Playground TEST 环境验收**，通过后再上生产。
 
 辅助功能：
-- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.10 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
+- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.11 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
 - **XSD 版本**页：核对工具内置 XSD、本地 XSD 包、官方文档页版本是否一致。
 
 ## 模板怎么用
 
-模板 `EUDAMED_Template_v2.10.xlsx` / `EUDAMED_Template_v2.10_EN.xlsx` 的字段结构完全一致：
+模板 `EUDAMED_Template_v2.11.xlsx` / `EUDAMED_Template_v2.11_EN.xlsx` 的字段结构完全一致：
 
 - **两个主录入表**：`MDR_MDD`（医疗器械）、`IVDR_IVDD`（体外诊断）。
   - 第 1 行 = 字段名，第 2 行 = 填写说明（中文模板为中文，英文模板为英文），第 3 行 = 示例（前三行已锁定，请勿改）。
@@ -109,12 +109,12 @@ http://127.0.0.1:8765
 
 - **非官方软件**，与欧盟委员会 / EUDAMED 无关联；按「现状」提供，不保证生成的 XML 一定符合 EUDAMED 要求；**数据准确性与合规责任由使用者承担**。正式提交前请务必在 EUDAMED Playground（测试环境）验收：<https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/>
 - **DTX 规则（重要）**：一次 `DEVICE.POST` 里，每个 Basic UDI-DI 只能创建一次（随它的第 1 个 UDI-DI 一起）；同一个 Basic 下的其余 UDI-DI 必须走 `UDI_DI.POST` 追加。工具已自动这样拆分；若重复在 DEVICE.POST 里带同一个 Basic，EUDAMED 会报「already exists」。
-- 部分官方字段当前**只收集、暂不输出到 XML**（如 eIFU URL、Public Email 等）。填了不等于已提交。完整清单见 [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md)。
+- `UDI - Additional Information URL / eIFU webpage` 对应官方 `FLD-UDID-174 - URL for additional information`，会作为 DTX XML 的 `udidi:website` 上传；这不是独立 eIFU 字段。部分字段仍**只收集、暂不输出到 XML**（如 Public Email 等）。完整清单见 [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md)。
 - 数据默认只保存在本机 `local_beta_data/`；工具**没有登录权限控制**，请勿在共享电脑上保存敏感数据。
 
 ## 版本历史
 
-当前 **0.9.6 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.9.7 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -191,7 +191,7 @@ http://127.0.0.1:8765
 
 ## Using the tool
 
-1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.10_EN.xlsx` from the repo. The Chinese template remains available as `EUDAMED_Template_v2.10.xlsx`.
+1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.11_EN.xlsx` from the repo. The Chinese template remains available as `EUDAMED_Template_v2.11.xlsx`.
 2. **Fill in the Excel** (rules in the next section).
 3. **Import Excel**: upload on the "Import Excel" page; it validates immediately and shows created / updated / error rows.
 4. **Product Library**: browse, search, switch actor by Manufacturer SRN; the detail page allows quick fixes (for real maintenance, go back to Excel).
@@ -199,12 +199,12 @@ http://127.0.0.1:8765
 6. **Upload to EUDAMED** following the page / manifest. **Validate in the Playground TEST environment first**, then go to production.
 
 Helpers:
-- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.10 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
+- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.11 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
 - **XSD version** page: check that the tool's built-in XSD, local XSD package, and the official documentation version are consistent.
 
 ## Using the template
 
-`EUDAMED_Template_v2.10.xlsx` and `EUDAMED_Template_v2.10_EN.xlsx` have the same field structure:
+`EUDAMED_Template_v2.11.xlsx` and `EUDAMED_Template_v2.11_EN.xlsx` have the same field structure:
 
 - **Two main entry sheets**: `MDR_MDD` (medical devices), `IVDR_IVDD` (in-vitro diagnostics).
   - Row 1 = field name, Row 2 = filling instruction (Chinese in the Chinese template, English in the English template), Row 3 = example (first three rows are locked — do not edit).
@@ -231,12 +231,12 @@ Helpers:
 
 - **Unofficial software**, not affiliated with the European Commission / EUDAMED; provided "as is" with no warranty that the generated XML fully meets EUDAMED requirements; **the user is responsible for data accuracy and compliance**. Always validate in the EUDAMED Playground (test) before any production submission: <https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/>
 - **DTX rule (important)**: within one `DEVICE.POST`, each Basic UDI-DI can be created only once (together with its first UDI-DI); the remaining UDI-DIs of that Basic must be added via `UDI_DI.POST`. The tool splits this automatically; repeating the same Basic inside one DEVICE.POST makes EUDAMED return "already exists".
-- Some official fields are currently **collected but not yet written to XML** (e.g. eIFU URL, Public Email). Filling them does not mean they were submitted. Full list: [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md).
+- `UDI - Additional Information URL / eIFU webpage` maps to official `FLD-UDID-174 - URL for additional information` and is exported as DTX XML `udidi:website`; it is not a separate eIFU field. Some fields are still **collected but not yet written to XML** (e.g. Public Email). Full list: [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md).
 - Data is stored only on your machine under `local_beta_data/`; the tool has **no login / access control**, so do not keep sensitive data on a shared computer.
 
 ## Version history
 
-Current **0.9.6 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.9.7 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

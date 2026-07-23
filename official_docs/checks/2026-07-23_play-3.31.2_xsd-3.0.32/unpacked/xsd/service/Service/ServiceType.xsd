@@ -1,0 +1,841 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Service/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:s="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Service/v1"
+           xmlns:proc="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Procedure/v1"
+           xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           xmlns:country="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1"
+           xmlns:riskclass="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1"
+           xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1"
+           xmlns:legislation="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1"
+           xmlns:crtfissued="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1"
+           xmlns:crtfcecp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1"
+           xmlns:links="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1"
+           xmlns:appcrtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1"
+           xmlns:vig="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance"
+           xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Procedure/v1" schemaLocation="../../data/Entity/Msu/Procedures/MsuProcedureItemType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" schemaLocation="../../data/Entity/Common/CountryEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../../data/Entity/Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" schemaLocation="../../data/Entity/Common/RiskClassEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../../data/Entity/Entity.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1" schemaLocation="../../data/Entity/Common/LegislationType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1" schemaLocation="../../data/Entity/Certificate/IssuedCertificateType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1"  schemaLocation="../../data/Entity/Certificate/CECPType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" schemaLocation="../../data/Entity/Links/LinkType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1" schemaLocation="../../data/Entity/Certificate/ApplicationCertificateType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance" schemaLocation="../../data/Entity/Vigilance/vigilance.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" schemaLocation="../../data/Entity/Device/RegulationDevice/UDIDIType.xsd"/>
+    <xs:simpleType name="ServiceIDEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ACTOR"/>
+            <xs:enumeration value="ACTOR_REGISTRATION"/>
+            <xs:enumeration value="BASIC_UDI"/>
+            <xs:enumeration value="DEVICE"/>
+            <xs:enumeration value="LEGACY_DEVICE"/>
+            <xs:enumeration value="LEGACY_EUDI"/>
+            <xs:enumeration value="LEGACY_EUDI_DATA"/>
+            <xs:enumeration value="MARKET_INFO"/>
+            <xs:enumeration value="NOTIFICATION_SERVICE"/>
+            <xs:enumeration value="PACKAGE_UDI"/>
+            <xs:enumeration value="REPLY_SERVICE"/>
+            <xs:enumeration value="CECP"/>
+            <xs:enumeration value="SSCP"/>
+            <xs:enumeration value="UDI_DI"/>
+            <xs:enumeration value="CERTIFICATE"/>
+            <xs:enumeration value="APPLICATION"/>
+            <xs:enumeration value="REFUSED_CERTIFICATE"/>
+            <xs:enumeration value="FINAL_INSPECTION_REPORT"/>
+            <xs:enumeration value="ANNUAL_SUMMARY_REPORT"/>
+            <xs:enumeration value="FOUR_YEAR_REPORT"/>
+            <xs:enumeration value="MSU_PROCEDURE"/>
+            <xs:enumeration value="PRODUCT_DESIGNER"/>
+            <xs:enumeration value="VIG_DOSSIER"/>
+            <xs:enumeration value="CIPS_DOSSIER"/>
+            <xs:enumeration value="NON_REGISTERED_DEVICE"/>
+            <xs:enumeration value="OCM_DEVICE"/>
+            <xs:enumeration value="DEVICE_ALL"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="yesNoT">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Yes"/>
+            <xs:enumeration value="No"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="ServiceCriteriaType" abstract="true">
+        <xs:sequence/>
+    </xs:complexType>
+    <xs:complexType name="MsuReportServiceCriteriaType" abstract="true">
+        <xs:sequence>
+            <xs:element name="EudamedReportIdentifier" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="CaReference" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="ReportingCountry" type="country:CountryEnum" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="ApplicableRegulationCode" type="commonbasic:reportRegulation" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+                <xs:documentation>Only MDR or IVDR</xs:documentation>
+            </xs:annotation>
+            </xs:element>
+            <xs:element name="LastUpdateDateFrom" type="xs:date" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="State" type="commonbasic:registeredOrDiscardedState" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Only REGISTERED or DISCARDED</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="DIDownloadServiceCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="ARActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Wildcards are not allowed</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="CAActorCode" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-ACT-012# - Responsible CA.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-CRF-028#
+                                NANDO ID assigned to Notified Body. This field is available only for CA actor.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="BasicUDIDICode" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Basic UDI-DI Code or EUDAMED DI Code (for Legacy Devices). Wildcards are not allowed </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="BasicUDIVersionDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="MFActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Wildcards are not allowed</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="UDIDICode" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>UDI-DI Code or EUDAMED ID Code (for Legacy Devices). Wildcards are not allowed</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="UDIDIVersionDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="Country" type="country:EUCountryWithSpecialEnum" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="RiskClass" type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="State" type="e:StateEnum" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Only SUBMITTED or REGISTERED</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ApplicableLegislation" type="legislation:ApplicableLegislationType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ActorRegistrationServiceCriteriaType">
+        <xs:annotation>
+            <xs:documentation>Criteria for downloading Actor Registration entities. It is only serving the current CA designated actor registrations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="applicationID" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Search for applicationID exactly. Wildcards do not apply.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="economicOperatorCity" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="economicOperatorCountry" type="country:CountryEnum" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="economicOperatorName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="economicOperatorPostalCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="economicOperatorType" type="s:ActorDownloadServiceActorTypeEnum" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="initialSubmissionDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="submissionDate" type="xs:date" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Defines the date criteria interval for submission of requests till present.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="fromDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="toDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ActorDownloadServiceCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="actorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Search for SRN exactly. Wildcards do not apply.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="country" type="country:CountryEnum" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="type" type="s:ActorDownloadServiceActorTypeEnum" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="versionDate" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="DossierDownloadServiceCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="dossierSearchCriteria" type="vig:DossierSearchCriteria" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="OcmDownloadServiceCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="ocmIdentifier" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>OCM code</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="udiDICode" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>UDI-DI code</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="basicUdiCode" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Basic UDI-DI code</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="applicableLegislation" type="legislation:OCMApplicableLegislationType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Applicable legislation</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="riskClass" type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Risk class</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="deviceStatus" type="udidi:DeviceStatusEnum" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Device status</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="isCustomMade" type="xs:boolean" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Device is custom-made</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="versionState" type="e:StateEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Version state</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="DeviceAllDownloadServiceCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:simpleType name="ServiceOperationEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="GET"/>
+            <xs:enumeration value="PATCH"/>
+            <xs:enumeration value="POST"/>
+            <xs:enumeration value="PUT"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ActorDownloadServiceActorTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="AR">
+                <xs:annotation>
+                    <xs:documentation>Authorised Representative</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IM">
+                <xs:annotation>
+                    <xs:documentation>Importer</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MF">
+                <xs:annotation>
+                    <xs:documentation>Manufacturer</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="PR">
+                <xs:annotation>
+                    <xs:documentation>Producer</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SP">
+                <xs:annotation>
+                    <xs:documentation>Sponsor</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="ServiceType">
+        <xs:annotation>
+            <xs:documentation>Entity to describe the service invocation details. It is the service provided in case of the requests (pull / push) and also allow to specify the reply to service in case of a service response (pull) or acknowledgement.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="serviceAccessToken" type="xs:token" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Bearer security authentication token to gain access permission to the requested data by the requester as EUDAMED actor or 3rd party (acting on behalf of the actor mentioned in nodeActorCode).
+                        It is mandatory for M2M transmission but it is not required for Bulk-Upload operations.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="serviceID" type="s:ServiceIDEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Identifies the service id mentioned in the service definition glossary.
+                        This is the unique ID of the service. It is unique at EUDAMED level.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="serviceOperation" type="s:ServiceOperationEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Identifies the method (operation) to be invoked (e.g. download, upload, update, etc.) at the level of the current service id.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="serviceVersion" use="optional" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>In case of multi versioned compatible service, allows to specify what version of the current service is invoked.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="NodeType">
+        <xs:annotation>
+            <xs:documentation>Identifies an actor that acts as sender or recipient of the current message.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="nodeActorCode" type="xs:string" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Contain the EUDAMED code (e.g. SRN, CA identifier, NB code etc.) of the party that performs the call of service. In case of multi profile endpoint (e.g. 3rd party companies), it contains the actor code on behalf of the request is performed.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="nodeID" type="xs:string" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Identify the requester (actor / 3rd party integrators) of the message eDelivery endpoint.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="SSCPDownloadServiceCriteriaType">
+        <xs:annotation>
+            <xs:documentation>
+                Only one value per criterion will be accepted. No wildcards.
+                "AND" condition applied between search criterion.
+                When requesting M2M or bulk download of SS(C)P records the system will ensure that at least one criterion is provided.
+                SS(C)P revision number as a stand-alone criterion will not be accepted.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="issueDate" type="commonbasic:DateInterval" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Date when the Master Document has been issued by the Manufacturer.
+                                For "issueDate", both fields ("Start date" and "End date") will be provided.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="SSCP" minOccurs="0" maxOccurs="1">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="SSCPReferenceNumber" type="commonbasic:stringSType" minOccurs="0" maxOccurs="1">
+                                    <xs:annotation>
+                                        <xs:documentation>
+                                            Unique reference of the SS(C)P provided by the Manufacturer. Must be unique in the system for the Manufacturer.
+                                        </xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                                <xs:element name="SSCPRevisionNumber" type="commonbasic:stringSType" minOccurs="0" maxOccurs="1">
+                                    <xs:annotation>
+                                        <xs:documentation>
+                                            Unique reference of the version of the SS(C)P. Revision number should be unique in the system for the same SS(C)P
+                                        </xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="basicUDICode" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Field stores the reference to the Basic UDI - DI for which the SSCP is uploaded. SS©P can contain references to several Basic UDIs.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="certificate" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Certificate reference to which the current version of an SS(C)P is linked.
+                            </xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="CertificateNumber" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1">
+                                    <xs:annotation>
+                                        <xs:documentation>
+                                            Certificate number of the certificate (can be provided as alone criterion)
+                                        </xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                                <xs:element name="RevisionNumber" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                                    <xs:annotation>
+                                        <xs:documentation>
+                                            Revision number of the certificate (cannot be provided alone without the certificate number)
+                                        </xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="MFActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Manufacturer single registration number.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-028#
+                                SSCP(Summary of safety and clinical performance) can be registered in EUDAMED by
+                                the Notified Body and can be periodically updated
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="IssuedCertificateDownloadServiceCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="IssueDate" type="commonbasic:DateInterval" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-024#
+                                The date of issue of the certificate (issued, re-issued, supplemented, amended or restricted).
+                                In case a certificate is suspended, re-instated, withdrawn or cancelled by MF the date of issue is not changed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="SubmissionDate" type="commonbasic:DateInterval" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-235#
+                                Date indicating when the last update on a certificate occurred.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ExpiryDate" type="commonbasic:DateInterval" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-004#
+                                The expiry date of the certificate. It is set when a new certificate is issued (status issued or re-issued).
+                                It can also be changed in case of a restriction.
+                                It cannot be changed in all other cases (supplement, amend, restrict, suspend, re-instate, withdraw or canceled by MF).
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="CertificateType" type="links:CertificateTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-007#
+                                Indicates (enumeration) the certificate type.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="CertificateNumber" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-025#
+                                A number assigned by the NB to an issued, re-issued, supplemented, amended or restricted certificate.
+                                In case of suspension, re-instatement, withdrawal or cancellation (by MF) the certificate number is not changed.
+                                When Certificate ID is provided the system will disregard #1 Date of issue.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-028#
+                                NANDO ID assigned to Notified Body. This field is available only for CA actor.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-029#
+                                Economic Operator SRN. Can be MF, SPPP that are in the scope of certificates.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Status" type="crtfissued:CertificateStatusEnum" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-010#
+                                Indicates (enumeration) if it is a new certificate (issued, re-issued) or a new
+                                certificate version (Amended, Supplemented, Suspended, Re-instated, Withdrawn or Cancelled by MF).
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="ApplicationDownloadServiceCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="ApplicationDecision" type="appcrtf:ApplicationDecisionEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Indicates (enumeration) if the application for conformity assessment is refused by the NB,
+                                or withdrawn by the MF or the conformity assessment lead to a certificate refusal by the NB.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="RefusalDate" type="commonbasic:DateInterval" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-302#
+                                The date of the decision i.e. the date of certificate refusal or the date the application for conformity assessment was refused/withdrawn.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="SubmissionDate" type="commonbasic:DateInterval" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-235#
+                                Date indicating when the last update on a certificate occurred.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="CertificateType" type="links:CertificateTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-007#
+                                Indicates (enumeration) the certificate type.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ApplicationNumber" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-314#
+                                An application reference number provided by the NB. The application reference number is unique per NB.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-028#
+                                NANDO ID assigned to Notified Body. This field is available only for CA actor.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-029#
+                                Economic Operator SRN. Can be MF, SPPP that are in the scope of certificates.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="RefusedCertificateDownloadServiceCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="RefusalDate" type="commonbasic:DateInterval" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-302#
+                                The date of the decision i.e. the date of certificate refusal or the date the application for conformity assessment was refused/withdrawn.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="SubmissionDate" type="commonbasic:DateInterval" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-235#
+                                Date indicating when the last update on a certificate occurred.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="CertificateType" type="links:CertificateTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-007#
+                                Indicates (enumeration) the certificate type.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ApplicationNumber" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-314#
+                                An application reference number provided by the NB. The application reference number is unique per NB.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-028#
+                                NANDO ID assigned to Notified Body. This field is available only for CA actor.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-029#
+                                Economic Operator SRN. Can be MF, SPPP that are in the scope of certificates.
+                                Exact match, no wildcards allowed.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="FinalInspectionReportSearchCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:MsuReportServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="EoName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="EoSrn" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="NbActorCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="IncludeHistoricVersion" type="s:yesNoT" default="No" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="AnnualSummaryReportSearchCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:MsuReportServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="ReportingYearFrom" type="xs:gYear" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="ReportingYearTo" type="xs:gYear" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="FourYearReportSearchCriteriaType">
+        <xs:complexContent>
+            <xs:extension base="s:MsuReportServiceCriteriaType">
+                <xs:sequence>
+                    <xs:element name="reportingPeriodFrom" type="commonbasic:period" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="reportingPeriodTo" type="commonbasic:period" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:simpleType name="msuFilterItemTypeEnum">
+        <xs:annotation>
+            <xs:documentation>
+                Field stores the itemType for MSU Procedure download service. Can be PROC - for procedures, MUCA - for Measures By Initiating CA, COA - for Corrective Actions,
+                MUOT - Measures by Other CA , OBJ - for Objections, INFO - for Additional Info
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PROC"/>
+            <xs:enumeration value="MUCA"/>
+            <xs:enumeration value="COA"/>
+            <xs:enumeration value="MUOT"/>
+            <xs:enumeration value="OBJ"/>
+            <xs:enumeration value="INFO"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="msuItemStatusEnum">
+        <xs:annotation>
+            <xs:documentation>
+                Item Status for MSU Procedure download
+                If FilterItemType is Procedure (PROC) acceptable values - OPEN, CLOSED, OPEN_WITH_MEASURES, OPEN_WITH_OBJECTIONS
+                If FilterItemType is Measure (MUCA or MUOT) acceptable values - TAKEN, JUSTIFIED, WITHDRAWN, UNJUSTIFIED, CLOSED
+                If FilterItemType is COA acceptable values - REQUESTED, PERFORMED, NOT_PERFORMED
+                If FilterItemType is OBJ acceptable values - PROPOSED,WITHDRAWN
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OPEN"/>
+            <xs:enumeration value="CLOSED"/>
+            <xs:enumeration value="OPEN_WITH_MEASURES"/>
+            <xs:enumeration value="OPEN_WITH_OBJECTIONS"/>
+            <xs:enumeration value="TAKEN"/>
+            <xs:enumeration value="JUSTIFIED"/>
+            <xs:enumeration value="WITHDRAWN"/>
+            <xs:enumeration value="UNJUSTIFIED"/>
+            <xs:enumeration value="CLOSED"/>
+            <xs:enumeration value="REQUESTED"/>
+            <xs:enumeration value="PERFORMED"/>
+            <xs:enumeration value="NOT_PERFORMED"/>
+            <xs:enumeration value="PROPOSED"/>
+            <xs:enumeration value="WITHDRAWN"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="MsuProcedureSearchCriteriaType">
+        <xs:sequence>
+            <xs:element name="FilterItemType" type="s:msuFilterItemTypeEnum" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="ItemIdentifier" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="ItemStatus" type="s:msuItemStatusEnum" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="CAActorCode" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="LocalCaReference" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="EOSRN" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="EONAME" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="State" type="commonbasic:registeredOrDiscardedState" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Only REGISTERED or DISCARDED</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="LastUpdateDateFrom" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="includeHistoricVersions" type="s:yesNoT" default="No" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="ProcedureType" type="proc:ProcedureTypeEnum" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="ProcedureTriggerType" type="proc:ProcedureTriggerTypeEnum" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="AffectedCountry" type="country:CountryEnum" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="CECPDownloadServiceCriteriaType">
+        <xs:annotation>
+            <xs:documentation>
+                Only one value per criterion will be accepted. No wildcards.
+                "AND" condition applied between search criterion.
+                When requesting M2M or bulk download of CECPP records the system will ensure that at least one criterion is provided.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="s:ServiceCriteriaType">
+                <xs:all>
+                    <xs:element name="CECPStatusDateChange" type="commonbasic:DateInterval" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-306#
+                                Indicates the date when the last status update has occurred.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ApplicationID" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-302#
+                                ID of the application for conformity assessment
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ConformityAssessmentType" type="links:CertificateTypeEnum" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-310#
+                                Defines (enumeration) the conformity assessment procedure (certificate type) of the device in the CECP. Only the following conformity assessment procedures may have a CECP:
+                                    (MDR) EU technical documentation assessment (Annex IX Chapter II);
+                                    (MDR) EU type-examination (Annex X);
+                                    (MDR) EU Quality Management System certificate (Annex IX Chapter I)
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="NotifiedBodyID" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-307#
+                                The NB Identification number (assigned by NANDO) of the NB carrying out the conformity assessment of the device in the CECP.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="EOSRN"  type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-308#
+                                The SRN of the MF of the device in the clinical evaluation (CECP).  The MF is identified by its SRN (a unique identification number assigned to the MF when it is registered as an Actor in Eudamed).
+                                =======
+                                #FLD-CRF-309#
+                                The SRN of the AR of the device in the clinical evaluation (CECP). It applies only when the MF of the device is a non-EU MF. The AR is identified by its SRN (a unique identification number assigned to the AR when it is registered as an Actor in Eudamed).
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="DeviceIdentification"  type="crtfcecp:DeviceIdentification" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-322#
+                                The Basic UDI-DI of the device in the scope of the CECP, if the device has been assigned a Basic UDI-DI.
+                                Notes
+                                The Basic UDI-DI has been assigned in case the CECP is performed in the context of a:
+                                (MDR) EU technical documentation assessment (Annex IX Chapter II);
+                                (MDR) EU type-examination (Annex X).
+                                    The Basic UDI-DI has been assigned in case the CECP is performed in the context of a (MDR) EU Quality Management System certificate (Annex IX Chapter I)
+                                    ========
+                                    FLD-CRF-326
+                                    The name of the device in the scope of the CECP, if the device has not been assigned a Basic UDI-DI.
+                                    ========
+                                    FLD-CRF-325
+                                    The model of the device in the CECP.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="DeviceType"  type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-324#
+                                The risk class of the device in the CECP.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Status" type="crtfcecp:CECPFollowedStatusEnum" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-CRF-311#
+                                Indicates (enumeration) the workflow status of the CECP (for example if the clinical evaluation consultation procedure applies, if the CECP has been assigned to an Expert Panel, etc.).
+                                Note: This information is additional internal Eudamed information for each CECP. A CECP has only one version i.e. the versionNumber in entity VersionData is always 1.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:all>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+</xs:schema>

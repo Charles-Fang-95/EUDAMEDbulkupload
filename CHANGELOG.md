@@ -2,6 +2,14 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.9.7 - 2026-07-22
+
+- 默认模板升级为 `EUDAMED_Template_v2.11.xlsx` / `EUDAMED_Template_v2.11_EN.xlsx`。
+- 将旧字段 `UDI - eIFU URL` 修正为官方口径 `UDI - Additional Information URL / eIFU webpage`：该列对应官方 `FLD-UDID-174 - URL for additional information`，导出到 DTX XML 的 `udidi:website`。
+- 保留旧模板安全兼容：直接导入旧表头 `UDI - eIFU URL` 或旧数据库导出时不会自动输出，因为 0.9.6 模板曾明确该字段不输出到 XML；只有用户主动使用“迁移模板”功能时，迁移工具才会把旧 eIFU URL 复制到 `UDI - Additional Information URL / eIFU webpage`，并在 Migration Report 和网页迁移结果中记录源行号、UDI-DI、旧 URL 和冲突处理结果。
+- 如果同一条 UDI-DI 同时填写 `Public Website` 和 `URL for additional information` 且两者不同，导出预检会提示 EUDAMED DTX 只有一个 website/XML 字段，工具将优先输出 `Public Website`。
+- README、How to Use、Glossary 和字段映射审计同步修正，不再把 eIFU 页面入口误称为独立 EUDAMED DTX 字段。
+
 ## 0.9.6 - 2026-07-14
 
 - 新增英文版模板 `EUDAMED_Template_v2.10_EN.xlsx`，字段结构、sheet 名称、下拉、锁定规则和导入兼容性与中文模板完全一致；仅第 2 行说明、How to Use、Glossary、Critical Warning Glossary 等用户说明改为英文。

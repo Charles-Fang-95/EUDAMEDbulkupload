@@ -12,7 +12,7 @@ COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.10"
+TEMPLATE_VERSION = "v2.11"
 
 
 _FORMAT_EN = {
@@ -97,7 +97,7 @@ _DESCRIPTION_EN_OVERRIDES = {
     "Trade Name Applicable": "Confirm whether the trade name field applies. If TRUE, Trade Name is usually expected.",
     "Trade Name": "Quick trade name column. Use the Trade Names sheet for multiple trade names or language-specific names.",
     "Trade Name Language": "Language for the quick trade name column. ANY means no specific language is declared; it does not translate the name and does not limit you to one trade name.",
-    "eIFU URL": "Electronic instructions for use URL. This field is collected for review but is not currently exported to ordinary UDI-DI XML.",
+    "Additional Information URL": "Official FLD-UDID-174 URL for additional information. It is exported as udidi:website. It may point to a product information page or eIFU webpage, but EUDAMED DTX does not provide a separate eIFU URL field.",
     "Reference Number": "Reference / catalogue number. Required in EUDAMED XML.",
     "Product Designer SRN": "Product designer / original manufacturer SRN. The separate update service is not implemented yet.",
     "Product Designer ID": "Product designer internal ID. The separate update service is not implemented yet.",
@@ -110,7 +110,7 @@ _DESCRIPTION_EN_OVERRIDES = {
     "Nomenclature System": "Nomenclature system, usually EMDN.",
     "Additional Description": "Additional description. Use UDI-DI level descriptions for size/specification/package details that vary by UDI-DI.",
     "Description Language": "Language of the additional description.",
-    "Public Website": "Public product website.",
+    "Public Website": "Public product website. It is also a candidate for the official udidi:website output; if both Public Website and Additional Information URL are filled, Public Website is exported.",
     "Public Email": "Public contact email. This field is collected for review but is not currently exported to ordinary UDI-DI XML.",
     "Country Code": "One made-available market country per row. Use EL for Greece, not GR.",
     "Placed on Market": "Recommended business check for whether the device is or has been placed on the market in this country.",
@@ -433,7 +433,7 @@ MAIN_COLUMNS = [
     _col("UDI", "UDI - Trade Name Applicable*", "udi", "Trade Name Applicable", True, "boolean", "是否适用商品名字段。TRUE 时通常必须填写 Trade Name。", "TRUE", "TRUE / FALSE"),
     _col("UDI", "UDI - Trade Name", "udi", "Trade Name", False, None, "商品名快捷列。若上一列为 TRUE，通常应填写；多语言/多个商品名请使用 Trade Names sheet。", "Trade name", "文本", requirement="conditional"),
     _col("UDI", "UDI - Trade Name Language", "udi", "Trade Name Language", False, "language_any", "商品名快捷列语言。ANY 表示不限定具体语言；不会自动翻译，也不代表只能有一个 Trade Name。多语言/多个商品名请使用 Trade Names sheet。", "ANY", "下拉选择", requirement="conditional"),
-    _col("UDI", "UDI - eIFU URL", "udi", "eIFU URL", False, None, "电子说明书链接。当前官方 UDI-DI XML 未确认安全输出路径，本工具不输出到 XML，不会提交到 EUDAMED。", "", "URL"),
+    _col("UDI", "UDI - Additional Information URL / eIFU webpage", "udi", "Additional Information URL", False, None, "官方字段 FLD-UDID-174：URL for additional information，会输出到 XML 的 udidi:website。可填写产品信息页或 eIFU 网页入口，但 EUDAMED DTX 没有单独 eIFU URL 字段。", "", "URL"),
     _col("UDI", "UDI - Reference Number*", "udi", "Reference Number", True, None, "Reference / Catalogue Number；EUDAMED XML 必填。", "REF-001", "文本"),
     _col("UDI", "UDI - Product Designer SRN", "udi", "Product Designer SRN", False, None, "产品原始制造商/设计者 SRN；当前独立 update service 未实现。", "", "文本"),
     _col("UDI", "UDI - Product Designer ID", "udi", "Product Designer ID", False, None, "产品设计者内部 ID；当前独立 update service 未实现。", "", "文本"),
@@ -446,7 +446,7 @@ MAIN_COLUMNS = [
     _col("UDI", "UDI - Nomenclature System", "udi", "Nomenclature System", False, None, "命名系统。通常为 EMDN。", "EMDN", "文本"),
     _col("UDI", "UDI - Additional Description", "udi", "Additional Description", False, None, "UDI-DI 层级附加描述；可填写尺寸、规格、包装形式等随单个 UDI-DI 变化的信息。", "40S, 15 threads, 10x10cm-4ply", "文本"),
     _col("UDI", "UDI - Description Language", "udi", "Description Language", False, "language", "附加描述语言。", "en", "下拉选择"),
-    _col("UDI", "UDI - Public Website", "udi", "Public Website", False, None, "公开产品网址。", "", "URL"),
+    _col("UDI", "UDI - Public Website", "udi", "Public Website", False, None, "公开产品网址；也会作为官方 website 候选输出。若同时填写 Additional Information URL，工具优先输出 Public Website 并给出预检提示。", "", "URL"),
     _col("UDI", "UDI - Public Email", "udi", "Public Email", False, None, "公开联系邮箱。当前普通 UDI-DI XML 未确认安全输出路径，本工具不输出到 XML，不会提交到 EUDAMED；公开网址 Public Website 已输出。", "", "邮箱"),
 ]
 
