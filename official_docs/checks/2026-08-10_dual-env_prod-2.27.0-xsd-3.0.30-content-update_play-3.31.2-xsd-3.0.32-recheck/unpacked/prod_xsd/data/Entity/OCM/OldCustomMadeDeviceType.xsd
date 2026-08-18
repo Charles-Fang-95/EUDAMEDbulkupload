@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/OCM/OldCustomMadeDevice/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:ocm="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/OCM/OldCustomMadeDevice/v1"
+           xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1"
+           xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           xmlns:legislation="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1"
+           xmlns:riskclass="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1"
+           xmlns:basicudi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1"
+           xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+           xmlns:marketinfo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1"
+           xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" schemaLocation="../Device/RegulationDevice/UDIDIType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../Device/CommonDeviceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1" schemaLocation="../Common/LegislationType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" schemaLocation="../Common/RiskClassEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1" schemaLocation="../Device/RegulationDevice/BasicUDIType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1" schemaLocation="../MarketInfo/MarketInfoType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+    <xs:complexType name="OldCustomMadeDeviceType">
+        <xs:annotation>
+            <xs:documentation>Entity used in the download old/custom made device data</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+			<xs:element name="udiDiApplicable" type="xs:boolean" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Specifies if UDI DI is applicable.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="ocmIdentifier" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>OCM code</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="ocmIssuingAgency" type="udidi:IssuingEntityTypeEnum" minOccurs="0"  maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>OCM code issuing agency</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="ownerSrn" type="commonbasic:stringSRNType" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>OCM owner</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="manufacturerSrn" type="commonbasic:stringSRNType" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Manufacturer</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="applicableLegislation" type="legislation:OCMApplicableLegislationType" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>OCM applicable legislation</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="isCustomMade" type="xs:boolean" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Specifies if OCM is a custom-made.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="acceptedNonCustomMadeAcknowledgement" type="xs:boolean" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Specifies if accepted non custom made acknowledgement.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="deviceStatus" type="udidi:DeviceStatusEnum" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Device status</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="udiDICode" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>UDI-DI</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="udiIssuingAgency" minOccurs="0"  maxOccurs="1" type="udidi:IssuingEntityTypeEnum">
+				<xs:annotation>
+					<xs:documentation>Mandatory, if udiDiCode has value</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="basicUdiCode" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Basic UDI-DI</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="basicUdiIssuingAgency" type="udidi:IssuingEntityTypeEnum" minOccurs="0"  maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Mandatory if Basic UDI-DI has value</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="multiComponent" type="basicudi:DeviceSystemProcedurePackTypeEnum" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>System in itself or a Procedure Pack</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="specialDeviceTypeApplicable" type="xs:boolean" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Specifies if special device type applies.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="deviceModel" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Device model</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="deviceName" type="xs:string" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Device name, always mandatory</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="deviceTradeNames" type="lsn:LanguageSpecificTextType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Trade names for OCM</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="referenceNumber" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>referenceNumber</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="sterile" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>OCM attribute</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="humanTissuesCells" type="commonbasic:yesNoUnknownT" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>OCM attribute</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="marketInfo" type="marketinfo:OCMMarketInfoType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Zero or more countries</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Version number</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="state" type="e:StateEnum" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Version state</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+
+			<xs:element name="versionDate" type="xs:dateTime" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Version date</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="MDOldCustomMadeDeviceType">
+		<xs:complexContent>
+			<xs:extension base="ocm:OldCustomMadeDeviceType">
+				<xs:sequence>
+					<xs:element name="riskClass" type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Risk class</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="annexXVIApplicable" type="commonbasic:yesNoUnknownT" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>MDR OCM attribute</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="specialDeviceType" type="basicudi:MDRSpecialDeviceTypeEnum" minOccurs="0" maxOccurs="1"/>
+					<xs:group ref="commondi:MDOCMApplicablePropertiesGroup" minOccurs="1" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+    </xs:complexType>
+
+	<xs:complexType name="IVDOldCustomMadeDeviceType">
+		<xs:complexContent>
+			<xs:extension base="ocm:OldCustomMadeDeviceType">
+				<xs:sequence>
+					<xs:element name="riskClass" type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Risk class</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="specialDeviceType" type="basicudi:OCMIVDSpecialDeviceTypeEnum" minOccurs="0" maxOccurs="1"/>
+					<xs:group ref="commondi:IVDOCMApplicablePropertiesGroup" minOccurs="1" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

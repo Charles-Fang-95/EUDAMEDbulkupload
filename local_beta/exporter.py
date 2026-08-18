@@ -11,6 +11,7 @@ from xml.dom import minidom
 
 from .constants import BULK_UPLOAD_ENTITY_LIMIT, EXPORT_DIR
 from .template_schema import ENUM_SOURCES
+from .legacy_identifiers import LegacyIdentifierError, resolve_legacy_identifiers
 from .xsd_version import get_tool_xsd_version
 from .storage import Repository
 
@@ -356,7 +357,10 @@ class BetaXMLExporter:
                     self._warn_blank_udi_booleans(warnings, item)
                     self._warn_quantity_of_device(warnings, item)
                     self._warn_pr_ignored_udi_fields(warnings, item)
+                    self._validate_device_type_legislation(errors, item)
                     self._warn_legacy_production_identifiers(warnings, item)
+                    self._warn_legacy_eudamed_di_derivation(warnings, item)
+                    self._validate_legacy_identifiers(errors, item)
                     self._warn_website_url_selection(warnings, item)
                     basic_code = str(item.get("basic_code") or payload.get("Parent Basic UDI-DI") or "").strip()
                     if basic_code and basic_code not in checked_basic_enum_codes:
@@ -665,6 +669,53 @@ class BetaXMLExporter:
                 f"UDI-PI 类型字段 {', '.join(selected)} 不会输出到 XML。"
             )
 
+    def _warn_legacy_eudamed_di_derivation(self, warnings: list[str], item: dict):
+        payload = item.get("payload") or {}
+        basic_payload = item.get("basic_payload") or {}
+        profile = self._profile(basic_payload or payload)
+        if not self._is_legacy_profile(profile):
+            return
+        udi_code = str(payload.get("UDI-DI Code") or "").strip()
+        raw_udi_issuing_entity = str(payload.get("UDI-DI Issuing Entity") or "").strip()
+        udi_issuing_entity = self._issuing_entity(raw_udi_issuing_entity)
+        if not udi_code or not raw_udi_issuing_entity or udi_issuing_entity == "EUDAMED":
+            return
+        expected_code = self._legacy_eudamed_di_from_udi(udi_code)
+        supplied_code = str(
+            basic_payload.get("Basic UDI-DI Code")
+            or item.get("basic_code")
+            or payload.get("Parent Basic UDI-DI")
+            or ""
+        ).strip()
+        supplied_entity = self._issuing_entity(basic_payload.get("Issuing Entity"))
+        if supplied_code == expected_code and supplied_entity == "EUDAMED":
+            return
+        warnings.append(
+            f"Legacy Device UDI-DI {udi_code} 已有发码机构 {udi_issuing_entity}：XML 中 EUDAMED DI 将自动派生为 "
+            f"{expected_code}，issuing entity 固定为 EUDAMED；模板中的 Basic UDI-DI Code / Issuing Entity "
+            "仅用于本地关联，本次 XML 不会原样使用。"
+        )
+
+    def _validate_device_type_legislation(self, errors: list[str], item: dict):
+        payload = item.get("basic_payload") or item.get("payload") or {}
+        device_type = str(payload.get("Device Type") or "").strip()
+        legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
+        if device_type in {"System", "Procedure Pack"} and legislation != "MDR":
+            errors.append(
+                f"Basic UDI-DI {item.get('basic_code') or payload.get('Basic UDI-DI Code')}："
+                f"{device_type} 仅适用于 MDR，当前 Applicable Legislation 为 {legislation or '(blank)'}。"
+            )
+
+    def _validate_legacy_identifiers(self, errors: list[str], item: dict):
+        payload = item.get("payload") or {}
+        basic_payload = item.get("basic_payload") or {}
+        if not self._is_legacy_profile(self._profile(basic_payload or payload)):
+            return
+        try:
+            resolve_legacy_identifiers(basic_payload, payload)
+        except LegacyIdentifierError as exc:
+            errors.append(f"Legacy Device {item.get('udi_code') or payload.get('UDI-DI Code')}: {exc}")
+
     def _warn_website_url_selection(self, warnings: list[str], item: dict):
         payload = item.get("payload") or {}
         public_url = str(payload.get("Public Website") or "").strip()
@@ -719,18 +770,18 @@ class BetaXMLExporter:
 
     def _plan_device_post_batches(self, records: list[dict]) -> list[dict]:
         grouped = {}
-        for item in sorted(records, key=lambda row: (str(row["basic_code"] or ""), int(row["id"]))):
-            grouped.setdefault(str(item["basic_code"] or ""), []).append(item)
+        for item in sorted(records, key=lambda row: (self._device_post_group_key(row), int(row["id"]))):
+            grouped.setdefault(self._device_post_group_key(item), []).append(item)
 
         device_batches = []
         udi_post_batches = []
         device_groups = []
         for basic_code in sorted(grouped):
             rows = grouped[basic_code]
-            # 官方 DTX: 一个 Device = [1..1] BasicUDI + [1..1] UDIDIData，且同一个 Basic 在一次
-            # DEVICE.POST 里只能创建一次。因此每个 Basic 只把【第 1 个】UDI-DI 放进 DEVICE.POST
-            # （随 Basic 一起创建），该 Basic 其余所有 UDI-DI 一律走 UDI_DI.POST（与数量无关），
-            # 否则重复的 Basic 会被 EUDAMED 拒为 "already exists"。
+            # Regulation Device: 一个 Device = [1..1] BasicUDI + [1..1] UDIDIData，且同一个
+            # Basic 在一次 DEVICE.POST 里只能创建一次；同一 Basic 的其余 UDI-DI 走 UDI_DI.POST。
+            # Legacy Device with assigned UDI-DI: group key is the derived B-<UDI-DI>, so every
+            # assigned UDI-DI creates its own Device/EUDAMED DI instead of sharing the template Basic code.
             first_chunk = rows[:1]
             device_groups.append((basic_code, first_chunk))
             for chunk in self._chunks(rows[1:], BULK_UPLOAD_ENTITY_LIMIT):
@@ -743,11 +794,11 @@ class BetaXMLExporter:
                         basic_code=basic_code,
                         depends_on_basic=basic_code,
                         dependency=(
-                            f"依赖 Basic UDI-DI {basic_code} 的 DEVICE.POST 成功；"
+                            f"依赖 Basic UDI-DI / EUDAMED DI {basic_code} 的 DEVICE.POST 成功；"
                             "请保存官方 response 后再上传。"
                         ),
                         dependency_en=(
-                            f"Depends on a successful DEVICE.POST for Basic UDI-DI {basic_code}; "
+                            f"Depends on a successful DEVICE.POST for Basic UDI-DI / EUDAMED DI {basic_code}; "
                             "keep the official response before uploading this file."
                         ),
                     )
@@ -784,8 +835,8 @@ class BetaXMLExporter:
             payload_entity="device:Device",
             records=records,
             basic_code="",
-            dependency="创建 Basic UDI-DI + 首批 UDI-DI；多个 Basic 已按 300 条上限合并装箱。",
-            dependency_en="Create Basic UDI-DIs and first UDI-DIs; multiple Basics are packed together up to the 300-entity limit.",
+            dependency="创建 Basic UDI-DI / EUDAMED DI + 对应 UDI-DI；多个标识已按 300 条上限合并装箱。",
+            dependency_en="Create Basic UDI-DIs / EUDAMED DIs and first UDI-DIs; multiple identifiers are packed together up to the 300-entity limit.",
         )
         batch["basic_codes"] = basic_codes
         return batch
@@ -1169,7 +1220,15 @@ class BetaXMLExporter:
         device.set(qn("xsi", "type"), f"device:{profile}DeviceType")
         if profile in {"MDEU", "IVDEU"}:
             device.append(self._build_device_udi_node(item, profile, include_version=False))
-            device.append(self._build_device_basic_node(basic["payload"], basic["cmr_rows"], basic.get("cert_rows", []), include_version=False))
+            device.append(
+                self._build_device_basic_node(
+                    basic["payload"],
+                    basic["cmr_rows"],
+                    basic.get("cert_rows", []),
+                    include_version=False,
+                    item=item,
+                )
+            )
             return device
         device.append(self._build_device_basic_node(basic["payload"], basic["cmr_rows"], basic.get("cert_rows", []), include_version=False))
         device.append(self._build_device_udi_node(item, profile, include_version=False))
@@ -1215,14 +1274,21 @@ class BetaXMLExporter:
         self._append_packages(node, item.get("package_rows") or [], payload)
         return node
 
-    def _build_device_basic_node(self, data: dict, cmr_rows: list[dict], cert_rows: list[dict], include_version: bool):
+    def _build_device_basic_node(
+        self,
+        data: dict,
+        cmr_rows: list[dict],
+        cert_rows: list[dict],
+        include_version: bool,
+        item: dict | None = None,
+    ):
         profile = self._profile(data)
         legacy_tags = {"MDEU": "MDEUDI", "IVDEU": "IVDEUDI"}
         tag = legacy_tags.get(profile) or ("PRBasicUDI" if profile == "PR" else f"{profile}BasicUDI")
         node = ET.Element(qn("device", tag))
         if profile in {"MDR", "IVDR"}:
             node.set(qn("xsi", "type"), f"device:{profile}BasicUDIType")
-        self._build_basic_body(node, data, cmr_rows, cert_rows, profile, include_version=include_version)
+        self._build_basic_body(node, data, cmr_rows, cert_rows, profile, include_version=include_version, item=item)
         return node
 
     def _build_device_udi_node(self, item: dict, profile: str, include_version: bool):
@@ -1243,13 +1309,15 @@ class BetaXMLExporter:
         profile: str,
         include_version: bool,
         version: str = "",
+        item: dict | None = None,
     ):
         if include_version:
             ET.SubElement(parent, qn("e", "version")).text = version
 
         self._text(parent, "basicudi", "riskClass", RISK_CLASS_MAP.get(data.get("Risk Class", ""), data.get("Risk Class", "")))
         self._append_basic_model(parent, data)
-        self._append_identifier(parent, "basicudi", "identifier", data.get("Basic UDI-DI Code"), data.get("Issuing Entity"))
+        basic_code, basic_issuing_entity = self._legacy_basic_identifier(data, profile, item=item)
+        self._append_identifier(parent, "basicudi", "identifier", basic_code, basic_issuing_entity)
 
         if profile == "PR":
             self._append_language_texts(
@@ -1334,7 +1402,13 @@ class BetaXMLExporter:
                 [(data.get("Description Language") or "EN", description)],
             )
 
-        self._append_identifier(parent, "udidi", "basicUDIIdentifier", data.get("Parent Basic UDI-DI"), basic_payload.get("Issuing Entity"))
+        basic_code, basic_issuing_entity = self._legacy_basic_identifier(
+            basic_payload,
+            profile,
+            item=item,
+            fallback_code=data.get("Parent Basic UDI-DI"),
+        )
+        self._append_identifier(parent, "udidi", "basicUDIIdentifier", basic_code, basic_issuing_entity)
         mdn_codes = data.get("Nomenclature Code") or basic_payload.get("EMDN Code")
         self._text(parent, "udidi", "MDNCodes", mdn_codes)
 
@@ -1729,6 +1803,50 @@ class BetaXMLExporter:
         if legislation == "IVDR":
             return "IVDR"
         return "MDR"
+
+    def _is_legacy_profile(self, profile: str) -> bool:
+        return profile in {"MDEU", "IVDEU"}
+
+    def _legacy_eudamed_di_from_udi(self, udi_code) -> str:
+        code = str(udi_code or "").strip()
+        return f"B-{code}" if code else ""
+
+    def _legacy_basic_identifier(
+        self,
+        data: dict,
+        profile: str,
+        item: dict | None = None,
+        fallback_code=None,
+    ) -> tuple[str, str]:
+        payload = (item or {}).get("payload") or {}
+        if self._is_legacy_profile(profile):
+            final_di = str(payload.get("Legacy EUDAMED DI") or data.get("Legacy EUDAMED DI") or "").strip()
+            if final_di:
+                return final_di, "EUDAMED"
+            try:
+                resolution = resolve_legacy_identifiers(data, payload)
+            except LegacyIdentifierError:
+                resolution = None
+            if resolution:
+                return resolution.eudamed_di, "EUDAMED"
+        udi_code = str(payload.get("UDI-DI Code") or "").strip()
+        raw_udi_issuing_entity = str(payload.get("UDI-DI Issuing Entity") or "").strip()
+        udi_issuing_entity = self._issuing_entity(raw_udi_issuing_entity)
+        if (
+            self._is_legacy_profile(profile)
+            and udi_code
+            and raw_udi_issuing_entity
+            and udi_issuing_entity != "EUDAMED"
+        ):
+            return self._legacy_eudamed_di_from_udi(udi_code), "EUDAMED"
+        code = fallback_code if fallback_code is not None else data.get("Basic UDI-DI Code")
+        return str(code or "").strip(), self._issuing_entity(data.get("Issuing Entity"))
+
+    def _device_post_group_key(self, item: dict) -> str:
+        basic_payload = item.get("basic_payload") or item.get("payload") or {}
+        profile = self._profile(basic_payload)
+        code, _ = self._legacy_basic_identifier(basic_payload, profile, item=item)
+        return code or str(item.get("basic_code") or "")
 
     def _basic_patch_type(self, profile: str) -> str:
         if profile == "MDEU":

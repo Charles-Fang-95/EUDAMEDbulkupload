@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -97,10 +98,11 @@ def build_workbook(locale: str = "zh"):
     locale = "en" if locale == "en" else "zh"
     wb = openpyxl.Workbook()
     first = wb.active
-    first.title = "MDR_MDD"
-
-    _build_entry_sheet(first, "MDR_MDD", locale)
-    _build_entry_sheet(wb.create_sheet("IVDR_IVDD"), "IVDR_IVDD", locale)
+    entry_names = list(ENTRY_SHEETS)
+    first.title = entry_names[0]
+    _build_entry_sheet(first, entry_names[0], locale)
+    for sheet_name in entry_names[1:]:
+        _build_entry_sheet(wb.create_sheet(sheet_name), sheet_name, locale)
     for sheet_name, spec in RELATED_SHEETS.items():
         _build_related_sheet(wb.create_sheet(sheet_name), sheet_name, spec["columns"], locale)
 
@@ -160,7 +162,7 @@ def _build_table_sheet(ws, columns: list[dict], max_data_rows: int, locale: str)
     last_col = get_column_letter(len(columns))
     ws.freeze_panes = "A4"
     ws.auto_filter.ref = f"A1:{last_col}1"
-    _unlock_data_area(ws, len(columns), max_data_rows)
+    _unlock_data_area(ws, len(columns), max_data_rows, columns)
     _format_data_area(ws, len(columns), max_data_rows)
     _add_data_validations(ws, columns, max_data_rows, locale)
     _protect_sheet(ws)
@@ -190,10 +192,12 @@ def _header_font(item: dict):
     return HEADER_FONT
 
 
-def _unlock_data_area(ws, column_count: int, max_data_rows: int):
+def _unlock_data_area(ws, column_count: int, max_data_rows: int, columns: list[dict] | None = None):
+    editable = [True] * column_count if columns is None else [item.get("editable", True) for item in columns]
     for row in ws.iter_rows(min_row=DATA_START_ROW, max_row=max_data_rows, min_col=1, max_col=column_count):
-        for cell in row:
-            cell.protection = UNLOCKED
+        for cell, is_editable in zip(row, editable):
+            if is_editable:
+                cell.protection = UNLOCKED
 
 
 def _format_data_area(ws, column_count: int, max_data_rows: int):
@@ -241,7 +245,7 @@ def _how_to_use_lines_zh():
     lines = [
         (f"EUDAMED Template {TEMPLATE_VERSION} - How to Use", HELP_TITLE),
         ("1. 选择法规 sheet", HELP_HEAD),
-        ("MDR/MDD 产品填写 MDR_MDD；IVDR/IVDD 产品填写 IVDR_IVDD。正式数据从第 4 行开始。", None),
+        ("按法规填写对应主表：MDR、MDD_AIMDD、IVDR 或 IVDD。AIMDD 填 MDD_AIMDD；System/Procedure Pack 只能填 MDR。正式数据从第 4 行开始。", None),
         ("2. 三行表头", HELP_HEAD),
         ("第 1 行是程序识别字段名；第 2 行是中文说明；第 3 行是示例。前三行已锁定，请不要修改。", None),
         ("3. 推荐维护方式", HELP_HEAD),
@@ -249,8 +253,10 @@ def _how_to_use_lines_zh():
         ("网页端数据库是工作库/导出历史库，不建议长期绕过 Excel 直接维护唯一数据源。", None),
         ("4. 一个 UDI-DI 一行", HELP_HEAD),
         ("一个 Basic UDI-DI 下有多个 UDI-DI 时，在主表重复填写 Basic 列，并逐行填写不同 UDI-DI。", None),
+        ("MDD_AIMDD 和 IVDD 每行必须在 Legacy - Has Assigned UDI-DI? 选择 TRUE/FALSE；MDR、IVDR 不显示 Legacy 专属列。", None),
         ("5. 明细 sheet", HELP_HEAD),
         ("Trade Names、Market Info、Package Info、Device Certificates、Clinical Sizes、Annex XVI Purposes、Critical Warnings、Storage Conditions、CMR Substances 使用独立列填写，不再使用 | 分隔符。", None),
+        ("所有关联 sheet 都可用 Local - Record ID 关联主表。若同一行同时填写 Local Record ID 和正式编码，两者必须指向同一记录。", None),
         ("Package Info 不是所有产品都要填：只有存在 container package / 多层包装 DI 时才填写；没有包装层级时整张 Package Info sheet 可留空。", None),
         ("Market Info 属于 UDI-DI 层，不属于 BUDI 层；独立 Update market information service 已在网页端开放，更新既有市场信息时可在导出页选择。", None),
         ("同一 UDI-DI 可以有多个 made available 国家：请在 Market Info sheet 为同一个 UDI-DI Code 填多行，每行一个 Country Code。", None),
@@ -281,13 +287,17 @@ def _how_to_use_lines_zh():
         ("如果填写 Package Info 行，UDI-DI Code、Package UDI-DI Code、Package Issuing Entity、Quantity per Package 为条件必填。", None),
         ("Contains DI Code 留空时兼容旧填法，默认 child 为主 UDI-DI；Local - Package Level / Type 只作本地辅助说明，不输出到 XML。", None),
         ("12. Special Device Type / CMR Substance", HELP_HEAD),
-        ("Basic - Special Device Type 是官方枚举下拉，不是产品名称/型号；普通器械留空。MDR_MDD 与 IVDR_IVDD 使用不同枚举范围。", None),
+        ("Basic - Special Device Type 是官方枚举下拉，不是产品名称/型号；普通器械留空。四个主表分别使用与其法规匹配的枚举范围。", None),
         ("Basic - Is Suture/Staple/Filling/Brace 仅 Class IIb + Implantable 时适用，必须使用 TRUE/FALSE。", None),
         ("CMR Substances 的 Substance Type 必须从下拉中选择本工具当前支持的 5 类，不能自由输入。", None),
         ("CMR/Endocrine 类型可输出 CAS/EC；Medicinal Product / Human Blood or Plasma 类型只输出名称和官方 type，不输出 CAS/EC。", None),
         ("13. 上传 service", HELP_HEAD),
         ("新建 Basic + 多个 UDI-DI 使用 DEVICE.POST；已有 Basic 追加 UDI-DI 使用 UDI_DI.POST。新上传时可随 UDI-DI 一起输出 container package。", None),
         ("MDR/IVDR 会按 Regulation Device XML 输出；MDD/AIMDD/IVDD 会按 Legacy Device / EUDI XML 输出。", None),
+        ("MDD/AIMDD/IVDD Legacy Device 已有 UDI-DI 时，XML 会自动使用 B-<UDI-DI> 作为 EUDAMED DI，并将其 issuing entity 固定为 EUDAMED；UDI-DI 层仍保留原 UDI-DI 和真实发码机构。", None),
+        ("Legacy Device 没有 UDI-DI 时，制造商先在 Legacy - EUDAMED DI Input 填写 1-21 个字符的唯一主体；工具按官方字符表和双校验字符算法生成配对的 B- EUDAMED DI 与 D- EUDAMED ID。工具不会替制造商决定主体，也不会自动转大写。", None),
+        ("如旧记录已有 EUDAMED 分配的 B-/D- 标识，可不填计算主体和 Local - Record ID，但必须同时提供合法且后缀完全一致的 B-/D- 对；关联 sheet 应直接填写正式 B-/D- 编码。导入后可下载不覆盖原文件的规范化 v2.12 模板副本。", None),
+        ("工具只能检查格式、校验字符和当前工作簿内重复；最终标识唯一性仍必须在 EUDAMED Playground/Production 确认。", None),
         ("MDR/IVDR Regulation Device 或 SPP 如需声明 UDI-PI 类型，请在主表 UDI-PI 字段选择 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出 productionIdentifier。", None),
         ("AIMDD 的 Risk Class 通常选择 AIMDD；IVDD 可选择 IVD Annex II List A/B、IVD Self Testing 或 IVD General。", None),
         ("14. 特殊下拉值", HELP_HEAD),
@@ -322,7 +332,7 @@ def _how_to_use_lines_en():
     return [
         (f"EUDAMED Template {TEMPLATE_VERSION}_EN - How to Use", title_font),
         ("1. Choose the legislation sheet", head_font),
-        ("Use MDR_MDD for MDR/MDD/AIMDD devices and IVDR_IVDD for IVDR/IVDD devices. Start entering data from row 4.", None),
+        ("Use the matching main sheet: MDR, MDD_AIMDD, IVDR or IVDD. Use MDD_AIMDD for AIMDD; System/Procedure Pack is allowed only in MDR. Start entering data from row 4.", None),
         ("2. Three header rows", head_font),
         ("Row 1 is the program-recognised field name; row 2 is the user instruction; row 3 is an example. The first three rows are locked.", None),
         ("3. Recommended workflow", head_font),
@@ -330,8 +340,10 @@ def _how_to_use_lines_en():
         ("The web database is a working and export-history database. Do not bypass Excel and treat the web database as the sole long-term data source.", None),
         ("4. One UDI-DI per main-sheet row", head_font),
         ("If one Basic UDI-DI has multiple UDI-DIs, repeat the Basic columns and fill one different UDI-DI per row.", None),
+        ("For every MDD_AIMDD or IVDD row, select TRUE or FALSE in Legacy - Has Assigned UDI-DI?. Legacy-only columns are not shown on MDR or IVDR.", None),
         ("5. Related sheets", head_font),
         ("Trade Names, Market Info, Package Info, Device Certificates, Clinical Sizes, Annex XVI Purposes, Critical Warnings, Storage Conditions and CMR Substances are maintained in separate sheets. Do not use | separators.", None),
+        ("Every related sheet may link to the main row through Local - Record ID. If a row also provides a formal identifier, both references must resolve to the same record.", None),
         ("Package Info is required only when a container package or multi-level packaging DI exists. Leave the whole Package Info sheet blank when there is no package level.", None),
         ("Market Info is UDI-DI-level data, not Basic UDI-DI-level data. The standalone Update market information service is available on the export page for updating existing market information.", None),
         ("For multiple made-available countries, create multiple Market Info rows for the same UDI-DI Code, one country per row.", None),
@@ -362,13 +374,17 @@ def _how_to_use_lines_en():
         ("When a Package Info row is used, UDI-DI Code, Package UDI-DI Code, Package Issuing Entity and Quantity per Package are conditionally required.", None),
         ("If Contains DI Code is blank, the legacy-compatible default child is the main UDI-DI. Local - Package Level / Type are local helper notes only and are not exported to XML.", None),
         ("12. Special Device Type / CMR Substance", head_font),
-        ("Basic - Special Device Type is an official enumeration, not a product name or model. Leave it blank for an ordinary device. MDR_MDD and IVDR_IVDD use different enumeration ranges.", None),
+        ("Basic - Special Device Type is an official enumeration, not a product name or model. Leave it blank for an ordinary device. Each main sheet uses its regulation-specific enumeration range.", None),
         ("Basic - Is Suture/Staple/Filling/Brace applies only to Class IIb implantable devices and must use TRUE or FALSE.", None),
         ("CMR Substances - Substance Type must be selected from the five types currently supported by this tool and cannot be entered as free text.", None),
         ("CMR/Endocrine types may export CAS/EC. Medicinal Product and Human Blood or Plasma types export only the substance name and official type, not CAS/EC.", None),
         ("13. Upload services", head_font),
         ("Use DEVICE.POST to create a new Basic UDI-DI with its UDI-DI(s). Use UDI_DI.POST to add new UDI-DI(s) to an existing Basic UDI-DI.", None),
         ("MDR/IVDR are exported as Regulation Device XML; MDD/AIMDD/IVDD are exported as Legacy Device / EUDI XML.", None),
+        ("For an MDD/AIMDD/IVDD Legacy Device with an assigned UDI-DI, XML derives the EUDAMED DI as B-<UDI-DI> with issuing entity EUDAMED. The UDI-DI identifier keeps the original UDI-DI and its actual issuing entity.", None),
+        ("For a Legacy Device without a UDI-DI, the manufacturer first enters its unique 1-21 character body in Legacy - EUDAMED DI Input. The tool applies the official character table and two-check-character algorithm to generate the paired B- EUDAMED DI and D- EUDAMED ID. It does not choose the body or convert case.", None),
+        ("For an older record with an existing EUDAMED B-/D- pair, the input body and Local - Record ID may be blank, but both identifiers must be present, valid and have exactly the same suffix. Related sheets should use the formal B-/D- identifier directly. After import, a normalized v2.12 workbook copy can be downloaded without overwriting the uploaded file.", None),
+        ("The tool checks format, check characters and duplicates within the current workbook only. Final identifier uniqueness must still be confirmed in EUDAMED Playground/Production.", None),
         ("For MDR/IVDR Regulation Devices or SPP, select TRUE/FALSE in the main-sheet UDI-PI fields when UDI-PI types must be declared. Production identifiers are not exported for MDD/AIMDD/IVDD Legacy devices.", None),
         ("For AIMDD, the Risk Class is normally AIMDD. For IVDD, select IVD Annex II List A/B, IVD Self Testing or IVD General as applicable.", None),
         ("14. Special dropdown values", head_font),
@@ -520,11 +536,17 @@ def _add_data_validations(ws, columns: list[dict], max_data_rows: int, locale: s
 
 
 def save_outputs():
-    for locale, path in OUTPUTS:
+    for locale in ("zh", "en"):
+        paths = [path for output_locale, path in OUTPUTS if output_locale == locale]
         wb = build_workbook(locale)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        wb.save(path)
-        print(f"saved: {path}")
+        primary = paths[0]
+        primary.parent.mkdir(parents=True, exist_ok=True)
+        wb.save(primary)
+        print(f"saved: {primary}")
+        for path in paths[1:]:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(primary, path)
+            print(f"saved: {path}")
 
 
 if __name__ == "__main__":

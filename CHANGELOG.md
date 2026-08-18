@@ -2,6 +2,36 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 0.9.8 - 2026-08-14
+
+- 修复旧 v2.11 Legacy Device 已有合法 B-/D- EUDAMED 标识对时，迁移到 v2.12 后因缺少 `Local - Record ID` 而无法导入的问题；`existing_eudamed_pair` 已通过格式、配对和校验字符验证后可直接使用正式 B-/D- 编码关联，首次生成标识的无 UDI-DI 路径仍要求填写本地记录键。
+- 产品库和导出页新增按 `import_id` 导入批次筛选；导入完成页可一键查看或导出本次 Excel 的全部 UDI-DI，历史记录继续保留，不会自动清空。
+- 产品库和导出选择表新增分页、每页数量、当前显示范围与总匹配数量；默认每页 200 条，可切换 50/100/200/500。
+- “导出全部筛选结果”现在完整透传导入批次及其他筛选条件并使用全部匹配记录，不受当前页面显示数量限制。
+- 导入结果页补充累计式产品库说明，明确相同 UDI-DI Code 更新、不同 Code 新增，以及 Created / Updated / Unchanged 不代表清空历史库。
+- 修复模板迁移时旧主表内嵌 Clinical Size / Annex XVI Purpose 与原有关联 sheet 同时存在会互相覆盖的问题；现在两类来源均按独立行保留。
+- 修复 Excel 导入层提前删除 `Legacy - EUDAMED DI Input` 首尾空格的问题；现在原始主体会原样进入官方字符校验，非法空格将阻止标识计算。
+- 模板升级到 `EUDAMED_Template_v2.12.xlsx` / `EUDAMED_Template_v2.12_EN.xlsx`；工具版本保持 `0.9.8`。
+- v2.12 主录入区由两个混合 sheet 拆分为 `MDR`、`MDD_AIMDD`、`IVDR`、`IVDD`；法规、风险等级和 Device Type 下拉按 sheet 限定，Legacy 专属列只在 `MDD_AIMDD` / `IVDD` 显示。历史 `MDR_MDD` / `IVDR_IVDD` 仍可直接导入和迁移。
+- 修复旧模板稀疏行迁移后，规范化回写仍使用源行号而产生伪重复记录的问题；现在使用源 sheet/行到目标 sheet/行的显式映射。
+- 修复 Legacy 已有 UDI-DI 时规范化副本把本地 Basic 关联键覆盖为 `B-<UDI-DI>`、导致证书/CMR 关联失效的问题；本地 Basic 键和相关引用现在保持一致，最终 EUDAMED DI 写入锁定结果列。
+- 修复 MDD + System/Procedure Pack 被错误送入 Legacy 标识生成流程的问题；System/Procedure Pack 仅按 MDR Regulation Device 处理。
+- 修复 Legacy EUDAMED DI 主体首尾空格被静默删除的问题；制造商输入现在按原字符校验，空格等不在官方字符表中的字符会阻止计算。
+- 新增统一 Legacy identifier resolver。MDD/AIMDD/IVDD 通过 `Legacy - Has Assigned UDI-DI?` 明确选择路径；导入、预检与 XML exporter 共用同一解析结果。
+- Legacy 没有 UDI-DI 时，工具按官方区分大小写字符表、从右向左质数权重、模 1021 和双校验字符映射生成配对的 `B-` EUDAMED DI 与 `D-` EUDAMED ID；制造商仍负责确定 1–21 字符的唯一主体。
+- 支持重新验证已有 B-/D- 对；输入主体与已有标识不一致、校验字符错误、B/D 后缀不配对、非法字符、空主体或超过 21 字符时阻止该主表行入库，不静默覆盖。
+- 所有关联 sheet 新增 `Local - Record ID`。导入先建立本地键到最终 B-/D-/UDI-DI 的映射；本地键与正式编码冲突或无法解析时，该关联行不入库。
+- 导入结果展示 Legacy 标识生成方式及最终标识，并可下载不覆盖上传原件的 `NORMALIZED_EUDAMED_Template_v2.12_<timestamp>.xlsx`，回写最终标识与关联作为审计副本。
+- 产品库和详情页展示 Legacy 路径、EUDAMED DI 与 EUDAMED ID；数据库 payload 保存 `derived_from_udi`、`generated_from_input` 或 `existing_eudamed_pair` 生成方式。
+
+- 修复 MDD/AIMDD/IVDD Legacy Device 已有 UDI-DI 时的 EUDAMED DI 输出：XML 现在自动派生 `B-<UDI-DI>`，并将 Basic/EUDAMED DI issuing entity 固定为 `EUDAMED`。
+- UDI-DI identifier 继续保留原始 UDI-DI 和真实发码机构（例如 `GS1`），其 `basicUDIIdentifier` 同步引用派生的 `B-<UDI-DI>` + `EUDAMED`。
+- Legacy `DEVICE.POST` 改为按派生 EUDAMED DI 分组；即使多条记录误用了同一个模板 Basic 值，也不会把不同 Legacy UDI-DI 错误合并到同一个 Device。
+- 导入和导出预检会提示模板 Basic 字段在上述场景仅作本地关联、不会原样输出，避免 `basicUdi.code` 格式或校验位错误。
+- MDR/IVDR Regulation Device 与 PR/SPP 不进入 Legacy 生成流程；误填 Legacy 专属字段会提示，现有 XML 语义保持不变。
+- 修复旧校验器把 DI 代码错误限制为“8-50 位字母数字”的问题；现按官方 XSD `stringXSType` 接受 1-120 个字符，因此 EUDAMED 分配的 `B-` / `D-` 标识及含连字符、下划线的官方值不再被误报。
+- 修复 Data Dictionary 审计报告重建时丢失 `FLD-UDID-174`（`udidi:website`）、Quantity of Device 和 Containing Latex 映射说明，并清除过时的 v2.7 模板字样。
+
 ## 0.9.7 - 2026-07-22
 
 - 默认模板升级为 `EUDAMED_Template_v2.11.xlsx` / `EUDAMED_Template_v2.11_EN.xlsx`。

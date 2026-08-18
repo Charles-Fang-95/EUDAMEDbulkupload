@@ -1,0 +1,2327 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema xmlns:vigbase="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance/v1"
+	xmlns:vig="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance/v1" targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance" schemaLocation="../vigilance.xsd"/>
+	<xs:simpleType name="ENUM_COUNTRIES">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_COUNTRIES</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_PSUR_NB_EVALUATION_DECISION">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_PSUR_NB_EVALUATION_DECISION</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_FSCA_REPORT_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_FSCA_REPORT_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MTR_SUBMITTER_CONTACT_DETAILS">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MTR_SUBMITTER_CONTACT_DETAILS</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MTR_SUBMITTER_CONTACT_DETAILS_EU_MF">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MTR_SUBMITTER_CONTACT_DETAILS_EU_MF</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_REGULATORY_SCOPE_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_REGULATORY_SCOPE_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_DEVICE_TERMINOLOGY">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_DEVICE_TERMINOLOGY</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="CUSTOM_EMDN_NOMENCLATURE">
+		<xs:annotation>
+			<xs:documentation>Nomenclature documentation location: https://ec.europa.eu/tools/eudamed/#/screen/nomenclatures</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_LEGACY_LINK">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_LEGACY_LINK</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_DEVICE_DATE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_DEVICE_DATE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MONTHS">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MONTHS</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_COUNTRIES_MDR_LIST">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_COUNTRIES_MDR_LIST</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_FSCA_CORRECTIVE_ACTIONS">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_FSCA_CORRECTIVE_ACTIONS</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_URGENT_FSN">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_URGENT_FSN</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_FSN_REPORT_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_FSN_REPORT_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_FSN_REPORT_TYPE_NEW">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_FSN_REPORT_TYPE_NEW</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_REPORT_TYPES">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_REPORT_TYPES</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_REPORT_TYPES_NEW">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_REPORT_TYPES_NEW</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_CLASSIFICATION_OF_INCIDENT">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_CLASSIFICATION_OF_INCIDENT</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_APPLICABLE_LEGISLATION">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_APPLICABLE_LEGISLATION</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_RISK_CLASS">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_RISK_CLASS</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="MIRRegulationScopeEnum">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/MIRRegulationScopeEnum</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_PERIOD_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_PERIOD_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_PERIOD_TYPE_EXPLANT">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_PERIOD_TYPE_EXPLANT</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_DEVICE_LOCATION">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_DEVICE_LOCATION</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_DEVICE_OPERATOR">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_DEVICE_OPERATOR</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_DEVICE_USAGE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_DEVICE_USAGE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_0_TO_11">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_0_TO_11</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_0_TO_31">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_0_TO_31</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MDR_GENDER">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MDR_GENDER</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_REPORTER_ROLE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_REPORTER_ROLE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_SIMILAR_INC_IDENTIFICATION">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_SIMILAR_INC_IDENTIFICATION</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_BASIS_SIMILAR_INCIDENTS">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_BASIS_SIMILAR_INCIDENTS</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_BASIS_DEVICE_DENOMINATOR">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_BASIS_DEVICE_DENOMINATOR</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_NCAR_CATEGORY">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_NCAR_CATEGORY</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_NCAR_VIG_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_NCAR_VIG_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_APPLICABLE-LEGISLATION">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_APPLICABLE-LEGISLATION</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_RISK_CLASS_AIMDD">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_RISK_CLASS_AIMDD</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_RISK_CLASS_IVDD">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_RISK_CLASS_IVDD</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_RISK_CLASS_IVDR">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_RISK_CLASS_IVDR</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_RISK_CLASS_MDR">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_RISK_CLASS_MDR</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_PSR_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_PSR_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_TWO_TO_TWELVE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_TWO_TO_TWELVE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MTR_SCOPE_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MTR_SCOPE_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MTR_DEVICE_SCOPE_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MTR_DEVICE_SCOPE_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_APPLICABLE_LEGISLATION_IVDR">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_APPLICABLE_LEGISLATION_IVDR</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_APPLICABLE_LEGISLATION_MDD">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_APPLICABLE_LEGISLATION_MDD</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MTR_UDIPI">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MTR_UDIPI</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MTR_PRODUCT_IDENTIFIER">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MTR_PRODUCT_IDENTIFIER</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_MDR_DEVICE_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_MDR_DEVICE_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_MDD_DEVICE_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_MDD_DEVICE_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MIR_IVDR_DEVICE_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_IVDR_DEVICE_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_IMDRF_A_C_D">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_IMDRF_A_C_D</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MTR_REPORT_TYPE">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MTR_REPORT_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_MTR_TREND_BASIS">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MTR_TREND_BASIS</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_TREND_BASIS_INCREASED">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_TREND_BASIS_INCREASED</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="ENUM_EU_COUNTRIES_EXPANDED">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_EU_COUNTRIES_EXPANDED</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:complexType name="DossierType">
+		<xs:complexContent>
+			<xs:restriction base="vigbase:AbstractDossierType">
+				<xs:group ref="vigbase:DossierGroup"/>
+				<xs:attribute name="version" type="xs:string" use="required" fixed="1"/>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="FileType">
+		<xs:sequence>
+			<xs:element name="FileName" type="xs:string"/>
+			<xs:element name="FileURI" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Provide a unique reference for this file inside the archive sent with the payload. Ex. [DossierExternalId]/[fileName].pdf.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ActionDetailsType1">
+		<xs:complexContent>
+			<xs:extension base="vigbase:ActionDetailsType">
+				<xs:sequence>
+					<xs:element name="nbEvaluation" type="xs:string" minOccurs="0"/>
+					<xs:element name="nbContactPersonDetails" type="xs:string" minOccurs="0"/>
+					<xs:element name="nbContactFirstName" type="xs:string" minOccurs="0"/>
+					<xs:element name="nbContactLastName" type="xs:string" minOccurs="0"/>
+					<xs:element name="contactEmail">
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:annotation>
+									<xs:documentation>email regex</xs:documentation>
+								</xs:annotation>
+								<xs:pattern value="^[\w\-.]+@([\w\-]+\.)+[\w\-]{2,4}$"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:element>
+					<xs:element name="contactPhone" minOccurs="0">
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:annotation>
+									<xs:documentation>phone number regex</xs:documentation>
+								</xs:annotation>
+								<xs:pattern value="^[+]?[(]?[0-9]{3}[)]?[\-\s.]?[0-9]{3}[\-\s.]?[0-9]{4,6}$"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:element>
+					<xs:element name="psurEvaluation" type="xs:string" minOccurs="0"/>
+					<xs:element name="evaluationReferenceNumber" type="xs:string" minOccurs="0"/>
+					<xs:element name="evaluationDecision" type="ENUM_PSUR_NB_EVALUATION_DECISION"/>
+					<xs:element name="evaluationDocument" type="FileType" minOccurs="0"/>
+					<xs:element name="additionalInformationAndOrActionsRequestedByNb" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ActionDetailsType2">
+		<xs:complexContent>
+			<xs:extension base="vigbase:ActionDetailsType">
+				<xs:sequence>
+					<xs:element name="attachment" type="FileType" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ActionDetailsType3">
+		<xs:complexContent>
+			<xs:extension base="vigbase:ActionDetailsType">
+				<xs:sequence>
+					<xs:element name="comments" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ActionDetailsType4">
+		<xs:complexContent>
+			<xs:extension base="vigbase:ActionDetailsType">
+				<xs:sequence>
+					<xs:element name="comments" type="xs:string" minOccurs="0"/>
+					<xs:element name="attachment" type="FileType" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_COUNTRIES_MDR_LIST_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_COUNTRIES_MDR_LIST</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SubmitterDetailsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:AbstractSubmitterDetailsType">
+				<xs:sequence>
+					<xs:element name="type" type="xs:string"/>
+					<xs:element name="organisationName" type="xs:string" minOccurs="0"/>
+					<xs:element name="organisationAddress" type="AddressType" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="AddressType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:AbstractAddressType">
+				<xs:sequence>
+					<xs:element name="streetName" type="xs:string" minOccurs="0"/>
+					<xs:element name="streetInfoApplicable" type="xs:string" minOccurs="0"/>
+					<xs:element name="streetNumber" type="xs:string" minOccurs="0"/>
+					<xs:element name="complement" type="xs:string" minOccurs="0"/>
+					<xs:element name="postBox" type="xs:string" minOccurs="0"/>
+					<xs:element name="gps" type="vigbase:AddressGpsType" minOccurs="0"/>
+					<xs:element name="cityName" type="xs:string" minOccurs="0"/>
+					<xs:element name="postalZone" type="xs:string" minOccurs="0"/>
+					<xs:element name="country" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ContactMdrType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:AbstractContactMdrType">
+				<xs:sequence>
+					<xs:element name="firstName" type="xs:string" minOccurs="0"/>
+					<xs:element name="familyName" type="xs:string" minOccurs="0"/>
+					<xs:element name="organizationName" type="xs:string" minOccurs="0"/>
+					<xs:element name="electronicMail" type="xs:string" minOccurs="0"/>
+					<xs:element name="telephone" type="xs:string" minOccurs="0"/>
+					<xs:element name="position" type="xs:string" minOccurs="0"/>
+					<xs:element name="geographicalAddress" type="AddressType" minOccurs="0"/>
+				</xs:sequence>
+				<xs:attribute name="ordinal" type="xs:positiveInteger"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="default-ContactMdrType">
+		<xs:complexContent>
+			<xs:restriction base="ContactMdrType">
+				<xs:sequence>
+					<xs:element name="firstName" type="xs:string"/>
+					<xs:element name="familyName" type="xs:string"/>
+					<xs:element name="electronicMail" type="xs:string"/>
+					<xs:element name="telephone" type="xs:string"/>
+				</xs:sequence>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="device_child_fsca">
+		<xs:sequence>
+			<xs:element name="newDeviceSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="deviceIdentification" type="vigbase:DeviceIdentifierType">
+							<xs:annotation>
+								<xs:documentation>BR-UDID-731, BR-VGL-023, BR-VGL-FSCA-013_1, BR-VGL-FSCA-013_2, BR-VGL-FSCA-013_3, BR-VGL-FSCA-013_4, BR-VGL-FSN-003.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="gtinNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSCA-002, BR-VGL-FSCA-013_1, BR-VGL-FSCA-013_2, BR-VGL-FSCA-013_3, BR-VGL-FSCA-013_4, BR-VGL-FSCA-014, BR-VGL-FSCA-014_1</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="deviceTerminology" type="ENUM_MIR_DEVICE_TERMINOLOGY" minOccurs="0"/>
+						<xs:element name="deviceNomenclatureSectionSelected" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="deviceNomenclatureSelected" type="dev_nomenclature_filtered" minOccurs="0" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="deviceNomenclatureSelectedKey">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:deviceNomenclatureSelected"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+						<xs:element name="vig_deviceNomenclatureCode_child_template" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="vig_deviceNomenclature_UDI" type="fsca_dev_nomenclature" minOccurs="0" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="vig_deviceNomenclature_UDIKey">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:vig_deviceNomenclature_UDI"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+						<xs:element name="deviceNomenclatureCodeOther" type="xs:string" minOccurs="0"/>
+						<xs:element name="isSameAsLegacyDevice" type="ENUM_LEGACY_LINK" minOccurs="0"/>
+						<xs:element name="deviceDescriptionAndPurpose" type="xs:string"/>
+						<xs:element name="consultingAuthority" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-804</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="medicinalSubstanceName" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-804</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="udiPISection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="udiPIdocument" type="vigbase:DocumentMdrType" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-FSCA-016</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="certificateIdentificationSection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="certificateDetails" type="new_device_certificate_fsca" minOccurs="0" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="certificateDetailsKey">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:certificateDetails"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+						<xs:element name="deviceDateSection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="deviceDateMap" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-805</xs:documentation>
+										</xs:annotation>
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="deviceDate" type="ENUM_MIR_DEVICE_DATE" minOccurs="0"/>
+												<xs:element name="deviceYear" type="xs:string" minOccurs="0">
+													<xs:annotation>
+														<xs:documentation>The year must be between 1990 and the current year.</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+												<xs:element name="deviceMonth" type="ENUM_MONTHS" minOccurs="0"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="marketDistribution" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="distributionCountry" type="ENUM_COUNTRIES_MDR_LIST" maxOccurs="unbounded"/>
+									<xs:element name="otherCountries" type="ENUM_NON_EU_COUNTRIES_ORDINAL" minOccurs="0" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>BR-EUD-007</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="otherCountriesKey">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:otherCountries"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+						<xs:element name="associatedDevicesorAccessoriesSection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="useOfAccessories" type="xs:string" minOccurs="0"/>
+									<xs:element name="otherAssociatedDevices" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-014</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="dev_nomenclature_filtered">
+		<xs:sequence>
+			<xs:element name="deviceNomenclatureCodeSectionSelected" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="deviceNomenclatureCodeSelected" type="CUSTOM_EMDN_NOMENCLATURE">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-008, BR-VGL-014</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="deviceNomenclatureDescriptionSelected" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-008, BR-VGL-014</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="fsca_dev_nomenclature">
+		<xs:sequence>
+			<xs:element name="deviceNomenclatureCodeSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="deviceNomenclatureCode" type="CUSTOM_EMDN_NOMENCLATURE"/>
+						<xs:element name="deviceNomenclatureDescription" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-014</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="new_device_certificate_fsca">
+		<xs:sequence>
+			<xs:element name="certificateIdentificationSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="nbNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber_nb" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-CIPS-048, BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="nbNumber_cert" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VIG-022</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="ENUM_NON_EU_COUNTRIES_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_NON_EU_COUNTRIES</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_FSCA_MF_ACTION_REQUIRED_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_FSCA_MF_ACTION_REQUIRED</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_FSCA_USER_ACTION_REQUIRED_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_FSCA_USER_ACTION_REQUIRED</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="fscaGeneralSubaction">
+		<xs:sequence>
+			<xs:element name="subactionSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="fscaSubactionDescription" type="xs:string"/>
+						<xs:element name="fscaGeneralSubactionToBeFinalisedDate" type="xs:date"/>
+						<xs:element name="fscageneralSubactionProgress" type="xs:string"/>
+						<xs:element name="fscaGeneralSubactionFinalisedDate" type="xs:date" minOccurs="0"/>
+						<xs:element name="fscaSubactionDOC" type="vigbase:DocumentMdrTypeOrdinal" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="fscaSubactionDOCKey">
+					<xs:annotation>
+						<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="vig:fscaSubactionDOC"/>
+					<xs:field xpath="@ordinal"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="ENUM_IMDRF_A_TYPE_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_IMDRF_A_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_IMDRF_B_TYPE_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_IMDRF_B_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_IMDRF_C_TYPE_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_IMDRF_C_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_IMDRF_D_TYPE_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_IMDRF_D_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_IMDRF_E_TYPE_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_IMDRF_E_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_IMDRF_F_TYPE_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_IMDRF_F_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="ENUM_IMDRF_G_TYPE_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_IMDRF_G_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="countrySpecificFSCA">
+		<xs:sequence>
+			<xs:element name="countrySpecificInfoSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="countrySpecificInfoaffectedCountry" type="ENUM_COUNTRIES_MDR_LIST" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSCA-013_1, BR-VGL-FSCA-013_2, BR-VGL-FSCA-013_3, BR-VGL-FSCA-013_4, BR-VGL-FSCA-014, BR-VGL-FSCA-014_1</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="competentAuthority" type="xs:string"/>
+						<xs:element name="ncaReferenceNumberforFSCA" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSCA-030</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevices" type="xs:string"/>
+						<xs:element name="submitterContactInformationSection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="submitterContactDetails" type="default-ContactMdrType"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="countrySpecificComments" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSCA-029</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="countrySpecificSubactionSection">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="countrySpecificSubactions" type="fscaSubaction_CountrySpecificInformation" minOccurs="0" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:unique name="countrySpecificSubactionsUnique">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:countrySpecificSubactions"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:unique>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="fscaSubaction_CountrySpecificInformation">
+		<xs:sequence>
+			<xs:element name="fscaSubactionCountrySpecificInfo" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="countrySpecificSubactionDescription" type="xs:string"/>
+						<xs:element name="countrySpecificfscaSubactionToBeFinalisedDate" type="xs:date">
+							<xs:annotation>
+								<xs:documentation>RULE-00040</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="countrySpecificFscaSubactionProgress" type="xs:string"/>
+						<xs:element name="countrySpecificfscaSubactionFinalisedDate" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>RULE-00040</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="countrySpecificFscaSubactionDOC" type="vigbase:DocumentMdrTypeOrdinal" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="countrySpecificFscaSubactionDOCKey">
+					<xs:annotation>
+						<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="vig:countrySpecificFscaSubactionDOC"/>
+					<xs:field xpath="@ordinal"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="fsn_corrective_actions">
+		<xs:sequence>
+			<xs:element name="fscaCorrectiveActionDetailsSection_child" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>BR-VGL-813, BR-VGL-FSN-003.10</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="fscaDossierCode" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSN-003.10</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="fscaMFActionRequired_child" type="ENUM_FSCA_MF_ACTION_REQUIRED_ORDINAL" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-813, BR-VGL-FSCA-013_1, BR-VGL-FSN-003.10, BR-VGL-FSN-003.13.02</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="fscaMFActionIfOther_child" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-813, BR-VGL-819, BR-VGL-FSN-003.10</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="fscaUserActionRequired_child" type="ENUM_FSCA_USER_ACTION_REQUIRED_ORDINAL" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSCA-013_1, BR-VGL-FSN-003.13.02, action required</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="fscaUserActionIfOther_child" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-819</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="fsnCorrectiveActionTerminationDate_child" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSN-003.03, BR-VGL-FSN-003.08, BR-VGL-FSN-003.10</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="fscaMFActionRequired_childKey">
+					<xs:annotation>
+						<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="vig:fscaMFActionRequired_child"/>
+					<xs:field xpath="@ordinal"/>
+				</xs:key>
+				<xs:key name="fscaUserActionRequired_childKey">
+					<xs:annotation>
+						<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="vig:fscaUserActionRequired_child"/>
+					<xs:field xpath="@ordinal"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="fsnCountrySpecificInformation">
+		<xs:sequence>
+			<xs:element name="fsnCountrySpecificSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="referencedCountry_FSN" type="ENUM_COUNTRIES_MDR_LIST" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSN-003.06, BR-VGL-FSN-003.10</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="fsnCompetentAuthority" type="vigbase:stringOrdinal" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSN-003.06, BR-VGL-FSN-003.10, BR-VGL-FSN-003.13.03</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="fsnDocumentTranslation" type="vigbase:DocumentMdrTypeOrdinal" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-FSN-003.06, BR-VGL-FSN-003.10, BR-VGL-FSN-003.11, BR-VGL-FSN-003.13.02</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="fsnCompetentAuthorityKey">
+					<xs:annotation>
+						<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="vig:fsnCompetentAuthority"/>
+					<xs:field xpath="@ordinal"/>
+				</xs:key>
+				<xs:key name="fsnDocumentTranslationKey">
+					<xs:annotation>
+						<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="vig:fsnDocumentTranslation"/>
+					<xs:field xpath="@ordinal"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="new_device_child">
+		<xs:sequence>
+			<xs:element name="deviceInformation" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="deviceInformationSubHead" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="deviceKnownIdentifier" type="xs:boolean" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-010, BR-VGL-MIR-026</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceUUID" type="vigbase:DeviceIdentifierType" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-UDID-731, BR-VGL-MIR-005, BR-VGL-MIR-010, BR-VGL-MIR-018, BR-VGL-MIR-018.2</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="gtinNumber" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-UDID-731</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="customMade" type="xs:boolean" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-EUD-003, BR-VGL-MIR-010, BR-VGL-MIR-043</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="applicableLegislation" type="ENUM_MIR_APPLICABLE_LEGISLATION" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-EUD-003</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceRiskClass" type="ENUM_RISK_CLASS" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-816, BR-VGL-MIR-044.01</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceIDnotInEUDAMED_MasterUDI" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-EUD-016, BR-VGL-MIR-044.03</xs:documentation>
+										</xs:annotation>
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="deviceIDnotInEUDAMED_UDI_Code" type="xs:string"/>
+												<xs:element name="deviceIDnotInEUDAMED_IssuingEnt" type="vigbase:ENUM_MDR_ISSUING_ENTITY"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+									<xs:element name="deviceNotinEUDAMED_BUDI" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-EUD-016, BR-VGL-MIR-044.03</xs:documentation>
+										</xs:annotation>
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="deviceNotinEUDAMED_BUDI_Code" type="xs:string"/>
+												<xs:element name="deviceIDnotInEUDAMED_BUDI_IssuingEnt" type="vigbase:ENUM_MDR_ISSUING_ENTITY"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+									<xs:element name="deviceNotinEUDAMED_UoU" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-EUD-016, BR-VGL-MIR-044.04</xs:documentation>
+										</xs:annotation>
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="deviceNotinEUDAMED_UoU_Code" type="xs:string"/>
+												<xs:element name="deviceNotinEUDAMED_UoU_IssuingEnt" type="vigbase:ENUM_MDR_ISSUING_ENTITY"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+									<xs:element name="deviceType" type="ENUM_MIR_DEVICE_TYPE_ORDINAL" minOccurs="0" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-803, BR-VGL-MIR-044.02</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="implantableDevice" type="xs:boolean" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-816, BR-VGL-MIR-044.01</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceModel" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-816, BR-VGL-MIR-044.01</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceName" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-816, BR-VGL-MIR-044.01</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceCatalogueRefNo" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-816, BR-VGL-MIR-010, BR-VGL-MIR-044.01, BR-VGL-MIR-044.05</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceTerminology" type="ENUM_MIR_DEVICE_TERMINOLOGY" minOccurs="0"/>
+									<xs:element name="deviceNomenclatureCode" type="CUSTOM_EMDN_NOMENCLATURE" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-008, BR-VGL-MIR-010, BR-VGL-MIR-034</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceNomenclatureCodeComplete" type="CUSTOM_EMDN_NOMENCLATURE" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-008, BR-VGL-MIR-034</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceNomenclatureCodeOther" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-008, BR-VGL-MIR-034</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceNomenclatureDescriptionComplete" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-008, BR-VGL-MIR-034</xs:documentation>
+											<xs:documentation>* Output only field *</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceNomenclatureDescription" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-008, BR-VGL-MIR-034</xs:documentation>
+											<xs:documentation>* Output only field *</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="isSameAsLegacyDevice" type="MIRRegulationScopeEnum" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>RULE-00055</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceNomenclatureDescription_manual" type="xs:string"/>
+									<xs:element name="deviceContainingDerivatesTissuesorCells" type="xs:boolean" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-804</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="whoDeliveredScientificOpinion" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-804</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="medicinalSubstanceName" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-804</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="consultingAuthority" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-804</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="deviceTypeKey">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:deviceType"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+						<xs:element name="udiPISection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="udiPIvalue" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-009</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="affectedSerialNo" type="xs:string" minOccurs="0"/>
+									<xs:element name="affectedLotNo" type="xs:string" minOccurs="0"/>
+									<xs:element name="affectedSoftwareNo" type="xs:string" minOccurs="0"/>
+									<xs:element name="affectedFirmwareNo" type="xs:string" minOccurs="0"/>
+									<xs:element name="affectedDeviceManufacturingDate" type="xs:date" minOccurs="0"/>
+									<xs:element name="affectedDeviceExpiryDate" type="xs:date" minOccurs="0"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="deviceDateSection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="deviceDateMap" minOccurs="0">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="deviceDate" type="ENUM_MIR_DEVICE_DATE" minOccurs="0"/>
+												<xs:element name="deviceYear" type="xs:string" minOccurs="0">
+													<xs:annotation>
+														<xs:documentation>The year must be between 1990 and the current year.</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+												<xs:element name="deviceMonth" type="ENUM_MONTHS" minOccurs="0"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="certificateIdentificationSection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="new_certificateDetails" type="new_device_certificate_details" minOccurs="0" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>BR-CIPS-048, BR-VGL-022</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="new_certificateDetailsKey">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:new_certificateDetails"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+						<xs:element name="implantedDeviceSection" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-042</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="deviceImplantedApplicable" type="xs:boolean" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceImplanted" type="ENUM_MIR_PERIOD_TYPE" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-027, BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="implantedDate" type="xs:date" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-027, BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceImplantedStartDate" type="xs:date" minOccurs="0"/>
+									<xs:element name="deviceImplantedEndDate" type="xs:date" minOccurs="0"/>
+									<xs:element name="implantationDuration" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-027, BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="deviceImplantionPeriodYears" type="xs:string"/>
+												<xs:element name="deviceImplantionPeriodMonths" type="xs:string"/>
+												<xs:element name="deviceImplantionPeriodDays" type="xs:string"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+									<xs:element name="implantFacility" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-027, BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceExplantedapplicable" type="xs:boolean" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-027, BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceExplanted" type="ENUM_MIR_PERIOD_TYPE_EXPLANT" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-027, BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceExplantedDate" type="xs:date" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-027, BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="deviceExplantedStartDate" type="xs:date" minOccurs="0"/>
+									<xs:element name="deviceExplantedEndDate" type="xs:date" minOccurs="0"/>
+									<xs:element name="explantFacility" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-MIR-027, BR-VGL-MIR-042</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="marketDistribution" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="distributionCountry" type="ENUM_COUNTRIES_MDR_LIST" minOccurs="0" maxOccurs="unbounded"/>
+									<xs:element name="otherCountries" type="ENUM_NON_EEA_COUNTRIES_EXPANDED_ORDINAL" minOccurs="0" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>BR-EUD-007</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="otherCountriesKey-1">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:otherCountries"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+						<xs:element name="associatedDevicesorAccessoriesSection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="useOfAccessories" type="xs:string" minOccurs="0"/>
+									<xs:element name="otherAssociatedDevices" type="xs:string" minOccurs="0"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ENUM_MIR_DEVICE_TYPE_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_MIR_DEVICE_TYPE</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="new_device_certificate_details">
+		<xs:sequence>
+			<xs:element name="certificateIdentificationSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="nbNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber_nb" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="nbNumber_cert" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-CIPS-048, BR-VIG-022</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="ENUM_NON_EEA_COUNTRIES_EXPANDED_ORDINAL">
+		<xs:annotation>
+			<xs:documentation>Enumeration location: [Eudamed server address]/vig-data-ws/public/enumerations/ENUM_NON_EEA_COUNTRIES_EXPANDED</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="vigbase:stringOrdinal"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="number_of_similar_incidents">
+		<xs:sequence>
+			<xs:element name="lbTimePeriodN">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="startDateN" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="endDateN" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsCountry_N" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsEEA_N" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsWorld_N" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesCountry_N" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesEEA_N" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesWorld_N" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="lbTimePeriod_N-1" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="enableN-1" type="xs:boolean" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.14, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="startDate_N-1" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="endDate_N-1" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsCountry_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsEEA_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsWorld_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesCountry_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesEEA_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesWorld_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="lbTimePeriod_N-2" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="enableN-2" type="xs:boolean" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.14</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="startDate_N-2" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="endDate_N-2" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsCountry_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsEEA_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsWorld_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesCountry_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesEEA_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesWorld_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="lbTimePeriod_N-3" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="enableN-3" type="xs:boolean" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.14</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="startDate_N-3" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="endDate_N-3" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsCountry_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsEEA_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsWorld_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesCountry_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesEEA_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesWorld_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ncar_dev">
+		<xs:sequence>
+			<xs:element name="deviceInformationx" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="NCAR_isRegRelatedDEV" type="xs:boolean">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-833</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="NCAR_RelatedDEVref" type="vigbase:DeviceIdentifierType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-NCAR-008</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="gtinNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-EUD-016, BR-VGL-014</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="deviceNotinEUDAMED_BUDI" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="deviceNotinEUDAMED_BUDI_Code" type="xs:string"/>
+									<xs:element name="deviceIDnotInEUDAMED_BUDI_IssuingEnt" type="vigbase:ENUM_MDR_ISSUING_ENTITY"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="deviceIDnotInEUDAMED_UDI" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="deviceIDnotInEUDAMED_UDI_Code" type="xs:string"/>
+									<xs:element name="deviceIDnotInEUDAMED_IssuingEnt" type="vigbase:ENUM_MDR_ISSUING_ENTITY"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="legislationType" type="ENUM_APPLICABLE-LEGISLATION" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-EUD-003</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="deviceRiskClassAIMDD" type="ENUM_RISK_CLASS_AIMDD" minOccurs="0"/>
+						<xs:element name="deviceRiskClassIVDD" type="ENUM_RISK_CLASS_IVDD" minOccurs="0"/>
+						<xs:element name="deviceRiskClassIVDR" type="ENUM_RISK_CLASS_IVDR" minOccurs="0"/>
+						<xs:element name="deviceRiskClassMDR" type="ENUM_RISK_CLASS_MDR" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-816</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="deviceRiskClassMDD" type="ENUM_RISK_CLASS_MDR" minOccurs="0"/>
+						<xs:element name="deviceTradeName" type="xs:string" minOccurs="0"/>
+						<xs:element name="MDNCode" type="CUSTOM_EMDN_NOMENCLATURE" minOccurs="0"/>
+						<xs:element name="MDNDescription" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="DeviceDesc" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-NCAR-011</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="psr_country_ca">
+		<xs:sequence>
+			<xs:element name="countryAndCASection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="euCountry" type="ENUM_COUNTRIES_MDR_LIST">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.03</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="competentAuthority" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.04</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="psr_dev">
+		<xs:sequence>
+			<xs:element name="deviceInformationx" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="PSR_deviceUUID" type="vigbase:DeviceIdentifierType">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.16</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="isSameAsLegacyDevice" type="ENUM_LEGACY_LINK" minOccurs="0"/>
+						<xs:element name="gtinNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.16</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="productIdentifierQuestion" type="ENUM_MTR_UDIPI" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.1, BR-VGL-PSR-005.16, BR-VGL-PSR-005.176, BR-VGL-PSR-005.23</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="PSR_production_identifier" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.16, BR-VGL-PSR-005.18</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="production_identifier" type="xs:string"/>
+									<xs:element name="production_identifier_type" type="ENUM_MTR_PRODUCT_IDENTIFIER"/>
+								</xs:sequence>
+								<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="mtrFileUpload" type="vigbase:DocumentMdrType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.16</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="nbNumber" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="certificateDetails" type="device_certificate_psr" minOccurs="0" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>BR-CIPS-048, BR-VGL-022</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="certificateDetailsKey-1">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:certificateDetails"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="PSR_production_identifierKey">
+					<xs:annotation>
+						<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="vig:PSR_production_identifier"/>
+					<xs:field xpath="@ordinal"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="device_certificate_psr">
+		<xs:sequence>
+			<xs:element name="certificateIdentificationSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="nbNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-CIPS-048, BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber_nb" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-CIPS-048, BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="nbNumber_cert" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-CIPS-048, BR-VIG-022</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="psr_dev_nomenclature">
+		<xs:sequence>
+			<xs:element name="deviceNomenclatureCodeSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="deviceNomenclatureCode" type="CUSTOM_EMDN_NOMENCLATURE">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-008, BR-VGL-PSR-005.47</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="deviceNomenclatureDescription" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="device_certificate_details_psr">
+		<xs:sequence>
+			<xs:element name="certificateIdentificationSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="nbNumber" type="xs:string" minOccurs="0"/>
+						<xs:element name="certificateNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="psr_mfr_analysis">
+		<xs:sequence>
+			<xs:element name="manufacturerAnalysisSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="initialProblemBackground" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="preliminaryResultConclusion" type="xs:string"/>
+									<xs:element name="furtherInvestigations" type="xs:string"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="initialCauseInvestigationConclusion" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="manufacturerEvaluationRootCause" type="xs:string"/>
+									<xs:element name="rootCauseConfirmed" type="xs:boolean"/>
+									<xs:element name="riskReviewed" type="xs:boolean"/>
+									<xs:element name="adequateRisk" type="xs:boolean" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-PSR-005.20</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="resultOfTheAssessment" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-PSR-005.20</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="riskNotReviewedReason" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-PSR-005.20</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="periodicPsrAnalysisUpdate" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="psrPeriodicImportantUpdate" type="xs:boolean" minOccurs="0"/>
+									<xs:element name="updatedRiskAnalysis" type="xs:string" minOccurs="0"/>
+									<xs:element name="rationaleNoRiskAnalysis" type="xs:string" minOccurs="0"/>
+									<xs:element name="psrpChangeByMfr" type="xs:string" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-PSR-005.39</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="psrpDocumentUpload" type="vigbase:DocumentMdrTypeOrdinal" minOccurs="0" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="psrpDocumentUploadKey">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:psrpDocumentUpload"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+						<xs:element name="initialSimilarIncidents" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="similarIncIMDRFEncoding" type="ENUM_IMDRF_A_C_D" maxOccurs="unbounded"/>
+									<xs:element name="numberOfSimilarIncidentsAndDevicesSection" minOccurs="0">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="basisSimilarIncidents" type="ENUM_MIR_BASIS_SIMILAR_INCIDENTS">
+													<xs:annotation>
+														<xs:documentation>BR-VGL-800</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+												<xs:element name="basisSimilarIncidentsDecision" type="xs:string" minOccurs="0">
+													<xs:annotation>
+														<xs:documentation>BR-VGL-PSR-005.21</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+												<xs:element name="basisDeviceDenominator" type="ENUM_MIR_BASIS_DEVICE_DENOMINATOR">
+													<xs:annotation>
+														<xs:documentation>BR-VGL-802</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+												<xs:element name="basisDeviceDenominatorDecision" type="xs:string" minOccurs="0">
+													<xs:annotation>
+														<xs:documentation>BR-VGL-PSR-005.21</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+									<xs:element name="numberOfSimilarIncidentsForPeriodSection" minOccurs="0">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="numberOfSimilarIncidentsForPeriodChild" type="number_of_similar_incidents_psr" minOccurs="0"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="descriptionSimilarIncidentsNumberofDevices" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="number_of_similar_incidents_psr">
+		<xs:sequence>
+			<xs:element name="lbTimePeriodN">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="startDateN" type="xs:date">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="endDateN" type="xs:date">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsEEA_N" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsWorld_N" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesEEA_N" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.14</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesWorld_N" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="lbTimePeriod_N-1" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="enableN-1" type="xs:boolean" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.14, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="startDate_N-1" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="endDate_N-1" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.14, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsEEA_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-032, BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsWorld_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesEEA_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.14, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesWorld_N-1" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="lbTimePeriod_N-2" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="enableN-2" type="xs:boolean" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.14</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="startDate_N-2" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="endDate_N-2" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsEEA_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsWorld_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesEEA_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.14, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesWorld_N-2" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="lbTimePeriod_N-3" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="enableN-3" type="xs:boolean" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.14</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="startDate_N-3" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="endDate_N-3" type="xs:date" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsEEA_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfSimilarIncidentsWorld_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesEEA_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-PSR-005.14, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="numberOfDevicesWorld_N-3" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MIR-033, BR-VGL-PSR-005.15</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="mtr_dev">
+		<xs:sequence>
+			<xs:element name="deviceInformationx" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="MTR_deviceUUID" type="vigbase:DeviceIdentifierType">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MTR-003</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="isSameAsLegacyDevice" type="ENUM_LEGACY_LINK" minOccurs="0"/>
+						<xs:element name="gtinNumber" type="xs:string" minOccurs="0"/>
+						<xs:element name="productIdentifierQuestion" type="xs:boolean" minOccurs="0"/>
+						<xs:element name="MTR_production_identifier" minOccurs="0" maxOccurs="unbounded">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="production_identifier" type="xs:string"/>
+									<xs:element name="production_identifier_type" type="ENUM_MTR_PRODUCT_IDENTIFIER"/>
+								</xs:sequence>
+								<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="mtrFileUpload" type="vigbase:DocumentMdrType" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="MTR_production_identifierKey">
+					<xs:annotation>
+						<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="vig:MTR_production_identifier"/>
+					<xs:field xpath="@ordinal"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="mtr_dev_nomenclature">
+		<xs:sequence>
+			<xs:element name="deviceNomenclatureCodeSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="deviceNomenclatureCode" type="CUSTOM_EMDN_NOMENCLATURE">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-MTR-012</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="deviceNomenclatureDescription" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="new_device_certificate_PSUR">
+		<xs:sequence>
+			<xs:element name="certificateIdentificationSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="nbNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber_nb" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="nbNumber_cert" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VGL-PSUR-012</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="vigilance_psur_device_information">
+		<xs:sequence>
+			<xs:element name="psurDeviceSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="psurDevice" type="vigbase:DeviceIdentifierType"/>
+						<xs:element name="certificateIdentificationSection" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="certificateInformation" type="new_device_certificate_additional_device_PSUR" minOccurs="0" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>BR-VGL-PSUR-012</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+							<xs:key name="certificateInformationKey">
+								<xs:annotation>
+									<xs:documentation>Must be unique relative to this list and constant across different payloads deliveries for the same data it references</xs:documentation>
+								</xs:annotation>
+								<xs:selector xpath="vig:certificateInformation"/>
+								<xs:field xpath="@ordinal"/>
+							</xs:key>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="new_device_certificate_additional_device_PSUR">
+		<xs:sequence>
+			<xs:element name="certificateIdentificationSection" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="nbNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="certificateNumber_nb" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022, BR-VIG-022</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="nbNumber_cert" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>BR-VGL-022</xs:documentation>
+								<xs:documentation>* Output only field *</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="ordinal" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="fsca_2FieldsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierFieldsType">
+				<xs:sequence>
+					<xs:element name="ca_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="countries" type="xs:string" minOccurs="0"/>
+					<xs:element name="mf_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="mfr" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="fsnFieldsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierFieldsType">
+				<xs:sequence>
+					<xs:element name="mf_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="mfr" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="fsnActionDetailsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierActionDetailsType">
+				<xs:choice>
+					<xs:element name="ActionDetails3" type="ActionDetailsType3"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="mir_2FieldsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierFieldsType">
+				<xs:sequence>
+					<xs:element name="ca_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="countries" type="xs:string" minOccurs="0"/>
+					<xs:element name="is_psr_related" type="xs:string" minOccurs="0"/>
+					<xs:element name="mf_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="mfr" type="xs:string" minOccurs="0"/>
+					<xs:element name="psr_ref" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="mir_2ActionDetailsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierActionDetailsType">
+				<xs:choice>
+					<xs:element name="ActionDetails2" type="ActionDetailsType2"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ncar_2FieldsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierFieldsType">
+				<xs:sequence>
+					<xs:element name="ca_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="countries" type="xs:string" minOccurs="0"/>
+					<xs:element name="mf_srn" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="psrFieldsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierFieldsType">
+				<xs:sequence>
+					<xs:element name="mf_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="mfr" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="psrActionDetailsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierActionDetailsType">
+				<xs:choice>
+					<xs:element name="ActionDetails4" type="ActionDetailsType4"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="mtrFieldsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierFieldsType">
+				<xs:sequence>
+					<xs:element name="ca_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="mf_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="mfr" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="mtrActionDetailsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierActionDetailsType">
+				<xs:choice>
+					<xs:element name="ActionDetails2" type="ActionDetailsType2"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="psurFieldsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierFieldsType">
+				<xs:sequence>
+					<xs:element name="mf_srn" type="xs:string" minOccurs="0"/>
+					<xs:element name="mfr" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="psurActionDetailsType">
+		<xs:complexContent>
+			<xs:extension base="vigbase:DossierActionDetailsType">
+				<xs:choice>
+					<xs:element name="ActionDetails1" type="ActionDetailsType1"/>
+					<xs:element name="ActionDetails2" type="ActionDetailsType2"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

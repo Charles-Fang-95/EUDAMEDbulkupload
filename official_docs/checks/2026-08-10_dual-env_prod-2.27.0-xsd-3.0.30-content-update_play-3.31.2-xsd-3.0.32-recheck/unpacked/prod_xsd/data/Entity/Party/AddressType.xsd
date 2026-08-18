@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:address="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" xmlns:country="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" schemaLocation="../Common/CountryEnum.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:complexType name="ElectronicContactType">
+		<xs:sequence>
+			<xs:element name="eMail" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="phone" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="public" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="website" type="commonbasic:stringSType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ElectronicContactsType">
+		<xs:sequence>
+			<xs:element name="contactDetail" type="address:ElectronicContactType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="GeographicAddressType">
+		<xs:sequence>
+			<xs:element name="addressComplement" type="commonbasic:stringMType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="city" type="commonbasic:stringMType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="country" type="country:CountryEnum" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="GPSCoordinates" type="address:GPSType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="POBox" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="postCode" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="street" type="commonbasic:stringMType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="streetNum" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="GPSType">
+		<xs:sequence>
+			<xs:element name="latitude" type="address:CoordinateType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="longitude" type="address:CoordinateType" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CoordinateType">
+		<xs:sequence>
+			<xs:element name="value" type="xs:decimal" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

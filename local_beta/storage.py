@@ -646,6 +646,8 @@ class Repository:
         srn: str = "",
         freshness_filter: str = "",
         limit: int | None = 200,
+        offset: int = 0,
+        import_id: int | str | None = None,
     ) -> list[dict]:
         sql = """
             SELECT u.*, b.payload_json AS basic_payload_json
@@ -675,15 +677,27 @@ class Repository:
         if srn:
             sql += " AND json_extract(b.payload_json, '$.\"Manufacturer SRN\"') = ?"
             params.append(srn)
+        if import_id not in (None, ""):
+            sql += " AND u.import_id = ?"
+            params.append(import_id)
         sql += " ORDER BY u.updated_at DESC, u.id DESC"
+        try:
+            offset = max(int(offset or 0), 0)
+        except (TypeError, ValueError):
+            offset = 0
         if limit is not None and not freshness_filter:
-            sql += " LIMIT ?"
-            params.append(limit)
+            sql += " LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+        elif limit is None and offset and not freshness_filter:
+            sql += " LIMIT -1 OFFSET ?"
+            params.append(offset)
         with self.connect() as conn:
             rows = conn.execute(sql, params).fetchall()
         records = [self._row_to_udi_dict(row) for row in rows]
         records = self._filter_by_freshness("udi", records, freshness_filter)
-        return records[:limit] if limit is not None and freshness_filter else records
+        if freshness_filter:
+            return records[offset:offset + limit] if limit is not None else records[offset:]
+        return records
 
     def list_basics(
         self,
@@ -694,6 +708,8 @@ class Repository:
         srn: str = "",
         freshness_filter: str = "",
         limit: int | None = 200,
+        offset: int = 0,
+        import_id: int | str | None = None,
     ) -> list[dict]:
         sql = "SELECT * FROM basic_records WHERE 1=1"
         params = []
@@ -713,15 +729,27 @@ class Repository:
         if srn:
             sql += " AND json_extract(payload_json, '$.\"Manufacturer SRN\"') = ?"
             params.append(srn)
+        if import_id not in (None, ""):
+            sql += " AND import_id = ?"
+            params.append(import_id)
         sql += " ORDER BY updated_at DESC, id DESC"
+        try:
+            offset = max(int(offset or 0), 0)
+        except (TypeError, ValueError):
+            offset = 0
         if limit is not None and not freshness_filter:
-            sql += " LIMIT ?"
-            params.append(limit)
+            sql += " LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+        elif limit is None and offset and not freshness_filter:
+            sql += " LIMIT -1 OFFSET ?"
+            params.append(offset)
         with self.connect() as conn:
             rows = conn.execute(sql, params).fetchall()
         records = [self._row_to_basic_dict(row) for row in rows]
         records = self._filter_by_freshness("basic", records, freshness_filter)
-        return records[:limit] if limit is not None and freshness_filter else records
+        if freshness_filter:
+            return records[offset:offset + limit] if limit is not None else records[offset:]
+        return records
 
     def get_filtered_ids(
         self,
@@ -732,11 +760,30 @@ class Repository:
         change_type: str = "",
         srn: str = "",
         freshness_filter: str = "",
+        import_id: int | str | None = None,
     ) -> list[int]:
         records = (
-            self.list_basics(query, state, legislation, change_type, srn, freshness_filter, limit=None)
+            self.list_basics(
+                query=query,
+                state=state,
+                legislation=legislation,
+                change_type=change_type,
+                srn=srn,
+                freshness_filter=freshness_filter,
+                limit=None,
+                import_id=import_id,
+            )
             if entity_type == "basic"
-            else self.list_udis(query, state, legislation, change_type, srn, freshness_filter, limit=None)
+            else self.list_udis(
+                query=query,
+                state=state,
+                legislation=legislation,
+                change_type=change_type,
+                srn=srn,
+                freshness_filter=freshness_filter,
+                limit=None,
+                import_id=import_id,
+            )
         )
         return [int(item["id"]) for item in records]
 
@@ -1205,6 +1252,7 @@ class Repository:
         payload = json.loads(row["payload_json"])
         return {
             "id": row["id"],
+            "import_id": row["import_id"],
             "basic_code": row["basic_code"],
             "row_number": row["row_number"],
             "payload": payload,
@@ -1229,6 +1277,7 @@ class Repository:
         basic_payload = json.loads(row["basic_payload_json"]) if "basic_payload_json" in row.keys() and row["basic_payload_json"] else None
         return {
             "id": row["id"],
+            "import_id": row["import_id"],
             "udi_code": row["udi_code"],
             "basic_code": row["basic_code"],
             "row_number": row["row_number"],

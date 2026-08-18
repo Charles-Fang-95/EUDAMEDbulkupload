@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:risk="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" elementFormDefault="qualified">
+    <xs:simpleType name="RiskClassEnum">
+        <xs:annotation>
+            <xs:documentation>The Class describes the Risk Classes Applicable for a Device.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CLASS_A">
+                <xs:annotation>
+                    <xs:documentation>[CLSA] Applicable for Applicable Legislation : IVDR</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CLASS_B">
+                <xs:annotation>
+                    <xs:documentation>[CLSB] Applicable for Applicable Legislation : IVDR</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CLASS_C">
+                <xs:annotation>
+                    <xs:documentation>[CLSC] Applicable for Applicable Legislation : IVDR</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CLASS_D">
+                <xs:annotation>
+                    <xs:documentation>[CLSD] Applicable for Applicable Legislation : IVDR</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CLASS_I">
+                <xs:annotation>
+                    <xs:documentation>[CLSI] Applicable for Applicable Legislation : MDR, MDD (and System or Procedure Packs)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CLASS_IIA">
+                <xs:annotation>
+                    <xs:documentation>[CLSIIA] Applicable for Applicable Legislation : MDR, MDD (and System or Procedure Packs)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CLASS_IIB">
+                <xs:annotation>
+                    <xs:documentation>[CLSIIB] Applicable for Applicable Legislation : MDR, MDD (and System or Procedure Packs)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CLASS_III">
+                <xs:annotation>
+                    <xs:documentation>[CLSIII] Applicable for Applicable Legislation : MDR, MDD (and System or Procedure Packs)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD_ANNEX_II_LIST_A">
+                <xs:annotation>
+                    <xs:documentation>[CLSLSTA] Applicable for Applicable Legislation: IVDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD_ANNEX_II_LIST_B">
+                <xs:annotation>
+                    <xs:documentation>[CLSLSTB] Applicable for Applicable Legislation: IVDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD_DEVICES_SELF_TESTING">
+                <xs:annotation>
+                    <xs:documentation>[CLSST] Applicable for Applicable Legislation: IVDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVD_GENERAL">
+                <xs:annotation>
+                    <xs:documentation>[CLSGEN] Applicable for Applicable Legislation: IVDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD">
+                <xs:annotation>
+                    <xs:documentation>[AIMDD] Applicable for Applicable Legislation : AIMDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

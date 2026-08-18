@@ -1,0 +1,27 @@
+Comparison baseline: 2026-08-03 dual-environment snapshot
+Checked: 2026-08-10T09:07:09+08:00
+
+Production page
+- Body SHA-256: unchanged (dd4ccd2a378b3dd7b941244d70a80e3774bd50512387ac188052b64bbc567dbe)
+- Last-Modified: Mon, 27 Jul 2026 08:51:58 GMT -> Tue, 04 Aug 2026 15:03:48 GMT
+- ETag: "467a-65793d5bce780" -> "467a-65839f63f7d00"
+- Content-Length: unchanged (18042)
+
+Production XSD official /files/ endpoint
+- Last-Modified: Mon, 27 Jul 2026 08:51:59 GMT -> Tue, 04 Aug 2026 15:03:49 GMT
+- ETag: "209bd-65793d5cc29c0" -> "2126e-65839f64ebf40"
+- Content-Length: 133565 -> 135790
+- SHA-256: e3c7621a69340b1ad01d375994a6df6a131073626e2a4ae01048e0ffa04b1c3b -> 22d098940ba72be23deb202b73759e8d1746b457393f3c90b560e19a4de16492
+- Result: substantive same-version XSD content update
+
+Production companion files
+- All five Last-Modified / ETag values refreshed on 2026-08-04.
+- Content-Length and downloaded SHA-256 remained unchanged for EOs XML samples, UDI Devices data dictionary, business rules, enumerations, and DTX for EOs services definition.
+
+Playground
+- Page body, page header triplet, XSD header triplet, version/platform wording and publication date unchanged from 2026-08-03.
+- Result: prior 2026-08-03 downloads, checksums, manifest, and ZIP listing reused.
+
+Advertised links
+- Both current pages still advertise /en/documentation/... file links; all six tested maintainer-relevant advertised links returned HTTP 404 in each environment.
+- Verified official /en/files/XSD%20schemas.zip endpoints returned HTTP 200 application/zip.

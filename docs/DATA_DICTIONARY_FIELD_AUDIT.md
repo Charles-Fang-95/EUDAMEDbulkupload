@@ -12,9 +12,9 @@ Status meanings:
 
 ## Summary
 
-- `implemented`: 174
+- `implemented`: 180
 - `collected_not_exported`: 0
-- `not_in_template`: 113
+- `not_in_template`: 107
 - `explicitly_out_of_scope`: 6
 - `needs_design`: 0
 
@@ -26,6 +26,7 @@ Status meanings:
 - `Is it a Kit` is unified in the template and exported where the current XSD provides `commondi:kit` (IVDR/IVDD paths).
 - `Product Designer` remains out of scope until the Update product original manufacturer service is designed.
 - `Presence of Medicinal Substance` remains documented-not-exported because `Medicinal Product Device` already maps to `medicinalProductCheck`.
+- Assigned Legacy UDI-DIs derive EUDAMED DI as `B-<UDI-DI>` with issuing entity `EUDAMED`; the UDI identifier keeps its original code and issuing entity.
 
 ## Field Audit
 
@@ -112,8 +113,8 @@ Status meanings:
 | DD UDI-DI | FLD-UDID-145 | Basic UDI-DI Identifier | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-148 | Type of UDI-PI | 1..n |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-149 | Nomenclature code | 1..n | UDI - Nomenclature Code* | Yes | Yes | Yes |  | `implemented` |  |
-| DD UDI-DI | FLD-UDID-151 | Quantity of device | 1 | UDI - Quantity of Device | Yes | Yes | Yes |  | `implemented` | Output only for MDR/IVDR Regulation Device `baseQuantity`; legacy devices do not output it. |
-| DD UDI-DI | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes |  | `implemented` | MDR/MDD/AIMDD only; not applicable to IVDR/IVDD. |
+| DD UDI-DI | FLD-UDID-151 | Quantity of device | 1 | UDI - Quantity of Device | Yes | Yes | Yes | udidi:baseQuantity | `implemented` | Output only for MDR/IVDR Regulation Device baseQuantity; legacy devices do not output it. |
+| DD UDI-DI | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes | udidi:latex | `implemented` | MDR/MDD/AIMDD only; not applicable to IVDR/IVDD. |
 | DD UDI-DI | FLD-UDID-157 | Maximum number of reuses | 0..1 Field must be completed only if singleUse is false | Maximum | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-159 | New Device | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-163 | Reference / Catalogue number | 1 |  | No | No | No |  | `not_in_template` |  |
@@ -121,7 +122,7 @@ Status meanings:
 | DD UDI-DI | FLD-UDID-167 | Labelled as single use | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-169 | Device labelled sterile | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD-UDID-170 | Need for sterilisation before use | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy `eIFU URL`; explicit template migration copies legacy eIFU values into this field and records row-level results. |
+| DD UDI-DI | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy eIFU URL; explicit template migration copies legacy eIFU values into this field and records row-level results. |
 | DD UDI-DI | FLD-UDID-175 | Additional product Description | 0..1 Required for System or Procedure Packs that is a Device in itself | Description | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-179 | Trade name applicable | 1 | UDI - Trade Name Applicable* | Yes | Yes | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD-UDID-176 | Trade name | 0..n | Trade Name* | Yes | Yes | Yes | tradeNames | `implemented` |  |
@@ -184,8 +185,8 @@ Status meanings:
 | DD UDI-DI | FLD_EMDN.version | Code version |  |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI | FLD_EMDN.fromDate | Start date of code version |  | Start Date | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI | FLD_EMDN.action | Type of change of the code |  |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-295 | Issuing Entity for EUDAMED DI | 1 | Basic - Issuing Entity* | Yes | Yes | Yes | basicudi:basicUDIIdentifier/issuingEntity | `implemented` |  |
-| DD Legacy Devices | FLD-UDID-42 | EUDAMED DI code | 1 |  | No | No | No |  | `not_in_template` |  |
+| DD Legacy Devices | FLD-UDID-295 | Issuing Entity for EUDAMED DI | 1 | Derived from UDI - UDI-DI Code* | Yes | Derived | Yes | basicudi:identifier/commondi:issuingEntityCode | `implemented` | For an assigned Legacy UDI-DI, exporter fixes the EUDAMED DI issuing entity to EUDAMED. |
+| DD Legacy Devices | FLD-UDID-42 | EUDAMED DI code | 1 | Derived from UDI - UDI-DI Code* | Yes | Derived | Yes | basicudi:identifier/commondi:DICode | `implemented` | For an assigned Legacy UDI-DI, exporter derives the EUDAMED DI as B-<UDI-DI>. |
 | DD Legacy Devices | FLD-UDID-10 | Legal Manufacturer SRN | 1 | Basic - Manufacturer SRN* | Yes | Yes | Yes | manufacturerActorCode | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-11 | Applicable Legislation | 1 | Basic - Applicable Legislation* | Yes | Yes | Yes | payload entity selection | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-12 | Is it a System which is a Device in itself, Procedure pack which is a Device in itself | 1 |  | No | No | No |  | `not_in_template` |  |
@@ -222,25 +223,25 @@ Status meanings:
 | DD Legacy Devices | FLD-UDID-62 | Revision Number | 0..1 Occurrence applicable if Device Certificate Information is provided (FLD-UDID-39) | Device Certificates / Revision Number | Yes | JSON payload | Yes | basicudi:deviceCertificateLinks/links:deviceCertificateLink/links:certificateRevisionNumber | `implemented` | Optional revision number. |
 | DD Legacy Devices | FLD-UDID-63 | Notified Body | 1 Occurrence applicable if Device Certificate Information is provided (FLD-UDID-39) | Device Certificates / Notified Body ID | Yes | JSON payload | Yes | basicudi:deviceCertificateLinks/links:deviceCertificateLink/links:NBActorCode | `implemented` | Stored as Notified Body ID / NBActorCode. |
 | DD Legacy Devices | FLD-UDID-64 | Expiry Date | 1 Occurrence applicable if Device Certificate Information is provided (FLD-UDID-39) Field is required for Legacy Devices | Device Certificates / Expiry Date | Yes | JSON payload | Yes | basicudi:deviceCertificateLinks/links:deviceCertificateLink/links:expiryDate | `implemented` | Optional for regulation devices; often required for legacy directive certificates. |
-| DD Legacy Devices | FLD-UDID-341 | Issuing Entity UDI-DI / EUDAMED ID | 1 Either UDI-DI or EUDAMED ID is required | Basic - Issuing Entity* | Yes | Yes | Yes | basicudi:basicUDIIdentifier/issuingEntity | `implemented` |  |
-| DD Legacy Devices | FLD-UDID-342 | UDI-DI / EUDAMED ID code | 1 Either UDI-DI or EUDAMED ID is required |  | No | No | No |  | `not_in_template` |  |
+| DD Legacy Devices | FLD-UDID-341 | Issuing Entity UDI-DI / EUDAMED ID | 1 Either UDI-DI or EUDAMED ID is required | UDI - UDI-DI Issuing Entity* | Yes | Yes | Yes | udidi:identifier/commondi:issuingEntityCode | `implemented` | Assigned UDI-DI keeps its actual issuing entity; EUDAMED ID paths keep EUDAMED. |
+| DD Legacy Devices | FLD-UDID-342 | UDI-DI / EUDAMED ID code | 1 Either UDI-DI or EUDAMED ID is required | UDI - UDI-DI Code* | Yes | Yes | Yes | udidi:identifier/commondi:DICode | `implemented` | The original assigned UDI-DI or user-provided EUDAMED ID is preserved on the UDI identifier. |
 | DD Legacy Devices | FLD-UDID-137 | Member State of the placing on the EU market of the Device | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-139 | Natural or Legal person who manufactured and designed the Device | 0..1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-311 | List of Medicinal product substances associated to the Device | 0..n | Basic - Medicinal Product Device | Yes | Yes | Yes | basicudi:medicinalProductCheck | `implemented` | Current exporter maps Medicinal Product Device to medicinalProductCheck. |
 | DD Legacy Devices | FLD-UDID-141 | Member States where device is or is to be made available on the market | 1..n |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-144 | List of Critical Warnings or Contraindications or Storage and handling Conditions | 0..n |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-312 | List of Storage and handling Conditions | 0..n |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-145 | EUDAMED DI Identifier | 1 |  | No | No | No |  | `not_in_template` |  |
+| DD Legacy Devices | FLD-UDID-145 | EUDAMED DI Identifier | 1 | Derived from UDI - UDI-DI Code* | Yes | Derived | Yes | udidi:basicUDIIdentifier | `implemented` | Assigned Legacy UDI-DI references B-<UDI-DI> with issuing entity EUDAMED. |
 | DD Legacy Devices | FLD-UDID-146 | Clinical Sizes | 0..n | Clinical Sizes sheet | Yes | JSON payload | No |  | `explicitly_out_of_scope` | Current exporter supports structured clinicalSizes only for MDR UDI-DI; legacy / other profiles are warned and ignored. |
 | DD Legacy Devices | FLD-UDID-149 | Nomenclature code | 1..n | UDI - Nomenclature Code* | Yes | Yes | Yes |  | `implemented` |  |
-| DD Legacy Devices | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes |  | `implemented` | MDD/AIMDD legacy only; not applicable to IVDD legacy. |
+| DD Legacy Devices | FLD-UDID-156 | Containing latex | 1 | UDI - Containing Latex* | Yes | Yes | Yes | udidi:latex | `implemented` | MDD/AIMDD legacy only; not applicable to IVDD legacy. |
 | DD Legacy Devices | FLD-UDID-157 | Maximum number of reuses | 0..1 Field can be completed only if singleUse is false | Maximum | Yes | Payload | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-163 | Reference / Catalogue number | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-164 | Reprocessed single use device | 1 | UDI - Reprocessed Single Use Device | Yes | Yes | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-167 | Labelled as single use | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-169 | Device labelled sterile | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD Legacy Devices | FLD-UDID-170 | Need for sterilisation before use | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD Legacy Devices | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy `eIFU URL`; explicit template migration copies legacy eIFU values into this field and records row-level results. |
+| DD Legacy Devices | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy eIFU URL; explicit template migration copies legacy eIFU values into this field and records row-level results. |
 | DD Legacy Devices | FLD-UDID-175 | Additional product Description | 0..1 Required for System or Procedure Packs that is a Device in itself | Description | Yes | Payload | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-179 | Trade name applicable | 1 | UDI - Trade Name Applicable* | Yes | Yes | Yes |  | `implemented` |  |
 | DD Legacy Devices | FLD-UDID-176 | Trade name | 0..n | Trade Name* | Yes | Yes | Yes | tradeNames | `implemented` |  |
@@ -299,7 +300,7 @@ Status meanings:
 | DD UDI-DI_SPP | FLD-UDID-163 | Reference / Catalogue number | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI_SPP | FLD-UDID-169 | Labelled as sterile | 1 |  | No | No | No |  | `not_in_template` |  |
 | DD UDI-DI_SPP | FLD-UDID-170 | Need for sterilisation before use | 1 |  | No | No | No |  | `not_in_template` |  |
-| DD UDI-DI_SPP | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy `eIFU URL`; explicit template migration copies legacy eIFU values into this field and records row-level results. |
+| DD UDI-DI_SPP | FLD-UDID-174 | URL for additional information | 0..1 | UDI - Additional Information URL / eIFU webpage | Yes | Payload | Yes | udidi:website | `implemented` | Direct old-template import/export does not auto-output legacy eIFU URL; explicit template migration copies legacy eIFU values into this field and records row-level results. |
 | DD UDI-DI_SPP | FLD-UDID-175 | Additional product Description | 1 Required for System or Procedure Packs | Description | Yes | Payload | Yes |  | `implemented` |  |
 | DD UDI-DI_SPP | FLD-UDID-176 | Trade name | 0..n | Trade Name* | Yes | Yes | Yes | tradeNames | `implemented` |  |
 | DD UDI-DI_SPP | FLD-UDID-177 | Version | 1 Managed by EUDAMED |  | No | No | No |  | `not_in_template` |  |

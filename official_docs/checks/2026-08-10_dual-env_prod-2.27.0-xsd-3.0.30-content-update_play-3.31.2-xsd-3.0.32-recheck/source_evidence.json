@@ -1,0 +1,74 @@
+{
+  "checked_at": "2026-08-10T09:07:09+08:00",
+  "official_scope": "EUDAMED / European Commission official Production and Playground help pages and file endpoints only",
+  "production": {
+    "page_url": "https://webgate.ec.europa.eu/eudamed-help/en/documentation/technical-documentation.html",
+    "support_page_url": "https://webgate.ec.europa.eu/eudamed-help/en/data-exchange/machine-to-machine/support/technical-documentation.html",
+    "page_advertised_xsd_url": "https://webgate.ec.europa.eu/eudamed-help/en/documentation/XSD schemas.zip",
+    "page_advertised_xsd_url_http_status": 404,
+    "downloaded_xsd_url": "https://webgate.ec.europa.eu/eudamed-help/en/files/XSD%20schemas.zip",
+    "xsd_version": "3.0.30",
+    "platform_version": "2.27.0",
+    "publication_date": "July 24, 2026",
+    "page_last_modified": "Tue, 04 Aug 2026 15:03:48 GMT",
+    "page_etag": "\"467a-65839f63f7d00\"",
+    "page_content_length": 18042,
+    "xsd_last_modified": "Tue, 04 Aug 2026 15:03:49 GMT",
+    "xsd_etag": "\"2126e-65839f64ebf40\"",
+    "xsd_content_length": 135790,
+    "xsd_sha256": "22d098940ba72be23deb202b73759e8d1746b457393f3c90b560e19a4de16492",
+    "metadata_changed_since_2026_08_03": true,
+    "page_body_binary_identical_to_2026_08_03": true,
+    "xsd_binary_identical_to_2026_08_03": false,
+    "other_five_files_binary_identical_to_2026_08_03": true
+  },
+  "playground": {
+    "page_url": "https://webgate.ec.europa.eu/eudamed-play-help/en/documentation/technical-documentation.html",
+    "page_advertised_xsd_url": "https://webgate.ec.europa.eu/eudamed-play-help/en/documentation/XSD schemas.zip",
+    "verified_xsd_url": "https://webgate.ec.europa.eu/eudamed-play-help/en/files/XSD%20schemas.zip",
+    "xsd_version": "3.0.32",
+    "platform_version": "3.31.2",
+    "publication_date": "July 14, 2026",
+    "page_last_modified": "Fri, 24 Jul 2026 15:25:08 GMT",
+    "page_etag": "\"51d9-6575cfa499d00\"",
+    "page_content_length": 20953,
+    "xsd_last_modified": "Fri, 24 Jul 2026 15:25:09 GMT",
+    "xsd_etag": "\"20c04-6575cfa58df40\"",
+    "xsd_content_length": 134148,
+    "xsd_sha256": "129f9143a146564c8f9e32fe32e2cdb8bf04dcc160421d3248edeee3c5885217",
+    "metadata_changed_since_2026_08_03": false,
+    "page_body_binary_identical_to_2026_08_03": true,
+    "prior_snapshot_reused": true
+  },
+  "production_xsd_file_level_comparison": {
+    "baseline": "2026-08-03 Production snapshot, content-equivalent to 2026-06-15",
+    "zip_entry_count": 92,
+    "directory_count": 24,
+    "xsd_file_count": 67,
+    "sample_xml_file_count": 1,
+    "added": 0,
+    "removed": 0,
+    "modified": 4,
+    "modified_files": [
+      "data/Entity/Certificate/RefusedCertificateType.xsd",
+      "data/Entity/Device/RegulationDevice/UDIDIType.xsd",
+      "service/Message/MessageType.xsd",
+      "service/Service/ServiceType.xsd"
+    ]
+  },
+  "verification": {
+    "new_production_xsd_matrix_tests": "25 passed",
+    "compileall": "passed",
+    "full_unit_tests": "58 passed",
+    "template_rebuild": "not run to avoid overwriting pre-existing uncommitted template changes"
+  },
+  "verdict": {
+    "new_official_xsd_version_found": false,
+    "production_schema_content_changed_within_same_version": true,
+    "playground_schema_content_changed": false,
+    "companion_content_changed": false,
+    "local_exported_xml_compatible_with_new_production_xsd": true,
+    "local_code_change_required_immediately": false,
+    "bundled_production_xsd_refresh_recommended": true
+  }
+}

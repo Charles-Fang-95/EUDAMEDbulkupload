@@ -8,7 +8,16 @@ from pathlib import Path
 
 from .build_unified_template import DATA_START_ROW, build_workbook
 from .constants import EXPORT_DIR, TOOL_DIR, VENDOR_LIB
-from .template_schema import ENTRY_SHEETS, ENUM_SOURCES, RELATED_SHEETS, TEMPLATE_VERSION, columns_for_entry_sheet
+from .template_schema import (
+    ENTRY_SHEETS,
+    IMPORT_ENTRY_SHEETS,
+    LEGACY_ENTRY_SHEETS,
+    ENUM_SOURCES,
+    RELATED_SHEETS,
+    TEMPLATE_VERSION,
+    columns_for_entry_sheet,
+    entry_sheet_for_legislation,
+)
 
 if str(VENDOR_LIB) not in sys.path:
     sys.path.insert(0, str(VENDOR_LIB))
@@ -76,21 +85,26 @@ def migrate_workbook(source_path: Path, output_dir: Path = EXPORT_DIR) -> dict:
         "unmapped_headers": defaultdict(list),
         "warnings": [],
         "legacy_eifu_migrations": [],
+        "row_mappings": [],
     }
     detected_version = _detect_template_version(source)
     if detected_version != TEMPLATE_VERSION:
         report["warnings"].append(
             f"源文件模板版本为 {detected_version or '未知版本'}，当前模板为 {TEMPLATE_VERSION}；迁移后请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info 和 IVD 人源/动物源字段。"
         )
+    elif set(source.sheetnames).intersection(LEGACY_ENTRY_SHEETS):
+        report["warnings"].append(
+            "检测到拆表前的 v2.12 混合主表；已按 Applicable Legislation 迁移到 MDR、MDD_AIMDD、IVDR、IVDD。"
+        )
 
-    if any(sheet in source.sheetnames for sheet in ENTRY_SHEETS):
+    if any(sheet in source.sheetnames for sheet in IMPORT_ENTRY_SHEETS):
         report["mode"] = "current_unified_template"
         _copy_unified_sheets(source, target, report)
     elif "Basic UDI-DI" in source.sheetnames and "UDI-DI" in source.sheetnames:
         report["mode"] = "legacy_split_template"
         _copy_legacy_split_sheets(source, target, report)
     else:
-        report["warnings"].append("未识别到 MDR_MDD / IVDR_IVDD 或旧版 Basic UDI-DI + UDI-DI sheet；未自动搬迁数据。")
+        report["warnings"].append("未识别到当前四主表、历史混合主表或旧版 Basic UDI-DI + UDI-DI sheet；未自动搬迁数据。")
 
     _copy_related_sheets(source, target, report)
     _add_report_sheet(target, report)
@@ -108,24 +122,42 @@ def migrate_workbook(source_path: Path, output_dir: Path = EXPORT_DIR) -> dict:
 
 
 def _copy_unified_sheets(source, target, report: dict):
-    for sheet_name in ENTRY_SHEETS:
-        if sheet_name not in source.sheetnames:
+    target_next_rows = {sheet_name: DATA_START_ROW for sheet_name in ENTRY_SHEETS}
+    for source_sheet in IMPORT_ENTRY_SHEETS:
+        if source_sheet not in source.sheetnames:
             continue
-        rows = _read_rows(source[sheet_name])
-        target_headers = _headers(target[sheet_name])
-        source_headers = _headers(source[sheet_name])
-        header_map = _header_map(source_headers, target_headers, extra_aliases=MAIN_HEADER_ALIASES)
-        _record_unmapped(report, sheet_name, source_headers, header_map)
-        target_row = DATA_START_ROW
+        rows = _read_rows(source[source_sheet])
+        source_headers = _headers(source[source_sheet])
         for row in rows:
             if not _has_data(row):
                 continue
-            _write_row(target[sheet_name], target_headers, target_row, row, header_map)
-            _migrate_legacy_eifu_url(target[sheet_name], target_headers, target_row, row, report, sheet_name)
-            _normalize_main_row(target[sheet_name], target_headers, target_row, report)
+            legislation = str(_get_by_alias(row, "Applicable Legislation") or "").strip().upper()
+            target_sheet = entry_sheet_for_legislation(legislation, source_sheet)
+            target_headers = _headers(target[target_sheet])
+            header_map = _header_map(source_headers, target_headers, extra_aliases=MAIN_HEADER_ALIASES)
+            target_row = target_next_rows[target_sheet]
+            _write_row(target[target_sheet], target_headers, target_row, row, header_map)
+            _migrate_legacy_eifu_url(target[target_sheet], target_headers, target_row, row, report, source_sheet)
+            _normalize_main_row(target[target_sheet], target_headers, target_row, report)
             _append_old_udi_detail_rows(target, row, report)
-            target_row += 1
-            report["copied_rows"][sheet_name] += 1
+            report["row_mappings"].append({
+                "source_sheet": source_sheet,
+                "source_row": int(row.get(SOURCE_ROW_NUMBER) or 0),
+                "target_sheet": target_sheet,
+                "target_row": target_row,
+            })
+            target_next_rows[target_sheet] += 1
+            report["copied_rows"][target_sheet] += 1
+        # Header differences are recorded against every possible destination
+        # represented by this source sheet, without duplicating the report.
+        all_target_headers = list(dict.fromkeys(
+            header
+            for target_sheet in ENTRY_SHEETS
+            for header in _headers(target[target_sheet])
+            if header
+        ))
+        union_map = _header_map(source_headers, all_target_headers, extra_aliases=MAIN_HEADER_ALIASES)
+        _record_unmapped(report, source_sheet, source_headers, union_map)
 
 
 def _copy_legacy_split_sheets(source, target, report: dict):
@@ -145,13 +177,19 @@ def _copy_legacy_split_sheets(source, target, report: dict):
         parent = str(_get_by_alias(udi, "Parent Basic UDI-DI") or "").strip()
         basic = basics.get(parent, {})
         legislation = str(_get_by_alias(basic, "Applicable Legislation") or "").upper()
-        target_sheet = "IVDR_IVDD" if legislation in {"IVDR", "IVDD"} else "MDR_MDD"
+        target_sheet = entry_sheet_for_legislation(legislation)
         target_headers = _headers(target[target_sheet])
         combined = _legacy_combined_row(basic, udi)
         _migrate_legacy_split_eifu_url(combined, udi, report, target_sheet)
         _write_by_field(target[target_sheet], target_headers, target_next_rows[target_sheet], combined)
         _normalize_main_row(target[target_sheet], target_headers, target_next_rows[target_sheet], report)
         _append_old_udi_detail_rows(target, udi, report)
+        report["row_mappings"].append({
+            "source_sheet": "UDI-DI",
+            "source_row": int(udi.get(SOURCE_ROW_NUMBER) or 0),
+            "target_sheet": target_sheet,
+            "target_row": target_next_rows[target_sheet],
+        })
         target_next_rows[target_sheet] += 1
         report["copied_rows"][target_sheet] += 1
 
@@ -176,12 +214,21 @@ def _copy_related_sheets(source, target, report: dict):
         source_headers = _headers(source[source_sheet])
         header_map = _header_map(source_headers, target_headers, extra_aliases=PACKAGE_HEADER_ALIASES)
         _record_unmapped(report, source_sheet, source_headers, header_map)
-        target_row = DATA_START_ROW
+        # Main-sheet migration may already have converted old inline details
+        # into this related sheet. Append after those generated rows so the
+        # source related sheet cannot overwrite them.
+        target_row = _next_data_row(target[target_sheet])
         for row in rows:
             if not _has_data(row):
                 continue
             _write_row(target[target_sheet], target_headers, target_row, row, header_map)
             _normalize_related_row(target[target_sheet], target_headers, target_row, report)
+            report["row_mappings"].append({
+                "source_sheet": source_sheet,
+                "source_row": int(row.get(SOURCE_ROW_NUMBER) or 0),
+                "target_sheet": target_sheet,
+                "target_row": target_row,
+            })
             target_row += 1
             report["copied_rows"][target_sheet] += 1
 
@@ -325,9 +372,10 @@ def _record_legacy_eifu_migration(report: dict, sheet_name: str, source_row: dic
 
 def _legacy_field_map() -> dict:
     fields = {}
-    for item in columns_for_entry_sheet("MDR_MDD") + columns_for_entry_sheet("IVDR_IVDD"):
-        fields[_canonical(item["field"])] = item["field"]
-        fields[_canonical(item["header"])] = item["field"]
+    for sheet_name in ENTRY_SHEETS:
+        for item in columns_for_entry_sheet(sheet_name):
+            fields[_canonical(item["field"])] = item["field"]
+            fields[_canonical(item["header"])] = item["field"]
     aliases = {
         "Device Name/Model": "Device Name/Model",
         "Device Name/Model*": "Device Name/Model",
@@ -410,6 +458,55 @@ def _detect_template_version(wb) -> str:
 
 def _normalize_main_row(ws, target_headers: list[str], row_idx: int, report: dict):
     field_to_header = {item["field"]: item["header"] for item in columns_for_entry_sheet(ws.title)}
+    index_by_field = {
+        field: target_headers.index(header) + 1
+        for field, header in field_to_header.items()
+        if header in target_headers
+    }
+
+    def value(field):
+        index = index_by_field.get(field)
+        return str(ws.cell(row_idx, index).value or "").strip() if index else ""
+
+    def set_value(field, new_value):
+        index = index_by_field.get(field)
+        if index:
+            ws.cell(row_idx, index).value = new_value
+
+    legislation = value("Applicable Legislation").upper()
+    device_type = value("Device Type")
+    if legislation in {"MDD", "AIMDD", "IVDD"} and device_type not in {"System", "Procedure Pack"}:
+        path = value("Legacy Has Assigned UDI-DI").upper()
+        udi_code = value("UDI-DI Code")
+        udi_entity = value("UDI-DI Issuing Entity").upper()
+        basic_code = value("Basic UDI-DI Code")
+        basic_entity = value("Issuing Entity").upper()
+        if not path and udi_code and udi_entity and udi_entity != "EUDAMED":
+            set_value("Legacy Has Assigned UDI-DI", "TRUE")
+            set_value("Legacy EUDAMED DI", f"B-{udi_code}")
+            report["warnings"].append(
+                f"{ws.title} 第 {row_idx} 行已按旧模板 UDI-DI / {udi_entity} 推断为 Legacy 已有 UDI-DI；"
+                f"导入时将重新验证并派生 B-{udi_code}。"
+            )
+        elif (
+            not path
+            and basic_code.startswith("B-")
+            and udi_code.startswith("D-")
+            and basic_entity == udi_entity == "EUDAMED"
+        ):
+            set_value("Legacy Has Assigned UDI-DI", "FALSE")
+            set_value("Legacy EUDAMED DI", basic_code)
+            set_value("Legacy EUDAMED ID", udi_code)
+            report["warnings"].append(
+                f"{ws.title} 第 {row_idx} 行已按旧模板 B-/D- + EUDAMED 推断为 Legacy 无 UDI-DI 的已有标识对；"
+                "导入时将重新验证配对和校验字符。"
+            )
+        elif not path:
+            report["warnings"].append(
+                f"{ws.title} 第 {row_idx} 行无法从旧模板判断 Legacy 标识路径；请在 v2.12 选择 "
+                "Legacy - Has Assigned UDI-DI?。如没有 UDI-DI，请填写 Local - Record ID 和 EUDAMED DI Input；工具不会猜测主体。"
+            )
+
     header = field_to_header.get("Special Device Type")
     if not header or header not in target_headers:
         return
@@ -417,10 +514,6 @@ def _normalize_main_row(ws, target_headers: list[str], row_idx: int, report: dic
     value = cell.value
     if value in (None, ""):
         return
-    legislation_header = field_to_header.get("Applicable Legislation")
-    legislation = ""
-    if legislation_header in target_headers:
-        legislation = str(ws.cell(row_idx, target_headers.index(legislation_header) + 1).value or "").strip()
     display = _special_device_display(value, ws.title, legislation)
     if display:
         if str(value or "").strip() != display:
@@ -497,7 +590,7 @@ def _special_device_display(value, sheet_name: str, legislation: str = "") -> st
 
 def _special_device_values(sheet_name: str, legislation: str = "") -> list[str]:
     value = str(legislation or "").strip().upper()
-    if sheet_name == "IVDR_IVDD" or value in {"IVDR", "IVDD"}:
+    if sheet_name in {"IVDR", "IVDD", "IVDR_IVDD"} or value in {"IVDR", "IVDD"}:
         return ENUM_SOURCES.get("special_device_ivdr", [])
     return ENUM_SOURCES.get("special_device_mdr", [])
 
@@ -506,7 +599,9 @@ def _special_device_prefix(sheet_name: str, legislation: str = "") -> str:
     value = str(legislation or "").strip().upper()
     if value in {"MDR", "MDD", "AIMDD", "IVDR", "IVDD"}:
         return value
-    return "IVDR" if sheet_name == "IVDR_IVDD" else "MDR"
+    if sheet_name in {"MDD_AIMDD", "IVDD"}:
+        return ENTRY_SHEETS[sheet_name]["default_legislation"]
+    return "IVDR" if sheet_name in {"IVDR", "IVDR_IVDD"} else "MDR"
 
 
 def _normal_substance_type(value) -> str:
@@ -622,4 +717,5 @@ def _serializable_report(report: dict) -> dict:
         "unmapped_headers": {key: list(value) for key, value in report["unmapped_headers"].items()},
         "warnings": list(report["warnings"]),
         "legacy_eifu_migrations": list(report["legacy_eifu_migrations"]),
+        "row_mappings": list(report["row_mappings"]),
     }

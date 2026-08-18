@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="LanguageSpecificNameType.xsd"/>
+	<xs:complexType name="DocumentsType">
+		<xs:sequence>
+			<xs:element name="document" type="doct:DocumentType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="OptionalDocumentsType">
+		<xs:sequence>
+			<xs:element name="document" type="doct:DocumentType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="MimeTypeEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="application/msword"/>
+			<xs:enumeration value="application/pdf"/>
+			<xs:enumeration value="application/vnd.ms-excel"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="DocumentType">
+		<xs:sequence>
+			<xs:element name="languages" type="lsn:Languages" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Document Language. For the documents uploaded in EUDAMED (for example SSCP attachment), a set of properties are stored.
+Field stores the Language in which the document (attachment) is given.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="mimeType" type="doct:MimeTypeEnum" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Field stores the Format (Type) of the Document.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="size" type="xs:int" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Field stores the Document size in Bytes.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="URI" type="xs:string" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>The field contains a path indicating the location of the document in the structure created after unpacking the attachment.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="uploadDate" type="xs:date" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>This field indicates the date when the file was uploaded into EUDAMED.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/CIPS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:cips="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/CIPS" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" xmlns:comment="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" xmlns:country="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" schemaLocation="../Common/CountryEnum.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" schemaLocation="../Common/CommentType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:complexType name="ClinicalInvestigationType">
+		<xs:sequence>
+			<xs:element name="clinicalInvestigationID" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="comment" type="comment:CommentType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="countries" type="country:CountriesType" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

@@ -12,7 +12,7 @@ The tool is not an official European Commission product. Generated XML must be v
 
 - Tool version is defined in `local_beta/constants.py`.
 - Template version is defined in both `local_beta/constants.py` and `local_beta/template_schema.py`; these must stay aligned.
-- The default user template is `EUDAMED_Template_v2.11.xlsx`.
+- The default user template is `EUDAMED_Template_v2.12.xlsx`.
 - The declared official XSD version is `3.0.30`.
 - Update `CHANGELOG.md` for every user-visible change.
 
@@ -48,7 +48,7 @@ Then manually smoke-test:
 
 - Start `python3 run_local_beta.py`.
 - Open `http://127.0.0.1:8765`.
-- Import a current v2.11 template sample.
+- Import a current v2.12 template sample.
 - Pre-check and export at least one `DEVICE.POST` and one update service.
 - Confirm generated XML/ZIP and manifest behavior.
 

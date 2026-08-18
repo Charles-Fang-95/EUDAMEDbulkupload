@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/v1"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:crtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/v1"
+		   xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1"
+		   xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+		   xmlns:crtfscp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1"
+		   xmlns:actor="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+		   xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+		   elementFormDefault="qualified">
+
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" schemaLocation="../Common/DocumentType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1" schemaLocation="../Actor.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1" schemaLocation="ScopeType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+	<xs:complexType name="DirectiveCertificateType">
+		<xs:complexContent>
+			<xs:extension base="crtf:ConformityAssesmentType">
+				<xs:sequence/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="CMDEnum">
+		<xs:annotation>
+			<xs:documentation>An indication of whether the certificate has custom-made class III implantable device(s) (MDR Art 52.8)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="NO_CMD_III"/>
+			<xs:enumeration value="NOT_ONLY_CMD_III"/>
+			<xs:enumeration value="ONLY_CMD_III"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SPPEnum">
+		<xs:annotation>
+			<xs:documentation>An indication of whether the certificate includes sterilized system/procedure packs.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="NO_SSoPP">
+				<xs:annotation>
+					<xs:documentation>Does not include sterilised system/procedure pack(s)</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="NOT_ONLY_SSoPP"/>
+			<xs:enumeration value="ONLY_SSoPP">
+				<xs:annotation>
+					<xs:documentation>Includes only sterilised system/procedure pack(s)</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ProductProcedureType">
+		<xs:complexContent>
+			<xs:extension base="crtf:ConformityAssesmentType">
+				<xs:sequence>
+					<xs:element name="applicableRegulation" type="crtf:ProductRegulationEnum" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="MFActorCode" type="commonbasic:stringSRNType" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="scopes" type="crtfscp:ProductProcedureScopesType" minOccurs="1" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="QualityProcedureType">
+		<xs:complexContent>
+			<xs:extension base="crtf:ConformityAssesmentType">
+				<xs:sequence>
+					<xs:element name="applicableRegulation" type="crtf:QualityRegulationEnum" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="MFActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="PRActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="scopes" type="crtfscp:QualityProcedureScopesType" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="specialDevice" type="crtfscp:SpecialDeviceType" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="ProductRegulationEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="IVDR_TYPE_EXAMINATION"/>
+			<xs:enumeration value="IVDR_TECHNICAL_DOCUMENTATION"/>
+			<xs:enumeration value="MDR_TYPE_EXAMINATION"/>
+			<xs:enumeration value="MDR_PRODUCT_VERIFICATION"/>
+			<xs:enumeration value="MDR_TECHNICAL_DOCUMENTATION"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ConformityAssesmentType" abstract="true">
+		<xs:complexContent>
+			<xs:extension base="e:Entity">
+				<xs:sequence>
+					<xs:element name="ARActorCodes" type="actor:ActorCodesType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="conformityAssesmentReport" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="creationDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="documents" type="doct:DocumentsType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="1" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="QualityRegulationEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="IVDR_PRODUCTION_QUALITY_ASSURANCE"/>
+			<xs:enumeration value="IVDR_QUALITY_MANAGEMENT_SYSTEM"/>
+			<xs:enumeration value="MDR_QUALITY_ASSURANCE"/>
+			<xs:enumeration value="MDR_QUALITY_MANAGEMENT_SYSTEM"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDataType/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:legislation="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1"
+           xmlns:rtype="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/MsuReportTypeEnum/v1"
+           xmlns:vd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1" schemaLocation="../../Party/AddressType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1" schemaLocation="../../Common/LegislationType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../../Entity.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/MsuReportTypeEnum/v1" schemaLocation="ReportTypeEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1" schemaLocation="../VersionDataType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/MSUEconomicOperatorType/v1" schemaLocation="../MSUEconomicOperatorType.xsd"/>
+    <xs:complexType name="ReportDataType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>#FLD-ACT-004# - report types. A report can be either an FIR or 4YR or ASR.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="vd:VersionDataType">
+                <xs:sequence>
+                    <xs:element name="ReportTypeEnum" type="rtype:MsuReportTypeEnum" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="identifier" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="initiatingCACode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="caReference" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="ApplicableRegulation" type="legislation:ApplicableLegislationType" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

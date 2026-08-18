@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/FourYearReport/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:r="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDataType/v1"
+           xmlns:msufyr="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/FourYearReport/v1"
+           xmlns:rd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDocumentType/v1"
+           xmlns:cb="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           elementFormDefault="qualified" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/4YearReportType/v1">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDataType/v1"
+               schemaLocation="ReportDataType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDocumentType/v1"
+               schemaLocation="ReportDocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+               schemaLocation="../../Common/CommonBasicType.xsd"/>
+    <xs:complexType name="FourYearReportType">
+        <xs:complexContent>
+            <xs:extension base="r:ReportDataType">
+                <xs:sequence>
+                    <xs:element name="abstractSummaryText" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="periodStart" type="cb:period" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="periodEnd" type="cb:period" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="reportDocumentType" type="rd:ReportDocumentType" minOccurs="2" maxOccurs="2"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:element name="fourYearReportType" type="msufyr:FourYearReportType"/>
+
+</xs:schema>

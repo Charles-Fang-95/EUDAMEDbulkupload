@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/RefusedCertificate/v1"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:refcrtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/RefusedCertificate/v1"
+		   xmlns:appcrtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1"
+		   xmlns:crtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/v1"
+		   xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+		   xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+		   xmlns:actor="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+		   xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+		   xmlns:crtfscp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1"
+		   elementFormDefault="qualified">
+
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/v1" schemaLocation="CertificateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" schemaLocation="../Common/DecisionType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1" schemaLocation="CECPType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" schemaLocation="../Common/DocumentType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1" schemaLocation="../Actor.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1" schemaLocation="ScopeType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1" schemaLocation="ApplicationCertificateType.xsd"/>
+
+	<xs:complexType name="RefusedCommentsType">
+		<xs:sequence>
+			<xs:element name="comment" type="refcrtf:RefusedCommentType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="RefusedCommentType">
+		<xs:sequence>
+			<xs:element name="text" type="lsn:LanguageSpecificTextType"/>
+		</xs:sequence>
+	</xs:complexType>
+
+
+	<xs:complexType name="ActorBaseType">
+		<xs:sequence>
+			<xs:element name="registeredInEudamed" type="xs:boolean"/>
+			<xs:element name="actorCode" type="commonbasic:stringSRNType" minOccurs="0"/>
+			<xs:element name="name" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+
+	<xs:complexType name="RefusedProductProcedureType">
+		<xs:sequence>
+			<xs:element name="applicableRegulation" type="crtf:ProductRegulationEnum"/>
+			<xs:element name="MFActor" type="refcrtf:ActorBaseType"/>
+			<xs:element name="NBActorCode" type="commonbasic:stringSRNType"/>
+			<xs:element name="ARActorCodes" type="actor:ActorCodesType" minOccurs="0"/>
+			<xs:element name="documents" type="doct:DocumentsType"/>
+			<xs:element name="scopes" type="crtfscp:ProductProcedureScopesType"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="RefusedCertificateType">
+		<xs:sequence>
+			<xs:element name="applicationDecision" type="appcrtf:ApplicationDecisionEnum">
+				<xs:annotation>
+					<xs:documentation>
+						Indicates (enumeration) if the application for conformity assessment is refused by the NB, or
+						withdrawn by the MF or the conformity assessment lead to a certificate refusal by the NB.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="applicationReference" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>FLD-CRF-314 - An application reference number provided by the NB. The application reference number is unique per NB.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="productProcedure" type="refcrtf:RefusedProductProcedureType"/>
+			<xs:element name="reasonRefusedCertificate" type="appcrtf:CertificateRefusalReasonEnum" maxOccurs="unbounded"/>
+			<xs:element name="refusalReferenceNumber" type="commonbasic:stringSType" minOccurs="0"/>
+			<xs:element name="otherDecisionReason" type="lsn:LanguageSpecificTextType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="certificateRefusalDate" type="xs:date"/>
+			<xs:element name="applicationSubmissionDate" type="xs:date"/>
+			<xs:element name="comments" type="refcrtf:RefusedCommentsType"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:element name="RefusedCertificate" type="refcrtf:RefusedCertificateType"/>
+</xs:schema>

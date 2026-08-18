@@ -202,7 +202,7 @@ class DataValidator:
                     ))
     
     def _validate_udi_code_format(self, row: Dict, sheet: str):
-        """验证UDI代码格式"""
+        """按官方通用字符串类型验证 DI 代码。"""
         udi_fields = ['Basic UDI-DI Code', 'UDI-DI Code', 'Secondary UDI-DI Code',
                      'Unit of Use DI Code', 'DM DI Code']
         
@@ -214,16 +214,17 @@ class DataValidator:
                         sheet, row.get('_row_number', '?'), field, value,
                         'FORMAT_ERROR',
                         'UDI代码格式不正确',
-                        'UDI代码应为8-50位字母数字字符'
+                        'DI代码必须为1-120个字符，并按发码机构或EUDAMED分配值原样填写'
                     ))
     
     def _is_valid_udi_code(self, code: str) -> bool:
-        """检查UDI代码格式"""
+        """检查官方 XSD 的 stringXSType 长度约束，不臆造发码机构规则。"""
         if not isinstance(code, str):
             return False
-        # UDI代码：8-50位字母数字字符
-        pattern = r'^[A-Za-z0-9]{8,50}$'
-        return bool(re.match(pattern, code))
+        # CommonBasicType.xsd:stringXSType 仅规定 1..120 字符。具体字符集和
+        # 校验位由发码机构决定；EUDAMED 分配的 B-/D- 标识也可含连字符/下划线。
+        value = code.strip()
+        return code == value and 1 <= len(value) <= 120
     
     def _validate_url_format(self, row: Dict, sheet: str):
         """验证URL格式"""
@@ -340,6 +341,17 @@ class DataValidator:
             self._validate_enum_value(row, 'Basic UDI-DI', 'Risk Class')
             self._validate_enum_value(row, 'Basic UDI-DI', 'Applicable Legislation')
             self._validate_enum_value(row, 'Basic UDI-DI', 'Device Type')
+            device_type = str(row.get('Device Type') or '').strip()
+            legislation = str(row.get('Applicable Legislation') or '').strip().upper()
+            if device_type in {'System', 'Procedure Pack'} and legislation != 'MDR':
+                self.errors.append(ValidationError(
+                    'Basic UDI-DI', row.get('_row_number', '?'),
+                    'Device Type / Applicable Legislation',
+                    f'{device_type} / {legislation}',
+                    'INVALID_DEVICE_TYPE_LEGISLATION',
+                    'System / Procedure Pack 仅适用于 MDR。',
+                    '请将记录放到 MDR sheet 并把 Applicable Legislation 设为 MDR，或改为 Regular Device。'
+                ))
         
         # 验证UDI-DI枚举值
         for row in self.data.get('UDI-DI', []):

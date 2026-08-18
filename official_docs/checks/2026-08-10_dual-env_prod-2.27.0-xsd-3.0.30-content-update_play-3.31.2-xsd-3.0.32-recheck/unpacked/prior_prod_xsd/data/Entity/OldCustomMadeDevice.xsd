@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/OCM/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:ocm="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/OCM/OldCustomMadeDevice/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/OCM/OldCustomMadeDevice/v1"
+               schemaLocation="OCM/OldCustomMadeDeviceType.xsd"/>
+    <xs:element name="OldCustomMadeDevice" type="ocm:OldCustomMadeDeviceType">
+        <xs:annotation>
+            <xs:documentation>Please see OldCustomMadeDeviceType</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+</xs:schema>

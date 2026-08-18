@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Date: Mon, 10 Aug 2026 01:04:02 GMT
+Last-Modified: Tue, 04 Aug 2026 15:03:49 GMT
+ETag: "11de6b1-65839f64ebf40"
+Accept-Ranges: bytes
+Content-Length: 18736817
+Content-Type: application/pdf
+Server: Europa
+Connection: keep-alive
+

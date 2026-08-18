@@ -294,7 +294,10 @@ def field_input(field: str, value) -> str:
     spec = FIELD_SPECS.get(field)
     current = "" if value is None else str(value)
     validation = spec.get("validation") if spec else None
-    if validation == "boolean":
+    readonly = field.startswith("Legacy ")
+    if readonly:
+        control = f'<input type="text" name="field_{esc(field)}" value="{esc(current)}" readonly>'
+    elif validation == "boolean":
         control = _bool_select(field, current)
     elif validation in ENUM_SELECT_VALIDATIONS and validation in ENUM_SOURCES:
         control = _enum_select(field, current, ENUM_SOURCES[validation])
@@ -507,8 +510,8 @@ def page(title: str, body: str, active_path: str = "") -> str:
   function restoreExportPageIfNeeded() {{
     if (window.location.pathname !== '/export') return false;
     var params = new URLSearchParams(window.location.search);
-    if (params.get('service_type')) {{
-      saveExportQuery(params.toString());
+    if (params.get('service_type') || params.get('import_id')) {{
+      if (params.get('service_type')) saveExportQuery(params.toString());
       return false;
     }}
     var saved = loadExportQuery();
@@ -523,7 +526,7 @@ def page(title: str, body: str, active_path: str = "") -> str:
     var form = document.getElementById(formId);
     if (!form || window.location.pathname !== '/export') return;
     var params = new URLSearchParams(window.location.search);
-    ['service_type', 'q', 'state', 'legislation', 'change_type', 'freshness_filter', 'srn'].forEach(function (name) {{
+    ['service_type', 'q', 'state', 'legislation', 'change_type', 'freshness_filter', 'srn', 'import_id', 'page', 'page_size'].forEach(function (name) {{
       var field = form.querySelector('[name="' + name + '"]');
       if (!field) return;
       if (field.value) params.set(name, field.value); else params.delete(name);
@@ -764,10 +767,54 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
             f"<li>{esc(item.get('sheet'))} {t('第', 'row')} {esc(item.get('row'))} {esc(item.get('field'))}: {esc(item.get('message'))}</li>"
             for item in warnings[:50]
         ) or f"<li>{t('无', 'None')}</li>"
+        legacy_rows = "".join(
+            f"<tr><td>{esc(item.get('sheet'))}</td><td>{esc(item.get('row'))}</td>"
+            f"<td>{esc(item.get('local_record_id'))}</td><td>{esc(item.get('method'))}</td>"
+            f"<td>{esc(item.get('eudamed_di'))}</td><td>{esc(item.get('eudamed_id') or item.get('identifier_code'))}</td></tr>"
+            for item in result.get("legacy_results", [])
+        )
+        legacy_panel = ""
+        if legacy_rows:
+            legacy_panel = f"""
+            <h3>{t('Legacy 标识解析结果', 'Legacy identifier results')}</h3>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Sheet</th><th>{t('行', 'Row')}</th><th>Local Record ID</th><th>{t('生成方式', 'Method')}</th><th>EUDAMED DI</th><th>EUDAMED ID / UDI-DI</th></tr></thead>
+              <tbody>{legacy_rows}</tbody>
+            </table></div>
+            """
+        normalized_link = ""
+        if result.get("normalized_filename"):
+            normalized_link = (
+                f'<p><a class="button primary" href="/download/{esc(result["normalized_filename"])}">'
+                f'{t("下载规范化 v2.12 模板副本", "Download normalized v2.12 workbook")}</a></p>'
+                f'<p class="muted">{t("原始上传文件未被覆盖；副本保留 Local Record ID 和计算输入，并写入最终 B-/D-/UDI-DI 关联。", "The uploaded workbook was not overwritten. The copy retains Local Record ID and calculation input and fills final B-/D-/UDI-DI links.")}</p>'
+            )
+        import_id = result.get("import_id")
+        batch_actions = ""
+        if import_id:
+            library_url = "/library?" + urlencode({"import_id": import_id})
+            export_url = "/export?" + urlencode({
+                "import_id": import_id,
+                "selection_mode": "filtered",
+            })
+            batch_actions = f"""
+            <div class="alert notice">
+              <strong>{t('本地产品库会保留历史记录。', 'The local product library retains historical records.')}</strong>
+              {t('相同 UDI-DI Code 会更新；不同 UDI-DI Code 会新增。若只想处理本次 Excel 的记录，请使用下面的批次入口，不需要删除旧数据。', 'The same UDI-DI Code is updated; a different UDI-DI Code is added. Use the batch links below to work only with this Excel import—old records do not need to be deleted.')}
+            </div>
+            <div class="toolbar">
+              <a class="button primary" href="{esc(library_url)}">{t('查看本次导入的 UDI-DI', 'View UDI-DIs from this import')}</a>
+              <a class="button secondary" href="{esc(export_url)}">{t('导出本次导入的 UDI-DI', 'Export UDI-DIs from this import')}</a>
+            </div>
+            <p class="muted">{t('导出入口会保留本次导入筛选，并让你选择正确的 EUDAMED service。新增、已更新、未变化表示本次导入对本地 Basic/UDI 记录产生的结果；“已更新”不代表清空或覆盖整个产品库。', 'The export link keeps this import filter and lets you choose the correct EUDAMED service. Created, Updated and Unchanged describe how this import affected local Basic/UDI records. Updated does not mean the whole library was cleared or replaced.')}</p>
+            """
         details = f"""
         <section class="panel">
           <h2>{t('导入结果', 'Import result')}</h2>
           <p>Basic UDI-DI: {result['summary']['basic_count']} · UDI-DI: {result['summary']['udi_count']}</p>
+          {batch_actions}
+          {normalized_link}
+          {legacy_panel}
           {change_cards}
           <h3>{t('差异报告', 'Change report')}</h3>
           <div class="table-wrap"><table>
@@ -781,7 +828,7 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
             <article><h3>{t('错误', 'Errors')}</h3><ul>{error_rows}</ul></article>
             <article><h3>{t('警告', 'Warnings')}</h3><ul>{warning_rows}</ul></article>
           </div>
-          <p><a class="button primary" href="/library">{t('进入产品库', 'Open product library')}</a></p>
+          <p><a class="button" href="/library">{t('进入完整产品库', 'Open full product library')}</a></p>
         </section>
         """
     body = f"""
@@ -909,7 +956,14 @@ def _import_change_row(item: dict) -> str:
     """
 
 
-def library_page(records: list[dict], filters: dict, srn_options: list[str] | None = None) -> str:
+def library_page(
+    records: list[dict],
+    filters: dict,
+    srn_options: list[str] | None = None,
+    total_filtered: int = 0,
+    page_number: int = 1,
+    page_size: int = 200,
+) -> str:
     rows = []
     for item in records:
         payload = item["payload"]
@@ -917,6 +971,14 @@ def library_page(records: list[dict], filters: dict, srn_options: list[str] | No
         product_name = _product_name(item)
         spec = payload.get("Additional Description") or basic_payload.get("Device Name/Model") or basic_payload.get("Device Model", "")
         reference = payload.get("Reference Number", "")
+        legacy_di = payload.get("Legacy EUDAMED DI") or basic_payload.get("Legacy EUDAMED DI") or ""
+        legacy_id = payload.get("Legacy EUDAMED ID") or ""
+        legacy_identifiers = ""
+        if legacy_di:
+            legacy_identifiers = f'<br><span class="muted">EUDAMED DI {esc(legacy_di)}'
+            if legacy_id:
+                legacy_identifiers += f' · ID {esc(legacy_id)}'
+            legacy_identifiers += "</span>"
         sample = bool(item.get("is_sample"))
         rows.append(
             f"""
@@ -924,7 +986,7 @@ def library_page(records: list[dict], filters: dict, srn_options: list[str] | No
               <td><input type="checkbox" form="library-export" name="record_ids" value="{item['id']}"></td>
               <td>{sample_badge() if sample else ''}<a href="/udi/{item['id']}">{esc(product_name or item['udi_code'])}</a><br><span class="muted">{esc(spec)}</span></td>
               <td>{esc(reference)}</td>
-              <td><a href="/basic-code/{quote(item['basic_code'], safe='')}">{esc(item['basic_code'])}</a><br><span class="muted">{esc(item['udi_code'])}</span></td>
+              <td><a href="/basic-code/{quote(item['basic_code'], safe='')}">{esc(item['basic_code'])}</a><br><span class="muted">{esc(item['udi_code'])}</span>{legacy_identifiers}</td>
               <td>{esc(basic_payload.get('Applicable Legislation', ''))}</td>
               <td>{state_badge(item['state'])}<br>{change_badge(item.get('last_change_type'))}</td>
               <td><span class="muted">{t('首次', 'First')}</span> {esc(display_time(item.get('first_imported_at')))}<br><span class="muted">{t('最近导入', 'Last import')}</span> {esc(display_time(item.get('last_imported_at')))}<br><span class="muted">{t('最近更新', 'Last update')}</span> {esc(display_time(item.get('last_changed_at')))}</td>
@@ -933,7 +995,7 @@ def library_page(records: list[dict], filters: dict, srn_options: list[str] | No
         )
     if rows:
         table = "".join(rows)
-    elif any(filters.get(key) for key in ("query", "state", "legislation", "change_type", "freshness_filter", "srn")):
+    elif any(filters.get(key) for key in ("query", "state", "legislation", "change_type", "freshness_filter", "srn", "import_id")):
         table = f'<tr><td colspan="7">{t("没有符合条件的记录。", "No records match the filter.")} <a href="/library">{t("清除筛选", "Clear filters")}</a></td></tr>'
     else:
         table = f'<tr><td colspan="7"><div class="empty-state">{t("还没有产品记录。先下载模板填写，再导入 Excel。", "No product records yet. Download the template, fill it in, then import Excel.")} <a class="button" href="/download-template">{t("下载模板", "Download template")}</a> <a class="button primary" href="/import">{t("导入 Excel", "Import Excel")}</a></div></td></tr>'
@@ -942,7 +1004,8 @@ def library_page(records: list[dict], filters: dict, srn_options: list[str] | No
       <h1>{t('产品库', 'Product Library')}</h1>
       <p class="muted">{t('这里管理本地库中的 UDI-DI。搜索会匹配产品名、Reference、Basic UDI-DI、UDI-DI 和备注；可按 Manufacturer SRN 切换不同 actor 的产品。',
                           'Manage local UDI-DI records here. Search matches product name, Reference, Basic UDI-DI, UDI-DI and notes; switch between actors by Manufacturer SRN.')}</p>
-      {filter_form('/library', filters, srn_options)}
+      {import_batch_notice(filters)}
+      {filter_form('/library', filters, srn_options, page_size)}
       <form id="library-export" method="get" action="/export" class="toolbar">
         <select name="service_type" required>{service_options("")}</select>
         <input type="hidden" name="q" value="{esc(filters.get('query', ''))}">
@@ -951,19 +1014,24 @@ def library_page(records: list[dict], filters: dict, srn_options: list[str] | No
         <input type="hidden" name="change_type" value="{esc(filters.get('change_type', ''))}">
         <input type="hidden" name="freshness_filter" value="{esc(filters.get('freshness_filter', ''))}">
         <input type="hidden" name="srn" value="{esc(filters.get('srn', ''))}">
+        <input type="hidden" name="import_id" value="{esc(filters.get('import_id', ''))}">
+        <input type="hidden" name="page" value="{page_number}">
+        <input type="hidden" name="page_size" value="{page_size}">
         <button class="button" type="button" onclick="toggleChecks('library-export', true)">{t('全选', 'Select all')}</button>
         <button class="button" type="button" onclick="toggleChecks('library-export', false)">{t('取消勾选', 'Clear')}</button>
         <button class="button primary" type="submit" name="selection_mode" value="selected" onclick="return requireLibrarySelection('selected')">{t('导出勾选记录', 'Export checked records')} (<span data-selected-count-for="library-export">0</span>)</button>
         <button class="button secondary" type="submit" name="selection_mode" value="filtered">{t('导出全部筛选结果', 'Export all filtered results')}</button>
       </form>
-      <p class="muted">{t('先选择 EUDAMED service；“导出勾选记录”只带走已勾选行，“导出全部筛选结果”会按当前筛选条件导出全部匹配记录。',
-                          'Choose an EUDAMED service first. Export checked records uses only ticked rows; Export all filtered results uses every row matching the current filters.')}</p>
+      <p class="muted">{t('当前页面可能只显示部分记录。“导出勾选记录”只带走本页已勾选行；“导出全部筛选结果”会按当前筛选条件导出全部匹配记录，不受分页限制。',
+                          'This page may show only part of the result. Export checked records uses checked rows on this page; Export all filtered results uses every matching record and is not limited by pagination.')}</p>
+      {pagination_block('/library', filters, total_filtered, page_number, page_size)}
       <div class="table-wrap"><table>
         <thead>
           <tr><th>{t('选择', 'Select')}</th><th>{t('产品/规格', 'Product / spec')}</th><th>Reference</th><th>{term_hint('Basic UDI-DI')} / {term_hint('UDI-DI')}</th><th>{t('法规', 'Legislation')}</th><th>{t('状态', 'State')}</th><th>{t('日期', 'Dates')}</th></tr>
         </thead>
         <tbody>{table}</tbody>
       </table></div>
+      {pagination_block('/library', filters, total_filtered, page_number, page_size)}
     </section>
     """
     return page(t("产品库", "Product Library"), body, "/library")
@@ -1107,8 +1175,10 @@ def export_page(
     selected_ids: list[int] | None = None,
     srn_options: list[str] | None = None,
     selection_mode: str = "selected",
+    page_number: int = 1,
+    page_size: int = 200,
 ) -> str:
-    filters = filters or {"query": "", "state": "", "legislation": "", "change_type": "", "freshness_filter": "", "srn": ""}
+    filters = filters or {"query": "", "state": "", "legislation": "", "change_type": "", "freshness_filter": "", "srn": "", "import_id": ""}
     xsd_report = xsd_report or {}
     selected_id_set = {int(item) for item in (selected_ids or [])}
     selection_mode = "filtered" if selection_mode == "filtered" else "selected"
@@ -1128,7 +1198,7 @@ def export_page(
     service_picker = f"""
       <form method="get" action="/export" class="filters">
         <select name="service_type">{service_options(service_type)}</select>
-        {filter_controls(filters, srn_options)}
+        {filter_controls(filters, srn_options, page_size)}
         <button class="button" type="submit">{t('载入记录', 'Load records')}</button>
       </form>
     """
@@ -1141,6 +1211,7 @@ def export_page(
       {alert_block(t('请先在下方选择一个 EUDAMED service，再载入并勾选要导出的记录。', 'Choose an EUDAMED service below first, then load and select the records to export.'), "notice")}
       {bulk_limit_notice()}
       {xsd}
+      {import_batch_notice(filters)}
       {service_picker}
       {service_wizard()}
     </section>
@@ -1191,22 +1262,27 @@ def export_page(
       </div>
       {bulk_limit_notice()}
       {xsd}
+      {import_batch_notice(filters)}
       {service_picker}
       <form id="export-form" method="post" action="/export#result" class="stack">
         <input type="hidden" name="service_type" value="{esc(service_type)}">
-        {hidden_filters(filters)}
+        {hidden_filters(filters, page_number, page_size)}
         <div class="selection-bar">
           <label><input type="radio" name="selection_mode" value="selected"{" checked" if selection_mode == "selected" else ""}> {t('只导出下方勾选记录', 'Export only the rows checked below')} (<span data-selected-count-for="export-form">0</span>)</label>
           <label><input type="radio" name="selection_mode" value="filtered"{" checked" if selection_mode == "filtered" else ""}> {t('导出全部筛选结果', 'Export all filtered results')}（{total_filtered}）</label>
           <button class="button" type="button" onclick="toggleChecks('export-form', true)">{t('全选', 'Select all')}</button>
           <button class="button" type="button" onclick="toggleChecks('export-form', false)">{t('取消勾选', 'Clear')}</button>
         </div>
+        <p class="muted">{t('当前页面可能只显示部分记录；“导出全部筛选结果”会使用全部匹配记录，不受本页数量限制。跨页手动选择时，请优先改用批次/其他筛选后导出全部筛选结果。',
+                            'This page may show only part of the result. Export all filtered results uses every matching record, regardless of page size. For cross-page selection, narrow the filters and export all filtered results.')}</p>
+        {pagination_block('/export', filters, total_filtered, page_number, page_size, {"service_type": service_type, "selection_mode": selection_mode})}
         <div class="table-wrap"><table>
           <thead>
             <tr><th>{t('选择', 'Select')}</th><th>{t('编码/产品', 'Code / product')}</th><th>{'Parent Basic' if entity_type == 'udi' else 'Basic'}</th><th>{t('本地状态', 'Local state')}</th><th>{t('版本号', 'Version')}</th><th>{t('最近变化', 'Last change')}</th></tr>
           </thead>
           <tbody>{table}</tbody>
         </table></div>
+        {pagination_block('/export', filters, total_filtered, page_number, page_size, {"service_type": service_type, "selection_mode": selection_mode})}
         <div class="toolbar">
           <button class="button" type="submit" name="action" value="preflight">{t('只做预检', 'Pre-check only')}</button>
           <button class="button primary" type="submit" name="action" value="export">{t('生成 XML', 'Generate XML')}</button>
@@ -2129,24 +2205,35 @@ def xsd_panel(report: dict) -> str:
     """
 
 
-def filter_form(action: str, filters: dict, srn_options: list[str] | None = None) -> str:
+def filter_form(
+    action: str,
+    filters: dict,
+    srn_options: list[str] | None = None,
+    page_size: int = 200,
+) -> str:
     return f"""
     <form method="get" action="{esc(action)}" class="filters">
-      {filter_controls(filters, srn_options)}
+      {filter_controls(filters, srn_options, page_size)}
       <button class="button" type="submit">{t('筛选', 'Filter')}</button>
     </form>
     """
 
 
-def filter_controls(filters: dict, srn_options: list[str] | None = None) -> str:
+def filter_controls(
+    filters: dict,
+    srn_options: list[str] | None = None,
+    page_size: int = 200,
+) -> str:
     placeholder = t("产品名 / Reference / Basic / UDI / 备注", "Product / Reference / Basic / UDI / notes")
     return f"""
+    <input type="hidden" name="import_id" value="{esc(filters.get('import_id', ''))}">
     <input type="text" name="q" value="{esc(filters.get('query', ''))}" placeholder="{esc(placeholder)}">
     <select name="state">{state_options(filters.get('state', ''))}</select>
     <select name="legislation">{legislation_options(filters.get('legislation', ''))}</select>
     <select name="change_type">{change_options(filters.get('change_type', ''))}</select>
     <select name="freshness_filter">{freshness_options(filters.get('freshness_filter', ''))}</select>
     <select name="srn">{srn_filter_options(filters.get('srn', ''), srn_options)}</select>
+    <select name="page_size">{page_size_options(page_size)}</select>
     """
 
 
@@ -2163,7 +2250,7 @@ def srn_filter_options(current: str, srn_options: list[str] | None) -> str:
     return "".join(parts)
 
 
-def hidden_filters(filters: dict) -> str:
+def hidden_filters(filters: dict, page: int = 1, page_size: int = 200) -> str:
     return "".join(
         f'<input type="hidden" name="{esc(name)}" value="{esc(value)}">'
         for name, value in {
@@ -2173,8 +2260,76 @@ def hidden_filters(filters: dict) -> str:
             "change_type": filters.get("change_type", ""),
             "freshness_filter": filters.get("freshness_filter", ""),
             "srn": filters.get("srn", ""),
+            "import_id": filters.get("import_id", ""),
+            "page": page,
+            "page_size": page_size,
         }.items()
     )
+
+
+def page_size_options(current: int) -> str:
+    values = [50, 100, 200, 500]
+    if current not in values:
+        values.append(current)
+        values.sort()
+    return "".join(
+        f'<option value="{value}"{" selected" if value == current else ""}>'
+        f'{t("每页", "Per page")} {value}</option>'
+        for value in values
+    )
+
+
+def import_batch_notice(filters: dict) -> str:
+    import_id = filters.get("import_id", "")
+    if not import_id:
+        return ""
+    return f"""
+    <div class="alert notice">
+      <strong>{t('仅显示导入批次', 'Showing import batch')} #{esc(import_id)}</strong>
+      <span>{t('历史记录仍保留在完整产品库中。', 'Historical records remain in the full product library.')}</span>
+      <a href="/library">{t('查看完整产品库', 'View full product library')}</a>
+    </div>
+    """
+
+
+def pagination_block(
+    action: str,
+    filters: dict,
+    total_filtered: int,
+    page: int,
+    page_size: int,
+    extra_params: dict | None = None,
+) -> str:
+    total_pages = max(1, (total_filtered + page_size - 1) // page_size)
+    page = min(max(page, 1), total_pages)
+    start = 0 if total_filtered == 0 else (page - 1) * page_size + 1
+    end = min(page * page_size, total_filtered)
+    params = {
+        "q": filters.get("query", ""),
+        "state": filters.get("state", ""),
+        "legislation": filters.get("legislation", ""),
+        "change_type": filters.get("change_type", ""),
+        "freshness_filter": filters.get("freshness_filter", ""),
+        "srn": filters.get("srn", ""),
+        "import_id": filters.get("import_id", ""),
+        "page_size": page_size,
+    }
+    params.update(extra_params or {})
+
+    def page_link(target_page: int, label: str) -> str:
+        link_params = dict(params)
+        link_params["page"] = target_page
+        url = f"{action}?{urlencode(link_params)}"
+        return f'<a class="button" href="{esc(url)}">{label}</a>'
+
+    previous = page_link(page - 1, t("上一页", "Previous")) if page > 1 else ""
+    following = page_link(page + 1, t("下一页", "Next")) if page < total_pages else ""
+    return f"""
+    <div class="toolbar pagination">
+      <span>{t('当前显示', 'Showing')} <strong>{start}-{end}</strong> · {t('总匹配数量', 'Total matches')} <strong>{total_filtered}</strong> · {t('第', 'Page')} {page}/{total_pages}</span>
+      {previous}{following}
+    </div>
+    """
 
 
 def message_block(message: str, level: str = "notice") -> str:
@@ -2302,5 +2457,6 @@ def filter_query(filters: dict) -> str:
             "change_type": filters.get("change_type", ""),
             "freshness_filter": filters.get("freshness_filter", ""),
             "srn": filters.get("srn", ""),
+            "import_id": filters.get("import_id", ""),
         }
     )

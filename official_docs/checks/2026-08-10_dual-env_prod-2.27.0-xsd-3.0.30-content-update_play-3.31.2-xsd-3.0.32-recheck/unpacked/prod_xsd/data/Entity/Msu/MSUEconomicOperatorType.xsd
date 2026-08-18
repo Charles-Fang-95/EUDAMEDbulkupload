@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/MSUEconomicOperatorType/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:eoRole="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/EORoleEnum/v1"
+           xmlns:address="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1"
+           xmlns:eo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/MSUEconomicOperatorType/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/EORoleEnum/v1" schemaLocation="EORoleEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1" schemaLocation="../Party/AddressType.xsd"/>
+    <xs:complexType name="MSUEconomicOperatorType">
+        <xs:sequence>
+            <xs:element name="registered" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="registeredEO" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="EORoleEnum" type="eoRole:EORoleEnum" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="srn" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="GeographicAddressType" type="address:GeographicAddressType" minOccurs="0" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="nonRegisteredEO" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="identifier" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                        <xs:element name="EORoleEnum" type="eoRole:EORoleEnum" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="name" minOccurs="1" type="xs:string" maxOccurs="1"/>
+                        <xs:element name="GeographicAddressType" type="address:GeographicAddressType" minOccurs="1" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="contact">
+                <xs:complexType>
+                    <xs:sequence minOccurs="0" maxOccurs="1">
+                        <xs:element name="firstName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="lastName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="telephone" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="email" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="contactComment" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MsuEconomicOperatorsType">
+        <xs:sequence>
+            <xs:element name="economicOperatorType" type="eo:MSUEconomicOperatorType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

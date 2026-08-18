@@ -245,8 +245,19 @@ class App:
             return self.handle_ack(request)
         if request.command == "GET" and path == "/library":
             filters = self._filters_from_query(query)
-            records = self.repository.list_udis(**filters)
-            return self.respond_html(request, library_page(records, filters, self._srn_options()))
+            pagination = self._pagination_from_query(query)
+            records, total_filtered, pagination = self._paged_records("udi", filters, pagination)
+            return self.respond_html(
+                request,
+                library_page(
+                    records,
+                    filters,
+                    self._srn_options(),
+                    total_filtered=total_filtered,
+                    page_number=pagination["page"],
+                    page_size=pagination["page_size"],
+                ),
+            )
         if request.command == "GET" and path.startswith("/basic-code/"):
             basic_code = unquote(path.split("/", 2)[2])
             record = self.repository.get_basic_by_code(basic_code)
@@ -289,33 +300,26 @@ class App:
             service_type = query.get("service_type", [""])[0]
             selection_mode = query.get("selection_mode", ["selected"])[0]
             filters = self._filters_from_query(query)
+            pagination = self._pagination_from_query(query)
             xsd_report = build_xsd_version_report(check_online=False)
             if not service_type:
                 return self.respond_html(
                     request,
-                    export_page("", [], None, filters, xsd_report, 0, [], self._srn_options(), selection_mode),
+                    export_page(
+                        "", [], None, filters, xsd_report, 0, [], self._srn_options(), selection_mode,
+                        page_number=pagination["page"], page_size=pagination["page_size"],
+                    ),
                 )
             entity_type = self._entity_type_for_service(service_type)
-            records = (
-                self.repository.list_basics(**filters)
-                if entity_type == "basic"
-                else self.repository.list_udis(**filters)
-            )
-            total_filtered = len(
-                self.repository.get_filtered_ids(
-                    entity_type,
-                    filters["query"],
-                    filters["state"],
-                    filters["legislation"],
-                    filters["change_type"],
-                    filters["srn"],
-                    filters["freshness_filter"],
-                )
-            )
+            records, total_filtered, pagination = self._paged_records(entity_type, filters, pagination)
             selected_ids, _ = self._parse_record_ids(query.get("record_ids", []))
             return self.respond_html(
                 request,
-                export_page(service_type, records, None, filters, xsd_report, total_filtered, selected_ids, self._srn_options(), selection_mode),
+                export_page(
+                    service_type, records, None, filters, xsd_report, total_filtered, selected_ids,
+                    self._srn_options(), selection_mode,
+                    page_number=pagination["page"], page_size=pagination["page_size"],
+                ),
             )
         if request.command == "POST" and path == "/export":
             return self.handle_export(request)
@@ -477,24 +481,20 @@ class App:
         service_type = form.get("service_type", [""])[0]
         selection_mode = form.get("selection_mode", ["selected"])[0]
         filters = self._filters_from_form(form)
+        pagination = self._pagination_from_form(form)
         xsd_report = build_xsd_version_report(check_online=False)
         if not service_type:
             return self.respond_html(
                 request,
-                export_page("", [], None, filters, xsd_report, 0, [], self._srn_options(), selection_mode),
+                export_page(
+                    "", [], None, filters, xsd_report, 0, [], self._srn_options(), selection_mode,
+                    page_number=pagination["page"], page_size=pagination["page_size"],
+                ),
             )
         entity_type = self._entity_type_for_service(service_type)
         invalid_ids = []
         if selection_mode == "filtered":
-            record_ids = self.repository.get_filtered_ids(
-                entity_type,
-                filters["query"],
-                filters["state"],
-                filters["legislation"],
-                filters["change_type"],
-                filters["srn"],
-                filters["freshness_filter"],
-            )
+            record_ids = self.repository.get_filtered_ids(entity_type, **filters)
         else:
             record_ids, invalid_ids = self._parse_record_ids(form.get("record_ids", []))
 
@@ -510,23 +510,15 @@ class App:
             result["selected_count"] = len(record_ids)
             result["action"] = action
 
-        records = (
-            self.repository.list_basics(**filters)
-            if entity_type == "basic"
-            else self.repository.list_udis(**filters)
+        records, total_filtered, pagination = self._paged_records(entity_type, filters, pagination)
+        return self.respond_html(
+            request,
+            export_page(
+                service_type, records, result, filters, xsd_report, total_filtered, record_ids,
+                self._srn_options(), selection_mode,
+                page_number=pagination["page"], page_size=pagination["page_size"],
+            ),
         )
-        total_filtered = len(
-            self.repository.get_filtered_ids(
-                entity_type,
-                filters["query"],
-                filters["state"],
-                filters["legislation"],
-                filters["change_type"],
-                filters["srn"],
-                filters["freshness_filter"],
-            )
-        )
-        return self.respond_html(request, export_page(service_type, records, result, filters, xsd_report, total_filtered, record_ids, self._srn_options(), selection_mode))
 
     def _filters_from_query(self, query: dict) -> dict:
         return {
@@ -536,6 +528,7 @@ class App:
             "change_type": query.get("change_type", [""])[0],
             "srn": query.get("srn", [""])[0],
             "freshness_filter": query.get("freshness_filter", [""])[0],
+            "import_id": self._positive_int_text(query.get("import_id", [""])[0]),
         }
 
     def _filters_from_form(self, form: dict) -> dict:
@@ -546,7 +539,51 @@ class App:
             "change_type": form.get("change_type", [""])[0],
             "srn": form.get("srn", [""])[0],
             "freshness_filter": form.get("freshness_filter", [""])[0],
+            "import_id": self._positive_int_text(form.get("import_id", [""])[0]),
         }
+
+    def _pagination_from_query(self, query: dict) -> dict:
+        return self._pagination(
+            query.get("page", ["1"])[0],
+            query.get("page_size", ["200"])[0],
+        )
+
+    def _pagination_from_form(self, form: dict) -> dict:
+        return self._pagination(
+            form.get("page", ["1"])[0],
+            form.get("page_size", ["200"])[0],
+        )
+
+    def _pagination(self, page_value, page_size_value) -> dict:
+        try:
+            page = max(int(page_value), 1)
+        except (TypeError, ValueError):
+            page = 1
+        try:
+            page_size = min(max(int(page_size_value), 1), 500)
+        except (TypeError, ValueError):
+            page_size = 200
+        return {"page": page, "page_size": page_size}
+
+    def _positive_int_text(self, value) -> str:
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return ""
+        return str(parsed) if parsed > 0 else ""
+
+    def _paged_records(self, entity_type: str, filters: dict, pagination: dict) -> tuple[list[dict], int, dict]:
+        total_filtered = len(self.repository.get_filtered_ids(entity_type, **filters))
+        page_size = pagination["page_size"]
+        total_pages = max(1, (total_filtered + page_size - 1) // page_size)
+        page = min(pagination["page"], total_pages)
+        offset = (page - 1) * page_size
+        records = (
+            self.repository.list_basics(**filters, limit=page_size, offset=offset)
+            if entity_type == "basic"
+            else self.repository.list_udis(**filters, limit=page_size, offset=offset)
+        )
+        return records, total_filtered, {"page": page, "page_size": page_size}
 
     def _entity_type_for_service(self, service_type: str) -> str:
         return "basic" if service_type == "Basic_UDI.PATCH" else "udi"

@@ -39,6 +39,95 @@ TARGET_SHEETS = [
 DATA_DICTIONARY_PATH = ROOT_DIR / "official_docs" / "UDI_Devices_data_dictionary.xlsx"
 DEFAULT_OUTPUT = ROOT_DIR / "docs" / "DATA_DICTIONARY_FIELD_AUDIT.md"
 
+FIELD_ID_MAPPINGS = {
+    ("DD UDI-DI", "FLD-UDID-151"): {
+        "template": "UDI - Quantity of Device",
+        "importer_reads": "Yes",
+        "storage_saves": "Yes",
+        "exporter_outputs": "Yes",
+        "xml_path": "udidi:baseQuantity",
+        "status": "implemented",
+        "notes": "Output only for MDR/IVDR Regulation Device baseQuantity; legacy devices do not output it.",
+    },
+    ("DD UDI-DI", "FLD-UDID-156"): {
+        "template": "UDI - Containing Latex*",
+        "importer_reads": "Yes",
+        "storage_saves": "Yes",
+        "exporter_outputs": "Yes",
+        "xml_path": "udidi:latex",
+        "status": "implemented",
+        "notes": "MDR/MDD/AIMDD only; not applicable to IVDR/IVDD.",
+    },
+    ("DD Legacy Devices", "FLD-UDID-156"): {
+        "template": "UDI - Containing Latex*",
+        "importer_reads": "Yes",
+        "storage_saves": "Yes",
+        "exporter_outputs": "Yes",
+        "xml_path": "udidi:latex",
+        "status": "implemented",
+        "notes": "MDD/AIMDD legacy only; not applicable to IVDD legacy.",
+    },
+    ("DD Legacy Devices", "FLD-UDID-295"): {
+        "template": "Derived from UDI - UDI-DI Code*",
+        "importer_reads": "Yes",
+        "storage_saves": "Derived",
+        "exporter_outputs": "Yes",
+        "xml_path": "basicudi:identifier/commondi:issuingEntityCode",
+        "status": "implemented",
+        "notes": "For an assigned Legacy UDI-DI, exporter fixes the EUDAMED DI issuing entity to EUDAMED.",
+    },
+    ("DD Legacy Devices", "FLD-UDID-42"): {
+        "template": "Derived from UDI - UDI-DI Code*",
+        "importer_reads": "Yes",
+        "storage_saves": "Derived",
+        "exporter_outputs": "Yes",
+        "xml_path": "basicudi:identifier/commondi:DICode",
+        "status": "implemented",
+        "notes": "For an assigned Legacy UDI-DI, exporter derives the EUDAMED DI as B-<UDI-DI>.",
+    },
+    ("DD Legacy Devices", "FLD-UDID-341"): {
+        "template": "UDI - UDI-DI Issuing Entity*",
+        "importer_reads": "Yes",
+        "storage_saves": "Yes",
+        "exporter_outputs": "Yes",
+        "xml_path": "udidi:identifier/commondi:issuingEntityCode",
+        "status": "implemented",
+        "notes": "Assigned UDI-DI keeps its actual issuing entity; EUDAMED ID paths keep EUDAMED.",
+    },
+    ("DD Legacy Devices", "FLD-UDID-342"): {
+        "template": "UDI - UDI-DI Code*",
+        "importer_reads": "Yes",
+        "storage_saves": "Yes",
+        "exporter_outputs": "Yes",
+        "xml_path": "udidi:identifier/commondi:DICode",
+        "status": "implemented",
+        "notes": "The original assigned UDI-DI or user-provided EUDAMED ID is preserved on the UDI identifier.",
+    },
+    ("DD Legacy Devices", "FLD-UDID-145"): {
+        "template": "Derived from UDI - UDI-DI Code*",
+        "importer_reads": "Yes",
+        "storage_saves": "Derived",
+        "exporter_outputs": "Yes",
+        "xml_path": "udidi:basicUDIIdentifier",
+        "status": "implemented",
+        "notes": "Assigned Legacy UDI-DI references B-<UDI-DI> with issuing entity EUDAMED.",
+    },
+}
+
+for _sheet_name in ("DD UDI-DI", "DD Legacy Devices", "DD UDI-DI_SPP"):
+    FIELD_ID_MAPPINGS[(_sheet_name, "FLD-UDID-174")] = {
+        "template": "UDI - Additional Information URL / eIFU webpage",
+        "importer_reads": "Yes",
+        "storage_saves": "Payload",
+        "exporter_outputs": "Yes",
+        "xml_path": "udidi:website",
+        "status": "implemented",
+        "notes": (
+            "Direct old-template import/export does not auto-output legacy eIFU URL; "
+            "explicit template migration copies legacy eIFU values into this field and records row-level results."
+        ),
+    }
+
 MANUAL_MAPPINGS = {
     "applicable regulation": {
         "template": "Basic - Applicable Legislation*",
@@ -110,19 +199,19 @@ MANUAL_MAPPINGS = {
         "template": "Basic - Is Suture/Staple/Filling/Brace (IIb Implant)",
         "status": "implemented",
         "xml_path": "basicudi:IIb_implantable_exceptions",
-        "notes": "Conditional MDR/MDD field; v2.7 template uses TRUE/FALSE dropdown.",
+        "notes": "Conditional MDR/MDD field; current template uses TRUE/FALSE dropdown.",
     },
     "special device type": {
         "template": "Basic - Special Device Type",
         "status": "implemented",
         "xml_path": "basicudi:specialDevice",
-        "notes": "v2.7 template uses official MDRSpecialDeviceTypeEnum / IVDRSpecialDeviceTypeEnum dropdowns by sheet.",
+        "notes": "Current template uses official MDRSpecialDeviceTypeEnum / IVDRSpecialDeviceTypeEnum dropdowns by sheet.",
     },
     "category of cmr": {
         "template": "CMR Substances / Substance Type",
         "status": "implemented",
         "xml_path": "udidi:substances/udidi:substance/udidi:type",
-        "notes": "v2.7 template restricts Substance Type to the 5 exporter-supported substance categories.",
+        "notes": "Current template restricts Substance Type to the 5 exporter-supported substance categories.",
     },
     "name of substance": {
         "template": "CMR Substances / Substance Name",
@@ -357,6 +446,9 @@ def build_template_index() -> dict:
 
 
 def audit_row(row: dict, template_index: dict, storage_fields: set[str], exporter_text: str) -> dict:
+    field_id_mapping = FIELD_ID_MAPPINGS.get((row.get("sheet", ""), row.get("field_id", "")))
+    if field_id_mapping:
+        return {**row, **field_id_mapping}
     label_text = " ".join([row.get("label", ""), row.get("field_name", "")]).lower()
     full_text = " ".join([row.get("label", ""), row.get("field_name", ""), row.get("description", "")]).lower()
     manual = manual_match(label_text, full_text)
@@ -520,12 +612,13 @@ def write_markdown(rows: list[dict], path: Path) -> None:
         "",
         "## Known Priority Findings",
         "",
-        "- `eIFU URL` and `Public Email` are collected or partly represented, but not safely output to XML yet.",
+        "- `URL for additional information` (`FLD-UDID-174`) is implemented as `UDI - Additional Information URL / eIFU webpage` and exported to `udidi:website`; direct import/export of old `UDI - eIFU URL` remains non-output for safety, while the explicit template migrator copies old eIFU URL values into the new field and records row-level migration results.",
         "- `Device Certificates` is implemented for Basic UDI-DI `deviceCertificateLinks`; PR/SPP certificate handling remains out of scope.",
         "- `Clinical Sizes` and `Annex XVI Purposes` are implemented for MDR UDI-DI via structured detail sheets.",
         "- `Is it a Kit` is unified in the template and exported where the current XSD provides `commondi:kit` (IVDR/IVDD paths).",
         "- `Product Designer` remains out of scope until the Update product original manufacturer service is designed.",
         "- `Presence of Medicinal Substance` remains documented-not-exported because `Medicinal Product Device` already maps to `medicinalProductCheck`.",
+        "- Assigned Legacy UDI-DIs derive EUDAMED DI as `B-<UDI-DI>` with issuing entity `EUDAMED`; the UDI identifier keeps its original code and issuing entity.",
         "",
         "## Field Audit",
         "",

@@ -36,8 +36,8 @@ if ($Console) {
     --add-data "local_beta;local_beta" `
     --add-data "EUDAMED_TOOL_v2;EUDAMED_TOOL_v2" `
     --add-data "official_docs;official_docs" `
-    --add-data "EUDAMED_Template_v2.11.xlsx;." `
-    --add-data "EUDAMED_Template_v2.11_EN.xlsx;." `
+    --add-data "EUDAMED_Template_v2.12.xlsx;." `
+    --add-data "EUDAMED_Template_v2.12_EN.xlsx;." `
     --add-data "README.md;." `
     run_local_beta.py
 

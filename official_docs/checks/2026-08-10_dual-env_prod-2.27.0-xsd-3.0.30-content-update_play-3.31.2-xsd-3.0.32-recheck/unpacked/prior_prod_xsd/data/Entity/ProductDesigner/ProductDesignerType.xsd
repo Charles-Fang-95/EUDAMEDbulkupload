@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/ProductDesigner/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1"
+               schemaLocation="../Device/RegulationDevice/UDIDIType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+               schemaLocation="../Device/CommonDeviceType.xsd"/>
+    <xs:complexType name="DTXProductDesignerType">
+        <xs:annotation>
+            <xs:documentation>Entity used in the update product Design service as the wrapper entit. Must contain the
+                reference to the UDI-DI in the uDIDIIdentifier field.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="uDIDIIdentifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="productDesignerActor" type="udidi:ProductDesignerActorType" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

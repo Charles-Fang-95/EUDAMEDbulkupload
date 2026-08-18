@@ -37,6 +37,90 @@ class VersionContractTests(unittest.TestCase):
         ]
         self.assertEqual([str(path) for path in expected if not path.is_file()], [])
 
+    def test_v212_legacy_columns_and_related_local_keys(self):
+        by_field = {item["field"]: item for item in template_schema.MAIN_COLUMNS}
+        for field in (
+            "Legacy Has Assigned UDI-DI",
+            "Legacy EUDAMED DI Input",
+            "Legacy EUDAMED DI",
+            "Legacy EUDAMED ID",
+        ):
+            self.assertIn(field, by_field)
+        self.assertFalse(by_field["Legacy EUDAMED DI"]["editable"])
+        self.assertFalse(by_field["Legacy EUDAMED ID"]["editable"])
+        for sheet_name, spec in template_schema.RELATED_SHEETS.items():
+            with self.subTest(sheet=sheet_name):
+                self.assertEqual(spec["columns"][0]["field"], "Local Record ID")
+
+    def test_v212_uses_four_regulation_specific_main_sheets(self):
+        self.assertEqual(list(template_schema.ENTRY_SHEETS), ["MDR", "MDD_AIMDD", "IVDR", "IVDD"])
+        self.assertNotIn("Legacy Has Assigned UDI-DI", {
+            item["field"] for item in template_schema.columns_for_entry_sheet("MDR")
+        })
+        self.assertNotIn("Legacy Has Assigned UDI-DI", {
+            item["field"] for item in template_schema.columns_for_entry_sheet("IVDR")
+        })
+        self.assertIn("Legacy Has Assigned UDI-DI", {
+            item["field"] for item in template_schema.columns_for_entry_sheet("MDD_AIMDD")
+        })
+        self.assertIn("Legacy Has Assigned UDI-DI", {
+            item["field"] for item in template_schema.columns_for_entry_sheet("IVDD")
+        })
+        for sheet_name, expected in {
+            "MDR": ["MDR"],
+            "MDD_AIMDD": ["MDD", "AIMDD"],
+            "IVDR": ["IVDR"],
+            "IVDD": ["IVDD"],
+        }.items():
+            column = next(
+                item for item in template_schema.columns_for_entry_sheet(sheet_name)
+                if item["field"] == "Applicable Legislation"
+            )
+            self.assertEqual(template_schema.ENUM_SOURCES[column["validation"]], expected)
+        for sheet_name in ("MDD_AIMDD", "IVDD"):
+            by_field = {item["field"]: item for item in template_schema.columns_for_entry_sheet(sheet_name)}
+            self.assertEqual(by_field["Legacy Has Assigned UDI-DI"]["example"], "TRUE")
+            self.assertEqual(by_field["Legacy EUDAMED DI Input"]["example"], "")
+
+    def test_v212_generated_identifier_columns_are_locked(self):
+        workbook = Workbook()
+        worksheet = workbook.active
+        columns = [
+            next(item for item in template_schema.MAIN_COLUMNS if item["field"] == field)
+            for field in (
+                "Legacy EUDAMED DI Input",
+                "Legacy EUDAMED DI",
+                "Legacy EUDAMED ID",
+            )
+        ]
+        build_unified_template._build_table_sheet(worksheet, columns, max_data_rows=5, locale="en")
+        self.assertFalse(worksheet.cell(4, 1).protection.locked)
+        self.assertTrue(worksheet.cell(4, 2).protection.locked)
+        self.assertTrue(worksheet.cell(4, 3).protection.locked)
+
+    def test_v212_release_workbooks_are_synchronized_and_structurally_valid(self):
+        root = Path(__file__).resolve().parents[1]
+        zh_path = root / constants.TEMPLATE_FILENAME
+        en_path = root / constants.TEMPLATE_EN_FILENAME
+        self.assertEqual(zh_path.read_bytes(), (root / "EUDAMED_TOOL_v2" / "templates" / constants.TEMPLATE_FILENAME).read_bytes())
+        self.assertEqual(en_path.read_bytes(), (root / "EUDAMED_TOOL_v2" / "templates" / constants.TEMPLATE_EN_FILENAME).read_bytes())
+        zh = load_workbook(zh_path, read_only=False, data_only=False)
+        en = load_workbook(en_path, read_only=False, data_only=False)
+        self.assertEqual(zh.sheetnames, en.sheetnames)
+        for sheet_name in list(template_schema.ENTRY_SHEETS) + list(template_schema.RELATED_SHEETS):
+            with self.subTest(sheet=sheet_name):
+                zh_headers = [cell.value for cell in zh[sheet_name][1] if cell.value]
+                en_headers = [cell.value for cell in en[sheet_name][1] if cell.value]
+                self.assertEqual(zh_headers, en_headers)
+        main = zh["MDD_AIMDD"]
+        headers = {cell.value: cell.column for cell in main[1]}
+        self.assertTrue(main.cell(4, headers["Legacy - EUDAMED DI"]).protection.locked)
+        self.assertTrue(main.cell(4, headers["Legacy - EUDAMED ID"]).protection.locked)
+        self.assertFalse(main.cell(4, headers["Legacy - EUDAMED DI Input"]).protection.locked)
+        self.assertTrue(any("C4:C3000" in str(validation.sqref) for validation in main.data_validations.dataValidation))
+        for sheet_name in template_schema.RELATED_SHEETS:
+            self.assertEqual(zh[sheet_name].cell(1, 1).value, "Local - Record ID")
+
 
 class EnglishTemplateCopyTests(unittest.TestCase):
     def test_schema_fields_have_english_copy_without_cjk(self):
@@ -189,7 +273,7 @@ class TemplateMigrationTests(unittest.TestCase):
 
             result = template_migrator.migrate_workbook(source_path, output_dir=tmp)
             migrated = load_workbook(tmp / result["output_filename"], data_only=True)
-            worksheet = migrated["MDR_MDD"]
+            worksheet = migrated["MDR"]
             headers = [cell.value for cell in worksheet[1]]
             target_col = headers.index("UDI - Additional Information URL / eIFU webpage") + 1
 
@@ -217,12 +301,51 @@ class TemplateMigrationTests(unittest.TestCase):
 
             result = template_migrator.migrate_workbook(source_path, output_dir=tmp)
             migrated = load_workbook(tmp / result["output_filename"], data_only=True)
-            worksheet = migrated["MDR_MDD"]
+            worksheet = migrated["MDR"]
             headers = [cell.value for cell in worksheet[1]]
             target_col = headers.index("UDI - Additional Information URL / eIFU webpage") + 1
 
             self.assertEqual(worksheet.cell(4, target_col).value, "https://example.com/current")
             self.assertEqual(result["report"]["legacy_eifu_migrations"][0]["result"], "kept_existing_additional_information_url")
+
+    def test_mixed_main_sheets_are_split_by_legislation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_path = tmp / "mixed-main-sheets.xlsx"
+            workbook = Workbook()
+            mdr_mdd = workbook.active
+            mdr_mdd.title = "MDR_MDD"
+            ivdr_ivdd = workbook.create_sheet("IVDR_IVDD")
+            headers = ["Basic - Applicable Legislation*", "Basic - Device Name*"]
+            for worksheet in (mdr_mdd, ivdr_ivdd):
+                for column, header in enumerate(headers, start=1):
+                    worksheet.cell(1, column, header)
+            for row, values in enumerate((("MDR", "MDR row"), ("MDD", "MDD row"), ("AIMDD", "AIMDD row")), start=4):
+                for column, value in enumerate(values, start=1):
+                    mdr_mdd.cell(row, column, value)
+            for row, values in enumerate((("IVDR", "IVDR row"), ("IVDD", "IVDD row")), start=4):
+                for column, value in enumerate(values, start=1):
+                    ivdr_ivdd.cell(row, column, value)
+            workbook.save(source_path)
+
+            result = template_migrator.migrate_workbook(source_path, output_dir=tmp)
+            migrated = load_workbook(tmp / result["output_filename"], data_only=True)
+
+            expected = {
+                "MDR": ["MDR row"],
+                "MDD_AIMDD": ["MDD row", "AIMDD row"],
+                "IVDR": ["IVDR row"],
+                "IVDD": ["IVDD row"],
+            }
+            for sheet_name, names in expected.items():
+                with self.subTest(sheet=sheet_name):
+                    sheet = migrated[sheet_name]
+                    header_map = {cell.value: cell.column for cell in sheet[1]}
+                    actual = [
+                        sheet.cell(row, header_map["Basic - Device Name*"]).value
+                        for row in range(4, 4 + len(names))
+                    ]
+                    self.assertEqual(actual, names)
 
 
 class ExportBatchPlanningTests(unittest.TestCase):
@@ -255,6 +378,200 @@ class ExportBatchPlanningTests(unittest.TestCase):
         self.assertEqual([batch["service_type"] for batch in batches], ["DEVICE.POST", "UDI_DI.POST"])
         self.assertEqual([batch["record_count"] for batch in batches], [1, 2])
         self.assertEqual(batches[1]["depends_on"], batches[0]["sequence"])
+
+    def test_legacy_assigned_udis_do_not_share_template_basic_group(self):
+        records = []
+        for record_id, udi_code in enumerate(["06947145553906", "05012345678903"], start=1):
+            records.append(
+                {
+                    "id": record_id,
+                    "basic_code": "WRONG-SHARED-BASIC",
+                    "udi_code": udi_code,
+                    "basic_payload": {
+                        "Applicable Legislation": "MDD",
+                        "Basic UDI-DI Code": "WRONG-SHARED-BASIC",
+                        "Issuing Entity": "GS1",
+                    },
+                    "payload": {
+                        "UDI-DI Code": udi_code,
+                        "UDI-DI Issuing Entity": "GS1",
+                    },
+                }
+            )
+
+        batches = self.exporter.plan_export_batches("DEVICE.POST", records)
+
+        self.assertEqual([batch["service_type"] for batch in batches], ["DEVICE.POST"])
+        self.assertEqual(batches[0]["record_count"], 2)
+        self.assertEqual(
+            set(batches[0]["basic_codes"]),
+            {"B-06947145553906", "B-05012345678903"},
+        )
+
+
+class LegacyEudamedDIContractTests(unittest.TestCase):
+    def setUp(self):
+        self.exporter = BetaXMLExporter(repository=None)
+        self.basic_payload = {
+            "Applicable Legislation": "MDD",
+            "Basic UDI-DI Code": "WRONG-BASIC",
+            "Issuing Entity": "GS1",
+        }
+
+    def test_assigned_legacy_udi_derives_eudamed_di(self):
+        code, issuing_entity = self.exporter._legacy_basic_identifier(
+            self.basic_payload,
+            "MDEU",
+            item={
+                "payload": {
+                    "UDI-DI Code": "06947145553906",
+                    "UDI-DI Issuing Entity": "GS1",
+                }
+            },
+        )
+
+        self.assertEqual(code, "B-06947145553906")
+        self.assertEqual(issuing_entity, "EUDAMED")
+
+    def test_no_assigned_udi_keeps_user_eudamed_identifier(self):
+        legacy_eudamed_payload = {
+            "Applicable Legislation": "IVDD",
+            "Basic UDI-DI Code": "B-USER-PROVIDED",
+            "Issuing Entity": "EUDAMED",
+        }
+        for udi_code, issuing_entity in [("", "GS1"), ("D-USER-PROVIDED", "EUDAMED")]:
+            with self.subTest(udi_code=udi_code, issuing_entity=issuing_entity):
+                code, entity = self.exporter._legacy_basic_identifier(
+                    legacy_eudamed_payload,
+                    "IVDEU",
+                    item={
+                        "payload": {
+                            "UDI-DI Code": udi_code,
+                            "UDI-DI Issuing Entity": issuing_entity,
+                        }
+                    },
+                )
+                self.assertEqual(code, "B-USER-PROVIDED")
+                self.assertEqual(entity, "EUDAMED")
+
+    def test_regulation_device_keeps_user_basic_identifier(self):
+        code, issuing_entity = self.exporter._legacy_basic_identifier(
+            self.basic_payload,
+            "MDR",
+            item={
+                "payload": {
+                    "UDI-DI Code": "06947145553906",
+                    "UDI-DI Issuing Entity": "GS1",
+                }
+            },
+        )
+
+        self.assertEqual(code, "WRONG-BASIC")
+        self.assertEqual(issuing_entity, "GS1")
+
+    def test_export_precheck_warns_when_template_basic_is_ignored(self):
+        warnings = []
+
+        self.exporter._warn_legacy_eudamed_di_derivation(
+            warnings,
+            {
+                "basic_payload": self.basic_payload,
+                "payload": {
+                    "UDI-DI Code": "06947145553906",
+                    "UDI-DI Issuing Entity": "GS1",
+                },
+            },
+        )
+
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("B-06947145553906", warnings[0])
+        self.assertIn("EUDAMED", warnings[0])
+
+        warnings = []
+        self.exporter._warn_legacy_eudamed_di_derivation(
+            warnings,
+            {
+                "basic_payload": dict(
+                    self.basic_payload,
+                    **{
+                        "Basic UDI-DI Code": "B-06947145553906",
+                        "Issuing Entity": "EUDAMED",
+                    },
+                ),
+                "payload": {
+                    "UDI-DI Code": "06947145553906",
+                    "UDI-DI Issuing Entity": "GS1",
+                },
+            },
+        )
+        self.assertEqual(warnings, [])
+
+    def test_import_warning_is_structured_and_regulation_is_unchanged(self):
+        importer = WorkbookImporter(repository=None)
+        warnings = []
+        importer._warn_legacy_eudamed_di_derivation(
+            self.basic_payload,
+            {
+                "UDI-DI Code": "06947145553906",
+                "UDI-DI Issuing Entity": "GS1",
+            },
+            "MDR_MDD",
+            4,
+            warnings,
+        )
+
+        self.assertEqual(len(warnings), 1)
+        self.assertEqual(warnings[0]["warning_type"], "LEGACY_EUDAMED_DI_DERIVED")
+        self.assertEqual(warnings[0]["row"], 4)
+        self.assertIn("B-06947145553906", warnings[0]["message"])
+
+        warnings = []
+        importer._warn_legacy_eudamed_di_derivation(
+            dict(self.basic_payload, **{"Applicable Legislation": "MDR"}),
+            {
+                "UDI-DI Code": "06947145553906",
+                "UDI-DI Issuing Entity": "GS1",
+            },
+            "MDR_MDD",
+            5,
+            warnings,
+        )
+        self.assertEqual(warnings, [])
+
+    def test_import_entry_sheet_surfaces_legacy_derivation_warning(self):
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "MDR_MDD"
+        headers = [
+            "Basic - Basic UDI-DI Code*",
+            "Basic - Issuing Entity*",
+            "Basic - Applicable Legislation*",
+            "UDI - UDI-DI Code*",
+            "UDI - UDI-DI Issuing Entity*",
+        ]
+        values = ["WRONG-BASIC", "GS1", "MDD", "06947145553906", "GS1"]
+        for column, (header, value) in enumerate(zip(headers, values), start=1):
+            worksheet.cell(1, column, header)
+            worksheet.cell(4, column, value)
+
+        parsed = {"Basic UDI-DI": [], "UDI-DI": []}
+        migration_warnings = []
+        WorkbookImporter(repository=None)._parse_entry_sheet(
+            worksheet,
+            parsed,
+            {},
+            {"basic_versions": {}, "udi_versions": {}},
+            [],
+            migration_warnings,
+        )
+
+        warning = next(
+            item
+            for item in migration_warnings
+            if item.get("warning_type") == "LEGACY_EUDAMED_DI_DERIVED"
+        )
+        self.assertEqual(warning["row"], 4)
+        self.assertIn("B-06947145553906", warning["message"])
 
 
 class NumberOfReusesTests(unittest.TestCase):
@@ -324,11 +641,16 @@ class WebsiteUrlMappingTests(unittest.TestCase):
 
 
 class LegacyValidatorApplicabilityTests(unittest.TestCase):
-    def test_ivdd_does_not_require_pi_lot_or_expiration(self):
+    @staticmethod
+    def _validator_module():
         validator_path = Path(__file__).resolve().parents[1] / "EUDAMED_TOOL_v2" / "validator.py"
         spec = importlib.util.spec_from_file_location("legacy_validator", validator_path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+        return module
+
+    def test_ivdd_does_not_require_pi_lot_or_expiration(self):
+        module = self._validator_module()
 
         data = {
             "Basic UDI-DI": [{
@@ -359,6 +681,86 @@ class LegacyValidatorApplicabilityTests(unittest.TestCase):
             if error.field in {"PI Lot/Batch Number", "PI Expiration Date"}
         ]
         self.assertEqual(pi_errors, [])
+
+    def test_eudamed_b_and_d_identifiers_are_not_rejected_as_format_errors(self):
+        module = self._validator_module()
+        data = {
+            "Basic UDI-DI": [{
+                "Basic UDI-DI Code": "B-AF-MF-000000245AT",
+                "Issuing Entity": "EUDAMED",
+                "Manufacturer SRN": "DE-MF-000000001",
+                "Risk Class": "IVD General",
+                "Applicable Legislation": "IVDD",
+                "Device Type": "Regular Device",
+                "Device Name/Model": "Legacy IVDD Device",
+                "EMDN Code": "W0101",
+            }],
+            "UDI-DI": [{
+                "Parent Basic UDI-DI": "B-AF-MF-000000245AT",
+                "UDI-DI Code": "D-AF-MF-000000245AT",
+                "UDI-DI Issuing Entity": "EUDAMED",
+                "Device Status": "Not intended for the EU market",
+                "Single Use Device": "FALSE",
+                "Device Labelled as Sterile": "FALSE",
+                "Trade Name Applicable": "FALSE",
+                "Nomenclature Code": "W0101",
+            }],
+        }
+
+        errors, _ = module.DataValidator(data).validate_all()
+        identifier_format_errors = [
+            error for error in errors
+            if error.error_type == "FORMAT_ERROR"
+            and error.field in {"Basic UDI-DI Code", "UDI-DI Code"}
+        ]
+
+        self.assertEqual(identifier_format_errors, [])
+
+    def test_di_code_format_uses_official_xsd_length_without_alphanumeric_regex(self):
+        validator = self._validator_module().DataValidator({})
+
+        self.assertTrue(validator._is_valid_udi_code("B-1234_1237_1"))
+        self.assertTrue(validator._is_valid_udi_code("X" * 120))
+        self.assertFalse(validator._is_valid_udi_code(""))
+        self.assertFalse(validator._is_valid_udi_code("X" * 121))
+
+
+class DataDictionaryAuditTests(unittest.TestCase):
+    def test_generator_preserves_current_field_mappings_and_notes(self):
+        root = Path(__file__).resolve().parents[1]
+        audit_path = root / "scripts" / "audit_data_dictionary_mapping.py"
+        spec = importlib.util.spec_from_file_location("data_dictionary_audit", audit_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        rows = module.read_dictionary(module.DATA_DICTIONARY_PATH)
+        template_index = module.build_template_index()
+        storage_fields = set(constants.BASIC_FIELDS) | set(constants.UDI_FIELDS)
+        exporter_text = (root / "local_beta" / "exporter.py").read_text(encoding="utf-8")
+        audited = [
+            module.audit_row(row, template_index, storage_fields, exporter_text)
+            for row in rows
+        ]
+        by_key = {(row["sheet"], row["field_id"]): row for row in audited}
+
+        for sheet in ("DD UDI-DI", "DD Legacy Devices", "DD UDI-DI_SPP"):
+            with self.subTest(sheet=sheet):
+                mapping = by_key[(sheet, "FLD-UDID-174")]
+                self.assertEqual(mapping["status"], "implemented")
+                self.assertEqual(mapping["xml_path"], "udidi:website")
+                self.assertIn("Additional Information URL", mapping["template"])
+
+        self.assertIn("baseQuantity", by_key[("DD UDI-DI", "FLD-UDID-151")]["notes"])
+        self.assertIn("MDR/MDD/AIMDD", by_key[("DD UDI-DI", "FLD-UDID-156")]["notes"])
+        self.assertIn("MDD/AIMDD legacy", by_key[("DD Legacy Devices", "FLD-UDID-156")]["notes"])
+        self.assertFalse(any("v2.7 template" in row.get("notes", "") for row in audited))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "audit.md"
+            module.write_markdown(audited, output)
+            report = output.read_text(encoding="utf-8")
+        self.assertIn("`FLD-UDID-174`", report)
+        self.assertNotIn("eIFU URL` and `Public Email` are collected", report)
 
 
 if __name__ == "__main__":

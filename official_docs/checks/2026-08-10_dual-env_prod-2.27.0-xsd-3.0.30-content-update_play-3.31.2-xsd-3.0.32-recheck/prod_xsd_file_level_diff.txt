@@ -1,0 +1,28 @@
+--- official_docs/checks/2026-08-10_dual-env_recheck/prior_prod_xsd_manifest.txt	2026-08-10 09:05:15
++++ official_docs/checks/2026-08-10_dual-env_recheck/prod_xsd_manifest.txt	2026-08-10 09:05:15
+@@ -10,7 +10,7 @@
+ 3a5c47b903dce9d8c82b26d3375d3f8b8cad5405ef2693450b82a4cbe8336bd8  ./data/Entity/Certificate/CertificateType.xsd
+ 29ae2d410b1757c1747de48bc224c1a04f940d2e6b0af822da9f5f516369928e  ./data/Entity/Certificate/IssuedCertificateType.xsd
+ 7327ae7cb88345a8edefa0231694d6f6414fee6d4384d778964456420a8e6e87  ./data/Entity/Certificate/PostCertificateType.xsd
+-4ae7423c8ac805dd236104d50aca8bd85b4e186979c33b0bca82d9e487f14315  ./data/Entity/Certificate/RefusedCertificateType.xsd
++923ae2bae3334149a688d1929d20320614b6c6cb9ffc505e260e9cdf1ea39ba4  ./data/Entity/Certificate/RefusedCertificateType.xsd
+ 23be98258737081dcae3dcdc8ca2d139c769c5bcee9fa283c08e53e0ae8a4cc0  ./data/Entity/Certificate/ScopeType.xsd
+ 4f7abae33faff4ef63e714685af3f6b5f5276ad6b30873831e3768860ddf252e  ./data/Entity/Common/CommentType.xsd
+ fad502f24930c8573ada966885e4fefec4b9871add1b353ffabe1c8fed3cb9c1  ./data/Entity/Common/CommonBasicType.xsd
+@@ -26,7 +26,7 @@
+ a989a2b92c4e729b467a25919b6d5ee8e3fbbb8b68f60e8fc623f70bb374df9d  ./data/Entity/Device/LegacyDevice/EUDIType.xsd
+ e3f2db3116bdd9848dc43437fbfbeda4a14483ec7482ae5b374e5c5d29e591e7  ./data/Entity/Device/LegacyDevice/EUUDIDIDataType.xsd
+ 1a2ca5fb68c5bb39a328d40cb33c38ff8d7110ff789c301b3652ff8f40d13ac9  ./data/Entity/Device/RegulationDevice/BasicUDIType.xsd
+-ea74ec6a223266864ccfabb525cd7d2989920bf15cabe10653b9f0d003366b6d  ./data/Entity/Device/RegulationDevice/UDIDIType.xsd
++82c5cc7ab21911260d90d6ea20375600505278b3430fd27fca354bc0e86f431a  ./data/Entity/Device/RegulationDevice/UDIDIType.xsd
+ 1d03401887edbb2e53f5206da66dabe02d8c479c5648ed7e7569317d87108374  ./data/Entity/Entity.xsd
+ 35cf5909ceafd59b4e0ca5b43c50f6b599c8b0538e686627a4e9af6485d3908c  ./data/Entity/Links/LinkType.xsd
+ 01e3e685ad2981bb8e611d3651099a72e9386623a943247fcdec21b3d7a52e9d  ./data/Entity/MarketInfo.xsd
+@@ -64,5 +64,5 @@
+ 6262cffbb7e20459bf68117a081993f5f190a831bcab25af068703942bee126c  ./data/Entity/Vigilance/v1/vigilance-elements.xsd
+ 9e675af6c0069a03ed431c2ce75cde183498808f91971a9fa6303dab20287bbf  ./data/Entity/Vigilance/vigilance.xsd
+ 005a7c927eb9f82f83f7ec05407ab90dbd4af37d41bb7cd69f7d8b6d8c79c99b  ./service/Message.xsd
+-e4a796093e31a2c520c284d74bb499ebead4774d002b165ed93bd1083989a700  ./service/Message/MessageType.xsd
+-0ced3d38097c2f64e1a88f68d85ac0535e092bb5c8bf77cd790a5e50dca3d43b  ./service/Service/ServiceType.xsd
++e81c2185b352ba3380d52d5892f69c11d02155db82b5c039ab41ba21a807a7e5  ./service/Message/MessageType.xsd
++fe92632e6efd239423317745c22d6b6db7c56154c2d6bd239e104e9cefd7c189  ./service/Service/ServiceType.xsd

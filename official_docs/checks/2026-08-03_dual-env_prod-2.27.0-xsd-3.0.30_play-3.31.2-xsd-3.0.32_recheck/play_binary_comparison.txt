@@ -1,0 +1,6 @@
+SAME	DTX_for_EOs_services_definition.pdf
+SAME	EOs_XML_samples.zip
+SAME	UDI_Devices_business_rules.pdf
+SAME	UDI_Devices_data_dictionary.xlsx
+SAME	UDI_Devices_enumerations.pdf
+SAME	XSD_schemas.zip

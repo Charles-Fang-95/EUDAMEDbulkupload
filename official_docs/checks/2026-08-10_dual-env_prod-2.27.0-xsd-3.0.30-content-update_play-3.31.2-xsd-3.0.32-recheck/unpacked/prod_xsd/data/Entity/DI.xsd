@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:device="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/v1" xmlns:basicudi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1" xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" xmlns:eudi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDI/v1" xmlns:eudididata="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDIData/v1" xmlns:risk="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDIData/v1" schemaLocation="Device/LegacyDevice/EUUDIDIDataType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDI/v1" schemaLocation="Device/LegacyDevice/EUDIType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="Device/CommonDeviceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" schemaLocation="Device/RegulationDevice/UDIDIType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1" schemaLocation="Device/RegulationDevice/BasicUDIType.xsd"/>
+    <xs:element name="ClinicalSize" type="commondi:ClinicalSizeType"/>
+    <xs:element name="MDRDevice" type="device:MDRDeviceType"/>
+    <xs:element name="IVDRDevice" type="device:IVDRDeviceType"/>
+    <xs:complexType name="IVDEUDeviceType">
+        <xs:complexContent>
+            <xs:extension base="device:DeviceType">
+                <xs:sequence>
+                    <xs:element ref="device:IVDEUData" minOccurs="1" maxOccurs="1"/>
+                    <xs:element ref="device:IVDEUDI" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:element name="IVDEUDevice" type="device:IVDEUDeviceType"/>
+    <xs:element name="IVDEUDI" type="eudi:IVDEUDIType"/>
+    <xs:element name="IVDEUData" type="eudididata:IVDEUDataType"/>
+    <xs:element name="MDEUDevice" type="device:MDEUDeviceType"/>
+    <xs:complexType name="MDEUDeviceType">
+        <xs:complexContent>
+            <xs:extension base="device:DeviceType">
+                <xs:sequence>
+                    <xs:element ref="device:MDEUData" minOccurs="1" maxOccurs="1"/>
+                    <xs:element ref="device:MDEUDI" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:element name="MDEUDI" type="eudi:MDEUDIType"/>
+    <xs:element name="MDEUData" type="eudididata:MDEUDataType"/>
+    <xs:element name="PRBasicUDI" type="basicudi:PRBasicUDIType"/>
+    <xs:element name="PRUDIDIData" type="udidi:PRUDIDIDataType"/>
+    <xs:element name="UDIDI" type="udidi:UDIDIType"/>
+    <xs:element name="PRDevice" type="device:PRDeviceType"/>
+    <xs:element name="DTXPackageUDI" type="udidi:DTXPackageUDIType"/>
+    <xs:complexType name="IVDRDeviceType">
+        <xs:complexContent>
+            <xs:extension base="device:DeviceType">
+                <xs:sequence>
+                    <xs:element ref="device:IVDRBasicUDI" minOccurs="1" maxOccurs="1"/>
+                    <xs:element ref="device:IVDRUDIDIData" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MDRDeviceType">
+        <xs:complexContent>
+            <xs:extension base="device:DeviceType">
+                <xs:sequence>
+                    <xs:element ref="device:MDRBasicUDI" minOccurs="1" maxOccurs="1"/>
+                    <xs:element ref="device:MDRUDIDIData" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="PRDeviceType">
+        <xs:complexContent>
+            <xs:extension base="device:DeviceType">
+                <xs:sequence>
+                    <xs:element ref="device:PRBasicUDI" minOccurs="1" maxOccurs="1"/>
+                    <xs:element ref="device:PRUDIDIData" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="DeviceType" abstract="true">
+        <xs:sequence/>
+    </xs:complexType>
+    <xs:complexType name="IVDRBasicUDIType">
+        <xs:annotation>
+            <xs:documentation>Do not use, use basicudi:IVDRBasicUDIType instead</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="basicudi:IVDRBasicUDIType">
+                <xs:sequence/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MDRBasicUDIType">
+        <xs:annotation>
+            <xs:documentation>Do not use, use basicudi:MDRBasicUDIType instead</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="basicudi:MDRBasicUDIType">
+                <xs:sequence/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="IVDRUDIDIDataType">
+        <xs:annotation>
+            <xs:documentation>Do not use, use basicudi:IVDRBasicUDIType instead</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="udidi:IVDRUDIDIDataType">
+                <xs:sequence/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MDRUDIDIDataType">
+        <xs:annotation>
+            <xs:documentation>Do not use, use udidi:MDRUDIDIDataType instead</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="udidi:MDRUDIDIDataType">
+                <xs:sequence/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:element name="IVDRUDIDIData" type="device:IVDRUDIDIDataType"/>
+    <xs:element name="IVDRBasicUDI" type="device:IVDRBasicUDIType"/>
+    <xs:element name="ApplicableStorageCondition"/>
+    <xs:element name="BasicUDI" type="basicudi:BasicUDIType"/>
+    <xs:element name="UDIDIData" type="udidi:UDIDIDataType"/>
+    <xs:element name="ApplicableCriticalWarning" type="commondi:CriticalWarningType"/>
+    <xs:element name="PackageUDI" type="udidi:PackageUDIType"/>
+    <xs:element name="Substance" type="udidi:SubstanceType"/>
+    <xs:element name="Device" type="device:DeviceType"/>
+    <xs:element name="MDRUDIDIData" type="device:MDRUDIDIDataType"/>
+    <xs:element name="MDRBasicUDI" type="device:MDRBasicUDIType"/>
+    <xs:complexType name="DeviceAll">
+        <xs:annotation>
+            <xs:documentation>Container representing complete EUDAMED device export with metadata about the main archive and inner device files.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="exportFileName" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Name of the main ZIP archive file containing the device export</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="exportGenerationDate" type="xs:date">
+                <xs:annotation>
+                    <xs:documentation>Date when the device export was generated</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="totalDevices" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Total number of devices across all inner archive files</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="innerFileCount" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Number of ZIP archive files contained within the main export archive</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="devicesPerFile" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Number of devices contained in each inner archive file</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element name="DeviceAll" type="device:DeviceAll"/>
+</xs:schema>

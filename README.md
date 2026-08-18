@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.9.7 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.9.7 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **0.9.8 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **0.9.8 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -69,22 +69,22 @@ http://127.0.0.1:8765
 
 ## 工具怎么用
 
-1. **下载模板**：顶栏「下载模板」，或直接用仓库里的中文模板 `EUDAMED_Template_v2.11.xlsx`；海外用户可使用英文模板 `EUDAMED_Template_v2.11_EN.xlsx`。
+1. **下载模板**：顶栏「下载模板」，或直接用仓库里的中文模板 `EUDAMED_Template_v2.12.xlsx`；海外用户可使用英文模板 `EUDAMED_Template_v2.12_EN.xlsx`。
 2. **填写 Excel**：在 Excel / WPS 里填数据（填写规则见下一节）。
-3. **导入 Excel**：在「导入 Excel」页上传，系统立即校验并显示新增 / 已更新 / 错误行。
-4. **产品库**：浏览、搜索、按 Manufacturer SRN 切换不同 actor；详情页可做临时修正（正式维护建议回到 Excel）。
-5. **导出任务**：选择 service → 载入并勾选记录 → 先「预检」→ 再「生成 XML」。超过 300 条会自动拆分成多个 XML 并打成 ZIP，里面的 manifest 会标明**上传顺序**。
+3. **导入 Excel**：在「导入 Excel」页上传，系统立即校验并显示新增 / 已更新 / 未变化 / 错误行。产品库会保留历史记录；导入完成后可直接点击“查看本次导入”或“导出本次导入”。
+4. **产品库**：浏览、搜索、按导入批次或 Manufacturer SRN 筛选；列表分页显示当前范围与总匹配数量，详情页可做临时修正（正式维护建议回到 Excel）。
+5. **导出任务**：选择 service → 筛选记录 → 先「预检」→ 再「生成 XML」。“导出全部筛选结果”不受当前页显示数量限制；超过 300 条会自动拆分成多个 XML 并打成 ZIP，manifest 会标明**上传顺序**。
 6. **上传 EUDAMED**：按页面 / manifest 指引上传。**先在 Playground TEST 环境验收**，通过后再上生产。
 
 辅助功能：
-- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.11 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
+- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.12 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
 - **XSD 版本**页：核对工具内置 XSD、本地 XSD 包、官方文档页版本是否一致。
 
 ## 模板怎么用
 
-模板 `EUDAMED_Template_v2.11.xlsx` / `EUDAMED_Template_v2.11_EN.xlsx` 的字段结构完全一致：
+模板 `EUDAMED_Template_v2.12.xlsx` / `EUDAMED_Template_v2.12_EN.xlsx` 的字段结构完全一致：
 
-- **两个主录入表**：`MDR_MDD`（医疗器械）、`IVDR_IVDD`（体外诊断）。
+- **四个法规主录入表**：`MDR`、`MDD_AIMDD`、`IVDR`、`IVDD`。Legacy 专属字段仅出现在 `MDD_AIMDD` / `IVDD`；System/Procedure Pack 仅在 `MDR` 使用。
   - 第 1 行 = 字段名，第 2 行 = 填写说明（中文模板为中文，英文模板为英文），第 3 行 = 示例（前三行已锁定，请勿改）。
   - **正式数据从第 4 行开始填**。
 - **9 个明细表**：`Trade Names`、`Market Info`、`Package Info`、`Device Certificates`、`Clinical Sizes`、`Annex XVI Purposes`、`Critical Warnings`、`Storage Conditions`、`CMR Substances`，通过 `UDI-DI Code` / `Basic UDI-DI Code` 与主表关联。
@@ -96,6 +96,11 @@ http://127.0.0.1:8765
 - `CMR Substances / Substance Type` 不是自由文本，必须从当前工具支持的 5 类下拉中选择。
 - `CMR Substances` 中 CAS/EC 仅对 CMR 1A/1B 和 Endocrine Disrupting 类型输出；Medicinal Product / Human Blood or Plasma 类型不会输出 CAS/EC。
 - `Basic - Is Suture/Staple/Filling/Brace (IIb Implant)` 仅 Class IIb + Implantable 时适用，必须使用 `TRUE/FALSE`。
+- MDD/AIMDD/IVDD 每行先选择 `Legacy - Has Assigned UDI-DI?`。已有 UDI-DI 时，XML 自动派生 EUDAMED DI `B-<UDI-DI>` / `EUDAMED`，UDI-DI 层仍保留原始代码和真实发码机构。
+- 没有 UDI-DI 时，由制造商在 `Legacy - EUDAMED DI Input` 提供 1–21 个字符的唯一主体；工具不决定主体、不改变大小写，只按官方字符值、质数权重、模 1021 和校验字符表生成配对的 `B-` EUDAMED DI 与 `D-` EUDAMED ID。
+- 旧记录已有 `B-` / `D-` 时，可不填主体和 `Local - Record ID`，但必须同时提供合法且后缀一致的标识对；关联 sheet 可直接填写正式 B-/D- 编码。首次生成 B-/D- 时仍须填写唯一的 `Local - Record ID`。
+- 导入成功后可下载 `NORMALIZED_EUDAMED_Template_v2.12_<timestamp>.xlsx`。副本填入最终标识与关联，不覆盖用户上传的原始 Excel。
+- 本地只能检查格式、校验字符和当前工作簿内重复；最终标识唯一性仍需在 EUDAMED Playground/Production 确认。生成 XML 前请复核，正式提交前必须先在 Playground 验证。本工具不是欧盟委员会官方产品。
 - IVDR/IVDD 也需要确认 `Basic - Presence of Human Tissues` 和 `Basic - Presence of Animal Tissues`；`Containing Latex` 和 `Reprocessed Single Use Device` 不适用于 IVDR/IVDD。
 - `UDI - New Device (IVDR)` 仅 IVDR Regulation Device 输出；IVDD legacy 不输出该字段。
 - `Market Info`：同一个 UDI-DI 可以填多个上市国家，但 `Originally Placed on Market`（首个投放成员国）**必须且只能有一个 `TRUE`**，其余填 `FALSE`。
@@ -114,7 +119,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **0.9.7 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **0.9.8 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -191,7 +196,7 @@ http://127.0.0.1:8765
 
 ## Using the tool
 
-1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.11_EN.xlsx` from the repo. The Chinese template remains available as `EUDAMED_Template_v2.11.xlsx`.
+1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.12_EN.xlsx` from the repo. The Chinese template remains available as `EUDAMED_Template_v2.12.xlsx`.
 2. **Fill in the Excel** (rules in the next section).
 3. **Import Excel**: upload on the "Import Excel" page; it validates immediately and shows created / updated / error rows.
 4. **Product Library**: browse, search, switch actor by Manufacturer SRN; the detail page allows quick fixes (for real maintenance, go back to Excel).
@@ -199,14 +204,14 @@ http://127.0.0.1:8765
 6. **Upload to EUDAMED** following the page / manifest. **Validate in the Playground TEST environment first**, then go to production.
 
 Helpers:
-- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.11 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
+- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.12 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
 - **XSD version** page: check that the tool's built-in XSD, local XSD package, and the official documentation version are consistent.
 
 ## Using the template
 
-`EUDAMED_Template_v2.11.xlsx` and `EUDAMED_Template_v2.11_EN.xlsx` have the same field structure:
+`EUDAMED_Template_v2.12.xlsx` and `EUDAMED_Template_v2.12_EN.xlsx` have the same field structure:
 
-- **Two main entry sheets**: `MDR_MDD` (medical devices), `IVDR_IVDD` (in-vitro diagnostics).
+- **Four regulation-specific main sheets**: `MDR`, `MDD_AIMDD`, `IVDR`, and `IVDD`. Legacy-only fields appear only in `MDD_AIMDD` / `IVDD`; System/Procedure Pack is used only in `MDR`.
   - Row 1 = field name, Row 2 = filling instruction (Chinese in the Chinese template, English in the English template), Row 3 = example (first three rows are locked — do not edit).
   - **Real data starts at Row 4.**
 - **Nine detail sheets**: `Trade Names`, `Market Info`, `Package Info`, `Device Certificates`, `Clinical Sizes`, `Annex XVI Purposes`, `Critical Warnings`, `Storage Conditions`, `CMR Substances`, linked to the main sheets via `UDI-DI Code` / `Basic UDI-DI Code`.
@@ -218,6 +223,11 @@ Helpers:
 - `CMR Substances / Substance Type` is not free text; select one of the five currently supported substance categories.
 - In `CMR Substances`, CAS/EC is output only for CMR 1A/1B and Endocrine Disrupting; Medicinal Product / Human Blood or Plasma types do not output CAS/EC.
 - `Basic - Is Suture/Staple/Filling/Brace (IIb Implant)` applies only to Class IIb + implantable cases and must be `TRUE/FALSE`.
+- For each MDD/AIMDD/IVDD row, first select `Legacy - Has Assigned UDI-DI?`. If a UDI-DI exists, XML derives the EUDAMED DI as `B-<UDI-DI>` / `EUDAMED`, while the UDI-DI identifier keeps the original code and issuing entity.
+- Without a UDI-DI, the manufacturer supplies its unique 1–21 character body in `Legacy - EUDAMED DI Input`. The tool does not choose the body or change case; it applies the official values, prime weights, modulo 1021 and check-character table to generate the paired `B-` EUDAMED DI and `D-` EUDAMED ID.
+- Existing records may omit both the input body and `Local - Record ID` when a valid, suffix-matched `B-` / `D-` pair is provided; related sheets can reference the formal B-/D- identifier directly. A unique `Local - Record ID` remains required when generating a pair for the first time.
+- After import, download `NORMALIZED_EUDAMED_Template_v2.12_<timestamp>.xlsx`. It fills final identifiers and formal links without overwriting the uploaded workbook.
+- Local checks cover format, check characters and duplicates within the current workbook only. Confirm final uniqueness in EUDAMED Playground/Production, review the XML and test it in Playground before production. This is not an official European Commission product.
 - IVDR/IVDD devices must also confirm `Basic - Presence of Human Tissues` and `Basic - Presence of Animal Tissues`; `Containing Latex` and `Reprocessed Single Use Device` do not apply to IVDR/IVDD.
 - `UDI - New Device (IVDR)` is output only for IVDR Regulation Devices; it is not output for IVDD legacy devices.
 - `Market Info`: one UDI-DI may have several market countries, but `Originally Placed on Market` **must have exactly one `TRUE`**; the rest should be `FALSE`.
@@ -236,7 +246,7 @@ Helpers:
 
 ## Version history
 
-Current **0.9.7 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **0.9.8 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 

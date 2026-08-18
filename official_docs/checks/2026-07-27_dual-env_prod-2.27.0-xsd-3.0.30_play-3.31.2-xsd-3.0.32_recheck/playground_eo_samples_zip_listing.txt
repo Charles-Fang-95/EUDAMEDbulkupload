@@ -1,0 +1,47 @@
+Archive:  official_docs/checks/2026-07-27_dual-env_prod-2.27.0-xsd-3.0.30_play-3.31.2-xsd-3.0.32_recheck/downloads/play/EOs_XML_samples.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  06-24-2026 21:23   EOs - XML samples/
+     1992  05-17-2023 16:55   EOs - XML samples/SAMPLE_DTX_ACT_001.01.xml
+     1930  05-17-2023 16:55   EOs - XML samples/SAMPLE_DTX_ACT_001.03.xml
+     1929  05-17-2023 16:55   EOs - XML samples/SAMPLE_DTX_ACT_001.04.xml
+     1931  05-17-2023 16:55   EOs - XML samples/SAMPLE_DTX_ACT_001.05.xml
+     1910  05-17-2023 16:55   EOs - XML samples/SAMPLE_DTX_ACT_001.07.xml
+    10654  06-24-2026 16:20   EOs - XML samples/SAMPLE_DTX_UDI_001.01.xml
+    19032  11-13-2025 16:43   EOs - XML samples/SAMPLE_DTX_UDI_001.02.xml
+    10578  11-13-2025 16:43   EOs - XML samples/SAMPLE_DTX_UDI_001.03.xml
+    11480  11-13-2025 16:46   EOs - XML samples/SAMPLE_DTX_UDI_001.04.xml
+     9212  11-13-2025 16:48   EOs - XML samples/SAMPLE_DTX_UDI_001.05.xml
+     8890  11-13-2025 16:47   EOs - XML samples/SAMPLE_DTX_UDI_001.12.xml
+    11738  11-13-2025 16:47   EOs - XML samples/SAMPLE_DTX_UDI_001.13.xml
+     7087  02-16-2026 20:51   EOs - XML samples/SAMPLE_DTX_UDI_001.14.xml
+     7033  12-10-2025 00:23   EOs - XML samples/SAMPLE_DTX_UDI_002.01.xml
+     9166  11-14-2023 15:16   EOs - XML samples/SAMPLE_DTX_UDI_002.03.xml
+     6331  06-24-2026 16:17   EOs - XML samples/SAMPLE_DTX_UDI_003.01.xml
+     2070  07-02-2026 17:42   EOs - XML samples/SAMPLE_DTX_UDI_004.01.xml
+     2237  05-17-2023 16:55   EOs - XML samples/SAMPLE_DTX_UDI_004.06.xml
+     6580  06-24-2026 16:47   EOs - XML samples/SAMPLE_DTX_UDI_005.01.xml
+     6523  06-24-2026 16:48   EOs - XML samples/SAMPLE_DTX_UDI_005.02.xml
+     8677  11-14-2023 15:16   EOs - XML samples/SAMPLE_DTX_UDI_005.03.xml
+     3867  08-28-2025 20:31   EOs - XML samples/SAMPLE_DTX_UDI_007.01.xml
+     4975  11-14-2023 15:16   EOs - XML samples/SAMPLE_DTX_UDI_007.02.xml
+     3076  05-17-2023 16:55   EOs - XML samples/SAMPLE_DTX_UDI_007.03.xml
+     7393  11-14-2023 15:16   EOs - XML samples/SAMPLE_DTX_UDI_008.02.xml
+     5832  06-12-2026 19:41   EOs - XML samples/SAMPLE_DTX_UDI_008.03.xml
+     5149  11-13-2025 16:14   EOs - XML samples/SAMPLE_DTX_UDI_009.01.xml
+     4119  11-14-2023 15:16   EOs - XML samples/SAMPLE_DTX_UDI_009.02.xml
+     6859  11-12-2025 23:36   EOs - XML samples/SAMPLE_DTX_UDI_009.03.xml
+     4153  11-12-2025 23:32   EOs - XML samples/SAMPLE_DTX_UDI_009.04.xml
+     7470  06-24-2026 15:40   EOs - XML samples/SAMPLE_DTX_UDI_010.01.xml
+     9964  11-13-2025 00:58   EOs - XML samples/SAMPLE_DTX_UDI_010.02.xml
+     4467  06-24-2026 15:43   EOs - XML samples/SAMPLE_DTX_UDI_010.03.xml
+     4266  11-14-2023 15:16   EOs - XML samples/SAMPLE_DTX_UDI_010.04.xml
+     5449  11-13-2025 01:07   EOs - XML samples/SAMPLE_DTX_UDI_010.05.xml
+     2178  08-28-2025 21:19   EOs - XML samples/SAMPLE_DTX_UDI_011.01.xml
+     2453  05-17-2023 16:55   EOs - XML samples/SAMPLE_DTX_UDI_011.02.xml
+     4983  11-14-2023 15:16   EOs - XML samples/SAMPLE_DTX_UDI_012.01.xml
+     5000  11-14-2023 15:16   EOs - XML samples/SAMPLE_DTX_UDI_012.02.xml
+     3454  12-18-2023 21:31   EOs - XML samples/SAMPLE_DTX_UDI_015.01.xml
+     2804  12-18-2023 21:31   EOs - XML samples/SAMPLE_DTX_UDI_015.02.xml
+---------                     -------
+   244891                     42 files

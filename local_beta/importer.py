@@ -4,10 +4,24 @@ import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from .constants import TOOL_DIR, VENDOR_LIB
+from .constants import EXPORT_DIR, TOOL_DIR, VENDOR_LIB
+from .legacy_identifiers import (
+    LegacyIdentifierError,
+    METHOD_EXISTING_EUDAMED_PAIR,
+    legacy_fields_present,
+    resolve_legacy_identifiers,
+)
 from .storage import Repository
-from .template_schema import ENTRY_SHEETS, ENUM_SOURCES, RELATED_SHEETS, TEMPLATE_VERSION, columns_for_entry_sheet
+from .template_schema import (
+    ENTRY_SHEETS,
+    IMPORT_ENTRY_SHEETS,
+    ENUM_SOURCES,
+    RELATED_SHEETS,
+    TEMPLATE_VERSION,
+    columns_for_entry_sheet,
+)
 
 if str(VENDOR_LIB) not in sys.path:
     sys.path.insert(0, str(VENDOR_LIB))
@@ -33,6 +47,9 @@ BUSINESS_SHEETS = [
 ]
 DATA_START_ROW = 4
 FORMAT_RISK_FIELDS = {
+    "Legacy EUDAMED DI Input",
+    "Legacy EUDAMED DI",
+    "Legacy EUDAMED ID",
     "Basic UDI-DI Code",
     "UDI-DI Code",
     "UDI-DI Issuing Entity",
@@ -59,6 +76,10 @@ CODE_LENGTH_RISK_FIELDS = {
     "Unit of Use DI Code",
 }
 SCIENTIFIC_NOTATION_RE = re.compile(r"^[+-]?\d+(\.\d+)?E[+-]?\d+$", re.IGNORECASE)
+PRESERVE_WHITESPACE_HEADERS = {
+    "legacy - eudamed di input",
+    "legacy eudamed di input",
+}
 
 
 class WorkbookImporter:
@@ -67,19 +88,19 @@ class WorkbookImporter:
 
     def import_workbook(self, workbook_path: Path) -> dict:
         wb = openpyxl.load_workbook(workbook_path, data_only=True)
-        parsed, import_meta, format_warnings, migration_warnings = self._parse_workbook(wb)
+        parsed, import_meta, format_warnings, migration_warnings, identifier_errors = self._parse_workbook(wb)
 
         summary = self._summary(parsed)
         if not any(summary.values()):
             validation = {
-                "errors": [
+                "errors": identifier_errors or [
                     {
                         "sheet": "Workbook",
                         "row": "",
                         "field": "",
                         "value": workbook_path.name,
                         "error_type": "unsupported_template",
-                        "message": "未识别到可导入的新版 EUDAMED 模板数据。请使用当前默认模板的 MDR_MDD 或 IVDR_IVDD sheet。",
+                        "message": "未识别到可导入的 EUDAMED 模板数据。请使用当前 v2.12 的 MDR、MDD_AIMDD、IVDR 或 IVDD 主表。",
                         "suggestion": f"旧模板或客户原始清单不要直接导入；请先迁移/映射到当前 {TEMPLATE_VERSION} 模板字段，确认字段含义后再导入。",
                     }
                 ],
@@ -92,6 +113,8 @@ class WorkbookImporter:
                 "validation": validation,
                 "changes": [],
                 "change_summary": {"created": 0, "updated": 0, "unchanged": 0},
+                "legacy_results": import_meta.get("legacy_results", []),
+                "normalized_filename": "",
             }
 
         market_map = defaultdict(list)
@@ -129,7 +152,7 @@ class WorkbookImporter:
         extra_errors = self._validate_related_rules(parsed)
 
         validation = {
-            "errors": [error.to_dict() for error in errors] + extra_errors,
+            "errors": identifier_errors + [error.to_dict() for error in errors] + extra_errors,
             "warnings": [warning.to_dict() for warning in warnings] + format_warnings + migration_warnings,
         }
         import_id = self.repository.create_import(workbook_path.name, summary, validation)
@@ -172,33 +195,308 @@ class WorkbookImporter:
             validation["warnings"].extend(consistency_warnings)
             self.repository.update_import_validation(import_id, validation)
 
+        normalized = None
+        if not import_meta.get("normalization_blocked") and import_meta.get("normalization_updates"):
+            normalized = self._write_normalized_workbook(
+                workbook_path,
+                import_meta["normalization_updates"],
+            )
+
         return {
             "import_id": import_id,
             "summary": summary,
             "validation": validation,
             "changes": changes,
             "change_summary": self._change_summary(changes),
+            "legacy_results": import_meta.get("legacy_results", []),
+            "normalized_filename": normalized.name if normalized else "",
         }
 
-    def _parse_workbook(self, wb) -> tuple[dict, dict, list[dict], list[dict]]:
+    def _parse_workbook(self, wb) -> tuple[dict, dict, list[dict], list[dict], list[dict]]:
         parsed = {sheet: [] for sheet in BUSINESS_SHEETS}
         basic_index = {}
-        import_meta = {"basic_versions": {}, "udi_versions": {}}
+        import_meta = {
+            "basic_versions": {},
+            "udi_versions": {},
+            "legacy_results": [],
+            "normalization_updates": {},
+            "normalization_blocked": False,
+        }
         format_warnings = []
         migration_warnings = self._template_version_warnings(wb)
+        identifier_errors = []
+        local_record_map = {}
+        duplicate_local_ids = self._duplicate_local_record_ids(wb)
 
-        for sheet_name in ENTRY_SHEETS:
+        for sheet_name in IMPORT_ENTRY_SHEETS:
             if sheet_name not in wb.sheetnames:
                 continue
-            self._parse_entry_sheet(wb[sheet_name], parsed, basic_index, import_meta, format_warnings, migration_warnings)
+            self._parse_entry_sheet(
+                wb[sheet_name],
+                parsed,
+                basic_index,
+                import_meta,
+                format_warnings,
+                migration_warnings,
+                identifier_errors,
+                local_record_map,
+                duplicate_local_ids,
+            )
+
+        self._filter_duplicate_legacy_results(
+            parsed,
+            import_meta,
+            local_record_map,
+            identifier_errors,
+        )
 
         for sheet_name, spec in RELATED_SHEETS.items():
             if sheet_name not in wb.sheetnames:
                 continue
             rows = self._parse_related_sheet(wb[sheet_name], spec["columns"], format_warnings, migration_warnings)
+            self._resolve_related_local_ids(
+                sheet_name,
+                spec["target"],
+                rows,
+                local_record_map,
+                identifier_errors,
+                import_meta["normalization_updates"],
+            )
             parsed[spec["target"]].extend(rows)
 
-        return parsed, import_meta, format_warnings, migration_warnings
+        return parsed, import_meta, format_warnings, migration_warnings, identifier_errors
+
+    def _filter_duplicate_legacy_results(self, parsed: dict, import_meta: dict, local_record_map: dict, errors: list[dict]):
+        origins = defaultdict(list)
+        for row in parsed.get("UDI-DI", []):
+            final_di = str(row.get("Legacy EUDAMED DI") or "").strip()
+            final_id = str(row.get("Legacy EUDAMED ID") or row.get("UDI-DI Code") or "").strip()
+            if final_di:
+                origins[(final_di, final_id)].append(row)
+        duplicate_rows = {
+            (str(row.get("_sheet_name") or ""), int(row.get("_row_number") or 0))
+            for rows in origins.values() if len(rows) > 1
+            for row in rows
+        }
+        if not duplicate_rows:
+            return
+        import_meta["normalization_blocked"] = True
+        for (final_di, final_id), rows in origins.items():
+            if len(rows) < 2:
+                continue
+            for row in rows:
+                errors.append(self._identifier_error(
+                    str(row.get("_sheet_name") or "Workbook"),
+                    int(row.get("_row_number") or 0),
+                    "Legacy EUDAMED DI / ID",
+                    f"{final_di} / {final_id}",
+                    "LEGACY_IDENTIFIER_DUPLICATE",
+                    "多条主表记录计算或提供了相同的最终 Legacy 标识；重复结果对应的所有行均未入库。",
+                    "为每条器械使用制造商确定的唯一主体或真实 UDI-DI，并在 EUDAMED 环境确认最终唯一性。",
+                ))
+
+        parsed["UDI-DI"] = [
+            row for row in parsed.get("UDI-DI", [])
+            if (str(row.get("_sheet_name") or ""), int(row.get("_row_number") or 0)) not in duplicate_rows
+        ]
+        valid_parent_codes = {str(row.get("Parent Basic UDI-DI") or "") for row in parsed["UDI-DI"]}
+        parsed["Basic UDI-DI"] = [
+            row for row in parsed.get("Basic UDI-DI", [])
+            if str(row.get("Basic UDI-DI Code") or "") in valid_parent_codes
+        ]
+        invalid_local_ids = {
+            str(row.get("Local Record ID") or "")
+            for rows in origins.values() if len(rows) > 1
+            for row in rows
+            if row.get("Local Record ID")
+        }
+        for local_id in invalid_local_ids:
+            local_record_map.pop(local_id, None)
+        import_meta["legacy_results"] = [
+            item for item in import_meta.get("legacy_results", [])
+            if (str(item.get("sheet") or ""), int(item.get("row") or 0)) not in duplicate_rows
+        ]
+        import_meta["normalization_updates"] = {
+            key: value for key, value in import_meta.get("normalization_updates", {}).items()
+            if (str(key[0]), int(key[1])) not in duplicate_rows
+        }
+
+    def _duplicate_local_record_ids(self, wb) -> set[str]:
+        occurrences = defaultdict(int)
+        for sheet_name in IMPORT_ENTRY_SHEETS:
+            if sheet_name not in wb.sheetnames:
+                continue
+            ws = wb[sheet_name]
+            headers = self._headers(ws)
+            local_col = next(
+                (index for index, header in enumerate(headers, start=1)
+                 if self._canonical_header(header) == "local - record id"),
+                None,
+            )
+            if local_col is None:
+                continue
+            for row_idx in range(DATA_START_ROW, self._last_data_row(ws, headers) + 1):
+                value = str(ws.cell(row_idx, local_col).value or "").strip()
+                if value:
+                    occurrences[value] += 1
+        return {value for value, count in occurrences.items() if count > 1}
+
+    def _identifier_error(
+        self,
+        sheet: str,
+        row: int,
+        field: str,
+        value,
+        error_type: str,
+        message: str,
+        suggestion: str,
+    ) -> dict:
+        return {
+            "sheet": sheet,
+            "row": row,
+            "field": field,
+            "value": value,
+            "error_type": error_type,
+            "message": message,
+            "suggestion": suggestion,
+        }
+
+    def _main_normalization_updates(
+        self,
+        updates: dict,
+        sheet: str,
+        row: int,
+        resolution,
+        *,
+        preserve_assigned_basic: bool = False,
+    ):
+        values = {
+            "Legacy Has Assigned UDI-DI": "TRUE" if resolution.has_assigned_udi else "FALSE",
+            "Legacy EUDAMED DI Input": resolution.eudamed_di_input,
+            "Legacy EUDAMED DI": resolution.eudamed_di,
+            "Legacy EUDAMED ID": resolution.eudamed_id,
+            "UDI-DI Code": resolution.identifier_code,
+            "UDI-DI Issuing Entity": resolution.identifier_issuing_entity,
+        }
+        if not preserve_assigned_basic:
+            values["Basic UDI-DI Code"] = resolution.eudamed_di
+            values["Issuing Entity"] = "EUDAMED"
+        for field, value in values.items():
+            updates[(sheet, row, field)] = value
+
+    def _resolve_related_local_ids(
+        self,
+        sheet_name: str,
+        target: str,
+        rows: list[dict],
+        local_record_map: dict,
+        errors: list[dict],
+        normalization_updates: dict,
+    ):
+        basic_target = target in {"CMR Substances", "Device Certificates"}
+        link_field = "Basic UDI-DI Code" if basic_target else "UDI-DI Code"
+        by_formal = {}
+        for local_id, mapping in local_record_map.items():
+            candidates = (
+                {mapping.get("basic_storage_code"), mapping.get("basic_final_code")}
+                if basic_target else {mapping.get("udi_code")}
+            )
+            for code in candidates:
+                if code:
+                    by_formal[str(code)] = (local_id, mapping)
+
+        valid_rows = []
+        for row in rows:
+            local_id = str(row.get("Local Record ID") or "").strip()
+            formal = str(row.get(link_field) or "").strip()
+            row_number = int(row.get("_row_number") or 0)
+            mapping = local_record_map.get(local_id) if local_id else None
+            if local_id and not mapping:
+                errors.append(self._identifier_error(
+                    sheet_name, row_number, "Local - Record ID", local_id,
+                    "LOCAL_RECORD_ID_UNRESOLVED",
+                    "关联 sheet 的 Local - Record ID 无法解析到一条有效主表记录；该关联行未入库。",
+                    "确认主表键存在、唯一，且对应 Legacy 标识计算成功。",
+                ))
+                continue
+            if not mapping and formal and formal in by_formal:
+                _, mapping = by_formal[formal]
+            if mapping:
+                expected_formal = mapping.get("basic_final_code") if basic_target else mapping.get("udi_code")
+                storage_code = mapping.get("basic_storage_code") if basic_target else mapping.get("udi_code")
+                accepted = {str(code) for code in (expected_formal, storage_code) if code}
+                if formal and formal not in accepted:
+                    errors.append(self._identifier_error(
+                        sheet_name, row_number, f"Local - Record ID / {link_field}",
+                        f"{local_id} / {formal}", "LOCAL_AND_FORMAL_REFERENCE_CONFLICT",
+                        "Local - Record ID 与同一行正式编码指向不同的主表记录；该关联行未入库。",
+                        "保留一种关联方式，或把两者改为指向同一主表行。",
+                    ))
+                    continue
+                row[link_field] = storage_code
+                # Assigned-UDI Legacy records may intentionally use a local Basic key.
+                # Keep related Basic references aligned with the stored/main-sheet key.
+                normalization_updates[(sheet_name, row_number, link_field)] = storage_code
+            valid_rows.append(row)
+        rows[:] = valid_rows
+
+    def _write_normalized_workbook(self, source_path: Path, updates: dict) -> Path | None:
+        if not updates:
+            return None
+        source_wb = openpyxl.load_workbook(source_path, read_only=True, data_only=False)
+        detected = self._detect_template_version(source_wb)
+        source_sheetnames = set(source_wb.sheetnames)
+        source_wb.close()
+        needs_migration = (
+            detected != TEMPLATE_VERSION
+            or bool(source_sheetnames.intersection(set(IMPORT_ENTRY_SHEETS) - set(ENTRY_SHEETS)))
+        )
+        row_mapping = {}
+        if needs_migration:
+            from .template_migrator import migrate_workbook
+            with TemporaryDirectory(prefix="eudamed_normalize_") as temp_dir:
+                migrated = migrate_workbook(source_path, Path(temp_dir))
+                if not migrated.get("ok") or not migrated.get("output_filename"):
+                    return None
+                wb = openpyxl.load_workbook(Path(temp_dir) / migrated["output_filename"], data_only=False)
+                row_mapping = {
+                    (str(item.get("source_sheet") or ""), int(item.get("source_row") or 0)): (
+                        str(item.get("target_sheet") or ""),
+                        int(item.get("target_row") or 0),
+                    )
+                    for item in migrated.get("report", {}).get("row_mappings", [])
+                }
+        else:
+            wb = openpyxl.load_workbook(source_path, data_only=False)
+        for (sheet_name, row_number, field), value in updates.items():
+            if row_mapping:
+                mapped = row_mapping.get((str(sheet_name), int(row_number)))
+                if not mapped:
+                    continue
+                sheet_name, row_number = mapped
+            if sheet_name not in wb.sheetnames:
+                continue
+            ws = wb[sheet_name]
+            columns = columns_for_entry_sheet(sheet_name) if sheet_name in ENTRY_SHEETS else RELATED_SHEETS.get(sheet_name, {}).get("columns", [])
+            header_by_field = {item["field"]: item["header"] for item in columns}
+            header = header_by_field.get(field)
+            if not header:
+                continue
+            headers = self._headers(ws)
+            canonical = self._canonical_header(header)
+            col_idx = next(
+                (index for index, candidate in enumerate(headers, start=1)
+                 if self._canonical_header(candidate) == canonical),
+                None,
+            )
+            if col_idx:
+                ws.cell(int(row_number), col_idx, value)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        output = EXPORT_DIR / f"NORMALIZED_EUDAMED_Template_{TEMPLATE_VERSION}_{timestamp}.xlsx"
+        EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+        wb.save(output)
+        return output
 
     def _market_change_warnings(self, changes: list[dict]) -> list[dict]:
         warnings = []
@@ -250,7 +548,15 @@ class WorkbookImporter:
         import_meta: dict,
         format_warnings: list[dict],
         migration_warnings: list[dict],
+        identifier_errors: list[dict] | None = None,
+        local_record_map: dict | None = None,
+        duplicate_local_ids: set[str] | None = None,
     ):
+        identifier_errors = identifier_errors if identifier_errors is not None else []
+        local_record_map = local_record_map if local_record_map is not None else {}
+        duplicate_local_ids = duplicate_local_ids if duplicate_local_ids is not None else set()
+        import_meta.setdefault("legacy_results", [])
+        import_meta.setdefault("normalization_updates", {})
         headers = self._headers(ws)
         schema_by_header = self._schema_by_header(columns_for_entry_sheet(ws.title))
         if any(header in {"UDI - eIFU URL", "eIFU URL"} for header in headers):
@@ -262,7 +568,7 @@ class WorkbookImporter:
                     "value": "",
                     "warning_type": "LEGACY_EIFU_URL_NOT_OUTPUT",
                     "message": "检测到旧模板字段 UDI - eIFU URL。0.9.6 模板曾明确该字段不输出到 XML；本次导入不会自动把它映射到官方 URL for additional information。",
-                    "suggestion": "如该链接确实需要提交到 EUDAMED，请在当前 v2.11 模板中人工复制到 UDI - Additional Information URL / eIFU webpage 后再导入。",
+                    "suggestion": "如该链接确实需要提交到 EUDAMED，请在当前 v2.12 模板中人工复制到 UDI - Additional Information URL / eIFU webpage 后再导入。",
                 }
             )
 
@@ -275,6 +581,7 @@ class WorkbookImporter:
             udi_payload = {}
             basic_version = ""
             udi_version = ""
+            local_record_id = ""
 
             for header, value in raw.items():
                 item = schema_by_header.get(header) or schema_by_header.get(self._canonical_header(header))
@@ -288,17 +595,138 @@ class WorkbookImporter:
                 elif item["entity"] == "udi":
                     udi_payload[item["field"]] = value
                 elif item["entity"] == "meta":
-                    if item["field"] == "basic_version":
+                    if item["field"] == "record_id":
+                        local_record_id = str(value or "").strip()
+                    elif item["field"] == "basic_version":
                         basic_version = str(value).strip()
                     elif item["field"] == "udi_version":
                         udi_version = str(value).strip()
+
+            self._normalize_basic_enums(basic_payload, ws.title, row_idx, migration_warnings)
+            if local_record_id:
+                basic_payload["Local Record ID"] = local_record_id
+                udi_payload["Local Record ID"] = local_record_id
+
+            if ws.title in ENTRY_SHEETS:
+                legislation = str(basic_payload.get("Applicable Legislation") or "").strip().upper()
+                allowed = set(ENTRY_SHEETS[ws.title].get("legislations") or [])
+                if legislation and legislation not in allowed:
+                    import_meta["normalization_blocked"] = True
+                    identifier_errors.append(self._identifier_error(
+                        ws.title,
+                        row_idx,
+                        "Applicable Legislation",
+                        legislation,
+                        "ENTRY_SHEET_LEGISLATION_MISMATCH",
+                        f"{ws.title} sheet 不接受 {legislation}；该主表行未入库。",
+                        "请把整行移到与 Applicable Legislation 对应的法规主表。",
+                    ))
+                    continue
+
+            if local_record_id and local_record_id in duplicate_local_ids:
+                import_meta["normalization_blocked"] = True
+                identifier_errors.append(self._identifier_error(
+                    ws.title,
+                    row_idx,
+                    "Local - Record ID",
+                    local_record_id,
+                    "LOCAL_RECORD_ID_DUPLICATE",
+                    "Local - Record ID 在主表中重复；重复键对应的所有行均未写入产品库。",
+                    "为每条主表记录分配整本工作簿唯一的 Local - Record ID。",
+                ))
+                continue
+
+            original_basic_code = str(basic_payload.get("Basic UDI-DI Code") or "").strip()
+            try:
+                resolution = resolve_legacy_identifiers(basic_payload, udi_payload)
+                if (
+                    resolution
+                    and not resolution.has_assigned_udi
+                    and resolution.method != METHOD_EXISTING_EUDAMED_PAIR
+                    and not local_record_id
+                ):
+                    raise LegacyIdentifierError("Legacy Device 没有已分配 UDI-DI 时，Local - Record ID 条件必填。")
+            except LegacyIdentifierError as exc:
+                import_meta["normalization_blocked"] = True
+                identifier_errors.append(self._identifier_error(
+                    ws.title,
+                    row_idx,
+                    "Legacy identifiers",
+                    local_record_id,
+                    "LEGACY_IDENTIFIER_INVALID",
+                    str(exc),
+                    "迁移到 v2.12，确认 Legacy 路径并修正输入；工具不会猜测或静默覆盖标识。",
+                ))
+                continue
+
+            if resolution:
+                audit = resolution.audit_payload()
+                udi_payload.update(audit)
+                basic_payload["Legacy EUDAMED DI"] = resolution.eudamed_di
+                if not resolution.has_assigned_udi:
+                    basic_payload["Basic UDI-DI Code"] = resolution.eudamed_di
+                    basic_payload["Issuing Entity"] = "EUDAMED"
+                    udi_payload["UDI-DI Code"] = resolution.eudamed_id
+                    udi_payload["UDI-DI Issuing Entity"] = "EUDAMED"
+                elif not str(basic_payload.get("Basic UDI-DI Code") or "").strip():
+                    basic_payload["Basic UDI-DI Code"] = resolution.eudamed_di
+                    basic_payload["Issuing Entity"] = "EUDAMED"
+                import_meta["legacy_results"].append({
+                    "sheet": ws.title,
+                    "row": row_idx,
+                    "local_record_id": local_record_id,
+                    "method": resolution.method,
+                    "eudamed_di": resolution.eudamed_di,
+                    "eudamed_id": resolution.eudamed_id,
+                    "identifier_code": resolution.identifier_code,
+                })
+                self._main_normalization_updates(
+                    import_meta["normalization_updates"],
+                    ws.title,
+                    row_idx,
+                    resolution,
+                    preserve_assigned_basic=bool(resolution.has_assigned_udi and original_basic_code),
+                )
+            elif legacy_fields_present(udi_payload):
+                migration_warnings.append({
+                    "sheet": ws.title,
+                    "row": row_idx,
+                    "field": "Legacy fields",
+                    "value": local_record_id,
+                    "warning_type": "LEGACY_FIELDS_NOT_APPLICABLE",
+                    "message": "MDR/IVDR 或 System/Procedure Pack 不进入 Legacy 标识生成流程，已忽略 Legacy 专属输入。",
+                    "suggestion": "请清空 Legacy 专属字段，避免把本地计算字段误认为 EUDAMED XML 字段。",
+                })
 
             basic_code = str(basic_payload.get("Basic UDI-DI Code", "")).strip()
             udi_code = str(udi_payload.get("UDI-DI Code", "")).strip()
             if basic_code:
                 udi_payload["Parent Basic UDI-DI"] = basic_code
 
-            self._normalize_basic_enums(basic_payload, ws.title, row_idx, migration_warnings)
+            if resolution and resolution.has_assigned_udi:
+                self._warn_legacy_eudamed_di_derivation(
+                    basic_payload,
+                    udi_payload,
+                    ws.title,
+                    row_idx,
+                    migration_warnings,
+                )
+
+            if local_record_id:
+                if local_record_id in local_record_map:
+                    # Defensive guard; duplicates are normally filtered by the pre-pass.
+                    identifier_errors.append(self._identifier_error(
+                        ws.title, row_idx, "Local - Record ID", local_record_id,
+                        "LOCAL_RECORD_ID_DUPLICATE", "Local - Record ID 重复。", "请使用唯一键。",
+                    ))
+                    continue
+                local_record_map[local_record_id] = {
+                    "sheet": ws.title,
+                    "row": row_idx,
+                    "basic_storage_code": basic_code,
+                    "basic_final_code": resolution.eudamed_di if resolution else basic_code,
+                    "udi_code": udi_code,
+                }
 
             if self._should_create_basic(basic_payload, basic_version):
                 basic_payload["_row_number"] = row_idx
@@ -320,6 +748,7 @@ class WorkbookImporter:
 
             if udi_code:
                 udi_payload["_row_number"] = row_idx
+                udi_payload["_sheet_name"] = ws.title
                 parsed["UDI-DI"].append(udi_payload)
                 if udi_version:
                     import_meta["udi_versions"][udi_code] = udi_version
@@ -409,7 +838,7 @@ class WorkbookImporter:
             value = ws.cell(row_idx, col_idx).value
             if isinstance(value, datetime):
                 value = value.strftime("%Y-%m-%d")
-            if isinstance(value, str):
+            if isinstance(value, str) and self._canonical_header(header) not in PRESERVE_WHITESPACE_HEADERS:
                 value = value.strip()
             if value not in (None, ""):
                 has_data = True
@@ -445,9 +874,23 @@ class WorkbookImporter:
     def _template_version_warnings(self, wb) -> list[dict]:
         warnings = []
         detected = self._detect_template_version(wb)
-        if detected == TEMPLATE_VERSION:
+        legacy_layout = bool(set(wb.sheetnames).intersection(set(IMPORT_ENTRY_SHEETS) - set(ENTRY_SHEETS)))
+        if detected == TEMPLATE_VERSION and not legacy_layout:
             return warnings
         label = detected or "未知版本 / unknown"
+        if detected == TEMPLATE_VERSION and legacy_layout:
+            warnings.append(
+                {
+                    "sheet": "Workbook",
+                    "row": "",
+                    "field": "Template Layout",
+                    "value": "MDR_MDD / IVDR_IVDD",
+                    "warning_type": "TEMPLATE_LAYOUT_MIGRATION",
+                    "message": "检测到拆表前的 v2.12 混合主表；本次仍兼容导入，规范化副本会按法规迁移到四个主表。",
+                    "suggestion": "后续请使用包含 MDR、MDD_AIMDD、IVDR、IVDD 的当前 v2.12 模板。",
+                }
+            )
+            return warnings
         warnings.append(
             {
                 "sheet": "Workbook",
@@ -456,7 +899,7 @@ class WorkbookImporter:
                 "value": label,
                 "warning_type": "TEMPLATE_VERSION_RISK",
                 "message": f"检测到该文件可能不是当前 {TEMPLATE_VERSION} 模板，系统已按当前规则重新校验。",
-                "suggestion": "请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info、IVD 人源/动物源字段、Trade Names 行数、IVDD UDI-PI 适用性、URL for additional information 等 v2.6-v2.11 后变化字段；建议先使用迁移模板功能生成当前模板。",
+                "suggestion": "请重点核对 Legacy 标识路径、Local Record ID、Special Device Type、CMR Substance Type、Package Info、IVD 人源/动物源字段、Trade Names、UDI-PI 适用性和 URL for additional information 等历史版本变化字段；建议先使用迁移模板功能生成当前模板。",
             }
         )
         return warnings
@@ -571,6 +1014,45 @@ class WorkbookImporter:
                     "旧模板/旧写法中的 Special Device Type 已按当前法规枚举自动归一；请核对是否属于该产品的真实特殊类型。普通器械应留空。",
                 ))
             payload["Special Device Type"] = special
+
+    def _warn_legacy_eudamed_di_derivation(
+        self,
+        basic_payload: dict,
+        udi_payload: dict,
+        sheet: str,
+        row_idx: int,
+        migration_warnings: list[dict],
+    ):
+        legislation = str(basic_payload.get("Applicable Legislation") or "").strip().upper()
+        if legislation not in {"MDD", "AIMDD", "IVDD"}:
+            return
+        udi_code = str(udi_payload.get("UDI-DI Code") or "").strip()
+        raw_udi_issuing_entity = str(udi_payload.get("UDI-DI Issuing Entity") or "").strip()
+        udi_issuing_entity = str(self._enum_code(raw_udi_issuing_entity) or "").strip().upper()
+        if not udi_code or not raw_udi_issuing_entity or udi_issuing_entity == "EUDAMED":
+            return
+        expected_code = f"B-{udi_code}"
+        supplied_code = str(basic_payload.get("Basic UDI-DI Code") or "").strip()
+        supplied_entity = str(self._enum_code(basic_payload.get("Issuing Entity")) or "").strip().upper()
+        if supplied_code == expected_code and supplied_entity == "EUDAMED":
+            return
+        migration_warnings.append(
+            {
+                "sheet": sheet,
+                "row": row_idx,
+                "field": "Basic UDI-DI Code / Issuing Entity",
+                "value": f"{supplied_code or '(blank)'} / {supplied_entity or '(blank)'}",
+                "warning_type": "LEGACY_EUDAMED_DI_DERIVED",
+                "message": (
+                    f"Legacy Device with assigned UDI-DI：XML 中 EUDAMED DI 将由 UDI-DI {udi_code} "
+                    f"自动派生为 {expected_code}，issuing entity 固定为 EUDAMED；模板中的 Basic 字段"
+                    "仅用于本地关联，不会原样写入本次 XML。"
+                ),
+                "suggestion": (
+                    "请核对 UDI-DI Code 及其真实 issuing entity。无需为了 XML 手工把本地关联键改成 B-<UDI-DI>。"
+                ),
+            }
+        )
 
     def _normal_substance_type(self, value) -> str:
         text = str(self._enum_code(value) or "").strip()

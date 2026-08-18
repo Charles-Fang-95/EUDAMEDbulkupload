@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Message/v1"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:m="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Message/v1"
+		   xmlns:s="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Service/v1"
+		   xmlns:actorregistration="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Actor/Registration/v1"
+		   xmlns:actor="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+		   xmlns:device="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/v1"
+		   xmlns:mktinfo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/v1"
+		   xmlns:pd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/v1"
+		   xmlns:sscp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/SSCP/v1"
+		   xmlns:cecp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1"
+		   xmlns:certificate="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1"
+		   xmlns:appcrtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1"
+		   xmlns:msuFir="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/FIRVersionType/v1"
+		   xmlns:msuAsr="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/AnnualSummaryReport/v1"
+		   xmlns:msuFyr="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/FourYearReport/v1"
+		   xmlns:procdt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/ProcedureData/v1"
+		   xmlns:vigbase="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance"
+		   xmlns:ocm="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/OCM/v1"
+		   xmlns:postcrtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/PostCertificateType/v1"
+		   xmlns:refcrtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/RefusedCertificate/v1"
+		   elementFormDefault="qualified">
+
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/SSCP/v1" schemaLocation="../../data/Entity/SSCP/SSCPType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1" schemaLocation="../../data/Entity/Certificate/CECPType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/v1" schemaLocation="../../data/Entity/MarketInfo.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/v1" schemaLocation="../../data/Entity/ProductDesigner.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/v1" schemaLocation="../../data/Entity/DI.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1" schemaLocation="../../data/Entity/Actor.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Actor/Registration/v1" schemaLocation="../../data/Entity/ActorRegistration.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Service/v1" schemaLocation="../Service/ServiceType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1" schemaLocation="../../data/Entity/Certificate/IssuedCertificateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1" schemaLocation="../../data/Entity/Certificate/ApplicationCertificateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/FIRVersionType/v1" schemaLocation="../../data/Entity/Msu/Reports/FIRVersionType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/AnnualSummaryReport/v1" schemaLocation="../../data/Entity/Msu/Reports/AnnualSummaryReportType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/FourYearReport/v1" schemaLocation="../../data/Entity/Msu/Reports/FourYearReportType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/v1" schemaLocation="../../data/Entity/Msu/Procedures/MsuMeasureItemType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Objection/v1" schemaLocation="../../data/Entity/Msu/Procedures/MsuObjectionItemType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/AdditionalInfo/v1" schemaLocation="../../data/Entity/Msu/Procedures/MsuAdditionalInfoItemType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/CorrectiveAction/v1" schemaLocation="../../data/Entity/Msu/Procedures/MsuCorrectiveActionItemType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Procedure/v1" schemaLocation="../../data/Entity/Msu/Procedures/MsuProcedureItemType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/ProcedureData/v1" schemaLocation="../../data/Entity/Msu/Procedures/MsuProcedureData.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Vigilance" schemaLocation="../../data/Entity/Vigilance/vigilance.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/OCM/v1" schemaLocation="../../data/Entity/OldCustomMadeDevice.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/PostCertificateType/v1" schemaLocation="../../data/Entity/Certificate/PostCertificateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/RefusedCertificate/v1" schemaLocation="../../data/Entity/Certificate/RefusedCertificateType.xsd"/>
+
+	<xs:complexType name="AcknowledgementType">
+		<xs:annotation>
+			<xs:documentation>This message is to acknowledge the reception / processing of various types of messages. It is sent asynchronously to allow data exchange mechanism to handle the retry mechanism</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="m:MessageType">
+				<xs:sequence>
+					<xs:element name="responseEntities" type="m:ResponseEntitiesType" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="EndpointType">
+		<xs:annotation>
+			<xs:documentation>The entity describes the sender and the recipient of a message from security and infrastructure point of view. The Node details must be used in addition for routing and security purposes</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="node" type="s:NodeType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="service" type="s:ServiceType" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PullResponseType">
+		<xs:annotation>
+			<xs:documentation>The message Pull Response is used in the Pull communication pattern to respond to a request. This response is sent asynchronously.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="m:MessageType">
+				<xs:sequence>
+					<xs:element name="numberOfPages" type="xs:int" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>When there are no results, this will be 0.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="pageNumber" type="xs:int" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>First page is the page number 0.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="pageSize" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>If present, pageSize should be greater than 0 but not greater than 300</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:int">
+								<xs:minInclusive value="1"/>
+								<xs:maxInclusive value="300"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:element>
+					<xs:element name="report" type="m:ElementReportsType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="responseCode" type="m:ProcessStatusCodeEnum" minOccurs="1" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="ProcessStatusCodeEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BAD_REQUEST"/>
+			<xs:enumeration value="CONFLICT"/>
+			<xs:enumeration value="PROCESSED_WITH_ERRORS"/>
+			<xs:enumeration value="SECURITY_ERROR"/>
+			<xs:enumeration value="SERVER_ERROR"/>
+			<xs:enumeration value="SUCCESS"/>
+			<xs:enumeration value="UNAUTHORISED_ERROR"/>
+			<xs:enumeration value="INVALID_REQUEST_OBJECTS"/>
+			<xs:enumeration value="SERVICE_NOT_FOUND"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ResponseEntitiesType">
+		<xs:sequence>
+			<xs:element name="responseEntity" type="m:ResponseEntityType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ResponseEntityType">
+		<xs:sequence>
+			<xs:element name="entityCode" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Represent the natural key of the entity that the current report line refers.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="responseCode" type="m:ProcessStatusCodeEnum" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="report" type="m:ElementReportsType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ElementReportsType">
+		<xs:sequence>
+			<xs:element name="elementReport" type="m:ElementReportType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ElementReportType">
+		<xs:sequence>
+			<xs:element name="operationErrorCode" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Error codes are part of a predefined set, related to the business rule it violates.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="operationErrorDetail" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>The detailed error message for the current entity and service invocation</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="operationDetail" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>The detailed messages of the operations performed</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MessageType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>This abstract entity describes the message metadata, it is used to identify the message type linked to a communication pattern and the correlation with other message.
+				Optional empty fields are removed from the XML responses.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="conversationID" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Allows multiple response messages to be sent as reply to a single request message.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="255"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="correlationID" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Correlates the request to the response and to the acknowledgments. It has the UUID format.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="255"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="creationDateTime" type="xs:dateTime" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>The date and time when this message object was created</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="messageID" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Identifies uniquely a message at the level of EUDAMED. It has the UUID format.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="255"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="recipient" type="m:EndpointType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="payload" type="m:CoreEntityPayloadType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="sender" type="m:EndpointType" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute name="version" use="required" fixed="3.0.30" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>Version of the XSD model schema against the current entities are validated.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="PullRequestType">
+		<xs:annotation>
+			<xs:documentation>Represents the request sent in a Pull pattern (request/response mechanism)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="m:MessageType">
+				<xs:sequence minOccurs="0">
+					<xs:element name="pageNumber" type="xs:nonNegativeInteger" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>First page is the page number 0.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="pageSize" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>If present, pageSize should be greater than 0 but not greater than 300</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:int">
+								<xs:minInclusive value="1"/>
+								<xs:maxInclusive value="300"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:element>
+					<xs:element name="criteriaPayload" type="m:CriteriaPayloadType" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="PushType">
+		<xs:annotation>
+			<xs:documentation>
+				The message Push is used in the Push communication pattern to transmit information to
+				EUDAMED data exchange participants. In common scenarios, the actors will submit information
+				to EUDAMED through a push message.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="m:MessageType">
+				<xs:sequence/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="CoreEntityPayloadType">
+		<xs:annotation>
+			<xs:documentation>
+				Allows the exchange of the entities.
+				The entities can be of a single type or a relation between two entities.
+				The payload contains metadata related to the security aspects. This field contains the payload (business content)
+				and its associated metadata and also a detailed report as outcome of the service invocation.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:choice minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Represents the choice of accepted payload configurations by EUDAMED services.</xs:documentation>
+				</xs:annotation>
+				<xs:element ref="actorregistration:ActorRegistrationRequest" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="actorregistration:ActorRegistrationAssesment" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="actorregistration:ActorRegistrationAssessmentResponse" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="actor:EOActor" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="device:BasicUDI" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="device:Device" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="mktinfo:DTXMarketInfo" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="pd:DTXProductDesigner" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="device:DTXPackageUDI" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="sscp:SSCP" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="cecp:CECP" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="device:UDIDIData" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="certificate:IssuedCertificate" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="appcrtf:Application" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="msuFir:FIRVersionType" minOccurs="1" maxOccurs="300"/>
+                <xs:element ref="msuAsr:AnnualSummaryReportType" minOccurs="1" maxOccurs="300"/>
+				<xs:element ref="msuFyr:fourYearReportType" minOccurs="1" maxOccurs="300" />
+				<xs:element ref="procdt:MsuProcedureDataType" minOccurs="1" maxOccurs="300" />
+				<xs:element ref="vigbase:Dossier" minOccurs="1" maxOccurs="300" />
+				<xs:element ref="ocm:OldCustomMadeDevice" minOccurs="1" maxOccurs="unbounded" />
+                <xs:element ref="device:DeviceAll" minOccurs="1" maxOccurs="1"/>
+				<xs:element ref="postcrtf:PostCertificate" minOccurs="1" maxOccurs="unbounded" />
+				<xs:element ref="refcrtf:RefusedCertificate" minOccurs="1" maxOccurs="unbounded" />
+			</xs:choice>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CriteriaPayloadType">
+		<xs:annotation>
+			<xs:documentation>Describes the criteria to be sent to the PullRequest services.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:choice minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Represents the choice of querying criteria when requests send to EUDAMED services.</xs:documentation>
+				</xs:annotation>
+				<xs:element name="actorRegistrationDownloadCriteria" type="s:ActorRegistrationServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="actorsDownloadCriteria" type="s:ActorDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="diDownloadCriteria" type="s:DIDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="sscpDownloadCriteria" type="s:SSCPDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="cecpDownloadCriteria" type="s:CECPDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="issuedCertificateDownloadCriteria" type="s:IssuedCertificateDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="applicationDownloadServiceCriteria" type="s:ApplicationDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="refusedCertificateDownloadServiceCriteria" type="s:RefusedCertificateDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="finalInspectionReportSearchCriteria" type="s:FinalInspectionReportSearchCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="annualSummaryReportSearchCriteria" type="s:AnnualSummaryReportSearchCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="fourYearReportSearchCriteria" type="s:FourYearReportSearchCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="msuProcedureSearchCriteria" type="s:MsuProcedureSearchCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="dossierDownloadServiceCriteriaType" type="s:DossierDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="ocmDownloadCriteria" type="s:OcmDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="deviceAllDownloadCriteria" type="s:DeviceAllDownloadServiceCriteriaType" minOccurs="1" maxOccurs="1"/>
+			</xs:choice>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

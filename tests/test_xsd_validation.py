@@ -124,23 +124,28 @@ class XSDValidationBase(unittest.TestCase):
 
     def _seed(self, profile, version="", market_rows=None, package_rows=None,
               clinical_size_rows=None, annex_xvi_rows=None, cert_rows=None, udi_over=None,
-              warning_rows=None, storage_rows=None, trade_name_rows=None):
+              warning_rows=None, storage_rows=None, trade_name_rows=None, basic_over=None):
         cfg = PROFILES[profile]
         bcode, ucode = self._uid("B"), self._uid("U")
         certs = cert_rows
         if certs is None and "cert" in cfg:
             certs = [{"Certificate Type": cfg["cert"], "Notified Body ID": "1234",
                       "Certificate Number": "C-1", "Expiry Date": "2030-01-01"}]
-        self.repo.upsert_basic(import_id=1, row_number=4, payload=_basic_payload(bcode, cfg),
+        basic = _basic_payload(bcode, cfg)
+        if basic_over:
+            basic.update(basic_over)
+        bcode = str(basic["Basic UDI-DI Code"])
+        self.repo.upsert_basic(import_id=1, row_number=4, payload=basic,
                                cmr_rows=[], cert_rows=certs or [], version=version)
         udi = _udi_payload(ucode, bcode)
         if udi_over:
             udi.update(udi_over)
+        effective_ucode = str(udi["UDI-DI Code"])
         if market_rows is None:
             market_rows = [{"Country Code": "IT", "Originally Placed on Market": "TRUE"}]
         # 自动把 UDI-DI Code 填进所有关联明细行，调用方不用关心实际 code
         def _link(rows):
-            return [dict(r, **{"UDI-DI Code": ucode}) for r in (rows or [])]
+            return [dict(r, **{"UDI-DI Code": effective_ucode}) for r in (rows or [])]
         self.repo.upsert_udi(import_id=1, row_number=4, payload=udi,
                              market_rows=_link(market_rows), warning_rows=_link(warning_rows),
                              storage_rows=_link(storage_rows),
@@ -148,7 +153,7 @@ class XSDValidationBase(unittest.TestCase):
                              clinical_size_rows=_link(clinical_size_rows),
                              annex_xvi_rows=_link(annex_xvi_rows), version=version)
         bid = next(b["id"] for b in self.repo.list_basics(limit=999) if b["basic_code"] == bcode)
-        uid = next(u["id"] for u in self.repo.list_udis(limit=999) if u["udi_code"] == ucode)
+        uid = next(u["id"] for u in self.repo.list_udis(limit=999) if u["udi_code"] == effective_ucode)
         return bid, uid
 
     def _xmls(self, service, record_ids):
@@ -209,6 +214,132 @@ class ServiceProfileMatrix(XSDValidationBase):
             with self.subTest(profile=p):
                 _, uid = self._seed(p, package_rows=pkg)
                 self._assert_valid("PACKAGE_UDI.PATCH", [uid], f"PACKAGE_UDI.PATCH/{p}")
+
+
+class LegacyEudamedDIIdentifiers(XSDValidationBase):
+    @staticmethod
+    def _identifier_pair(node, child_name: str) -> tuple[str, str]:
+        identifier = node.xpath(f"./*[local-name()='{child_name}']")[0]
+        code = identifier.xpath("./*[local-name()='DICode']/text()")[0]
+        issuing_entity = identifier.xpath("./*[local-name()='issuingEntityCode']/text()")[0]
+        return code, issuing_entity
+
+    def test_mdd_and_ivdd_assigned_udi_derive_eudamed_di(self):
+        cases = [
+            ("MDD", "MDEUData", "MDEUDI", "06947145553906"),
+            ("IVDD", "IVDEUData", "IVDEUDI", "05012345678903"),
+        ]
+        for profile, udi_tag, basic_tag, udi_code in cases:
+            with self.subTest(profile=profile):
+                _, uid = self._seed(
+                    profile,
+                    udi_over={
+                        "UDI-DI Code": udi_code,
+                        "UDI-DI Issuing Entity": "GS1",
+                    },
+                )
+                xml = self._xmls("DEVICE.POST", [uid])[0]
+                doc = ET.fromstring(xml)
+                self.assertTrue(_schema().validate(doc))
+
+                udi_node = doc.xpath(f"//*[local-name()='{udi_tag}']")[0]
+                basic_node = doc.xpath(f"//*[local-name()='{basic_tag}']")[0]
+
+                self.assertEqual(self._identifier_pair(udi_node, "identifier"), (udi_code, "GS1"))
+                self.assertEqual(
+                    self._identifier_pair(udi_node, "basicUDIIdentifier"),
+                    (f"B-{udi_code}", "EUDAMED"),
+                )
+                self.assertEqual(
+                    self._identifier_pair(basic_node, "identifier"),
+                    (f"B-{udi_code}", "EUDAMED"),
+                )
+
+                udi_post_xml = self._xmls("UDI_DI.POST", [uid])[0]
+                udi_post_doc = ET.fromstring(udi_post_xml)
+                self.assertTrue(_schema().validate(udi_post_doc))
+                udi_post_node = udi_post_doc.xpath("//*[local-name()='UDIDIData']")[0]
+                self.assertEqual(self._identifier_pair(udi_post_node, "identifier"), (udi_code, "GS1"))
+                self.assertEqual(
+                    self._identifier_pair(udi_post_node, "basicUDIIdentifier"),
+                    (f"B-{udi_code}", "EUDAMED"),
+                )
+
+    def test_ivdd_eudamed_assigned_b_and_d_identifiers_validate_against_official_xsd(self):
+        basic_code = "B-AF-MF-000000245AT"
+        udi_code = "D-AF-MF-000000245AT"
+        _, uid = self._seed(
+            "IVDD",
+            basic_over={
+                "Basic UDI-DI Code": basic_code,
+                "Issuing Entity": "EUDAMED",
+            },
+            udi_over={
+                "UDI-DI Code": udi_code,
+                "UDI-DI Issuing Entity": "EUDAMED",
+            },
+        )
+
+        xml = self._xmls("DEVICE.POST", [uid])[0]
+        doc = ET.fromstring(xml)
+        self.assertTrue(_schema().validate(doc))
+        udi_node = doc.xpath("//*[local-name()='IVDEUData']")[0]
+        basic_node = doc.xpath("//*[local-name()='IVDEUDI']")[0]
+        self.assertEqual(self._identifier_pair(udi_node, "identifier"), (udi_code, "EUDAMED"))
+        self.assertEqual(self._identifier_pair(udi_node, "basicUDIIdentifier"), (basic_code, "EUDAMED"))
+        self.assertEqual(self._identifier_pair(basic_node, "identifier"), (basic_code, "EUDAMED"))
+
+    def test_mdd_aimdd_ivdd_generated_eudamed_pair_validates_against_production_xsd(self):
+        basic_code = "B-CR023368"
+        udi_code = "D-CR023368"
+        for profile, udi_tag, basic_tag in [
+            ("MDD", "MDEUData", "MDEUDI"),
+            ("AIMDD", "MDEUData", "MDEUDI"),
+            ("IVDD", "IVDEUData", "IVDEUDI"),
+        ]:
+            with self.subTest(profile=profile):
+                _, uid = self._seed(
+                    profile,
+                    basic_over={
+                        "Basic UDI-DI Code": basic_code,
+                        "Issuing Entity": "EUDAMED",
+                        "Legacy EUDAMED DI": basic_code,
+                    },
+                    udi_over={
+                        "UDI-DI Code": udi_code,
+                        "UDI-DI Issuing Entity": "EUDAMED",
+                        "Parent Basic UDI-DI": basic_code,
+                        "Legacy Has Assigned UDI-DI": "FALSE",
+                        "Legacy EUDAMED DI Input": "CR0233",
+                        "Legacy EUDAMED DI": basic_code,
+                        "Legacy EUDAMED ID": udi_code,
+                        "Legacy Identifier Method": "generated_from_input",
+                    },
+                )
+                xml = self._xmls("DEVICE.POST", [uid])[0]
+                doc = ET.fromstring(xml)
+                self.assertTrue(_schema().validate(doc))
+                udi_node = doc.xpath(f"//*[local-name()='{udi_tag}']")[0]
+                basic_node = doc.xpath(f"//*[local-name()='{basic_tag}']")[0]
+                self.assertEqual(self._identifier_pair(udi_node, "identifier"), (udi_code, "EUDAMED"))
+                self.assertEqual(self._identifier_pair(udi_node, "basicUDIIdentifier"), (basic_code, "EUDAMED"))
+                self.assertEqual(self._identifier_pair(basic_node, "identifier"), (basic_code, "EUDAMED"))
+
+    def test_mdr_and_ivdr_keep_user_basic_udi_identifier(self):
+        for profile in ["MDR", "IVDR"]:
+            with self.subTest(profile=profile):
+                _, uid = self._seed(profile)
+                record = self.repo.get_udi(uid)
+                xml = self._xmls("DEVICE.POST", [uid])[0]
+                doc = ET.fromstring(xml)
+                self.assertTrue(_schema().validate(doc))
+
+                basic_node = doc.xpath(f"//*[local-name()='{profile}BasicUDI']")[0]
+                udi_node = doc.xpath(f"//*[local-name()='{profile}UDIDIData']")[0]
+                expected = (record["basic_code"], "GS1")
+                self.assertEqual(self._identifier_pair(basic_node, "identifier"), expected)
+                self.assertEqual(self._identifier_pair(udi_node, "basicUDIIdentifier"), expected)
+                self.assertNotEqual(record["basic_code"], f"B-{record['udi_code']}")
 
 
 class FieldVariants(XSDValidationBase):
@@ -375,6 +506,11 @@ class NegativePreflight(XSDValidationBase):
         result = self.exporter.validate("DEVICE.POST", [uid])
         self.assertFalse(result["errors"])
         self.assertTrue(any("PRUDIDIDataType" in warning and "不会写入 XML" in warning for warning in result["warnings"]))
+
+    def test_system_or_procedure_pack_with_non_mdr_legislation_blocks(self):
+        _, uid = self._seed("MDD", basic_over={"Device Type": "System"})
+        result = self.exporter.validate("DEVICE.POST", [uid])
+        self.assertTrue(any("仅适用于 MDR" in error for error in result["errors"]))
 
     def test_invalid_notified_body_id_warns_before_xsd_rejection(self):
         certs = [{"Certificate Type": "MDR_TYPE_EXAMINATION", "Notified Body ID": "CN-NB-000000001"}]

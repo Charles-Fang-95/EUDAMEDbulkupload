@@ -17,7 +17,7 @@ EXPORT_DIR = DATA_DIR / "exports"
 DB_PATH = DATA_DIR / "eudamed_beta.db"
 STATIC_DIR = APP_DIR / "static"
 STYLE_PATH = STATIC_DIR / "style.css"
-TEMPLATE_VERSION = "v2.11"
+TEMPLATE_VERSION = "v2.12"
 TEMPLATE_FILENAME = f"EUDAMED_Template_{TEMPLATE_VERSION}.xlsx"
 TEMPLATE_PATH = RESOURCE_ROOT / TEMPLATE_FILENAME
 TEMPLATE_EN_FILENAME = f"EUDAMED_Template_{TEMPLATE_VERSION}_EN.xlsx"
@@ -37,9 +37,9 @@ BULK_UPLOAD_LIMIT_SOURCE = (
 
 # 工具自身版本与最近更新日期（页脚展示，由维护者更新）
 # TOOL_VERSION 是语义化版本号，用于「检查更新」比对；TOOL_VERSION_LABEL 给人看，可带中文修饰。
-TOOL_VERSION = "0.9.7"
-TOOL_VERSION_LABEL = "0.9.7 · 公开测试版"
-TOOL_UPDATED = "2026-07-22"
+TOOL_VERSION = "0.9.8"
+TOOL_VERSION_LABEL = "0.9.8 · 公开测试版"
+TOOL_UPDATED = "2026-08-14"
 
 # 检查更新：优先 GitHub Releases API，失败时尝试 Gitee Release API；留空时帮助页显示「未配置更新源」。
 RELEASES_API_URL = "https://api.github.com/repos/Charles-Fang-95/EUDAMEDbulkupload/releases/latest"
@@ -68,6 +68,8 @@ SERVICE_LABELS = {
 }
 
 BASIC_FIELDS = [
+    "Local Record ID",
+    "Legacy EUDAMED DI",
     "Basic UDI-DI Code",
     "Issuing Entity",
     "Manufacturer SRN",
@@ -101,6 +103,12 @@ BASIC_FIELDS = [
 ]
 
 UDI_FIELDS = [
+    "Local Record ID",
+    "Legacy Has Assigned UDI-DI",
+    "Legacy EUDAMED DI Input",
+    "Legacy EUDAMED DI",
+    "Legacy EUDAMED ID",
+    "Legacy Identifier Method",
     "Parent Basic UDI-DI",
     "UDI-DI Code",
     "UDI-DI Issuing Entity",

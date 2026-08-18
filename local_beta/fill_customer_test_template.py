@@ -21,7 +21,7 @@ except ImportError:
 
 APPENDIX_PATH = ROOT / "Test sample" / "5432_Appendix A_B_C (MDR_EN ISO 13485) - Details on Types of Devices, Facilities and Suppliers_Rev.10.xlsx"
 UDI_LIST_PATH = ROOT / "Test sample" / "UM-QR-9.0-12-02 UDI-DI清单(1) 新 - 副本.xls"
-OUTPUT_PATH = ROOT / "Test sample" / "EUDAMED_Customer_Test_Template_Unimax_v2.11.xlsx"
+OUTPUT_PATH = ROOT / "Test sample" / "EUDAMED_Customer_Test_Template_Unimax_v2.12.xlsx"
 ROW_LIMIT = 10
 
 
@@ -33,7 +33,7 @@ def main():
     udi_sheet = udi_book.sheet_by_name("Sheet1")
 
     workbook = build_workbook()
-    main_sheet = workbook["MDR_MDD"]
+    main_sheet = workbook["MDR"]
     market_sheet = workbook["Market Info"]
     package_sheet = workbook["Package Info"]
     trade_sheet = workbook["Trade Names"]

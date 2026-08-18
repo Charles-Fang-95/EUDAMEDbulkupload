@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:pd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/ProductDesigner/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/ProductDesigner/v1"
+               schemaLocation="ProductDesigner/ProductDesignerType.xsd"/>
+    <xs:element name="DTXProductDesigner" type="pd:DTXProductDesignerType">
+        <xs:annotation>
+            <xs:documentation>Please see DTXProductDesignerType</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+</xs:schema>

@@ -1,0 +1,20 @@
+Baseline: official_docs/checks/2026-07-23_play-3.31.2_xsd-3.0.32/downloads/XSD_schemas.zip
+Current: official_docs/checks/2026-07-27_dual-env_prod-2.27.0-xsd-3.0.30_play-3.31.2-xsd-3.0.32_recheck/downloads/play/XSD_schemas.zip
+
+Baseline SHA-256: 129f9143a146564c8f9e32fe32e2cdb8bf04dcc160421d3248edeee3c5885217
+Current SHA-256:  129f9143a146564c8f9e32fe32e2cdb8bf04dcc160421d3248edeee3c5885217
+
+ZIP binary identical: yes
+ZIP entries: 92
+Directories: 24
+XSD files: 67
+Sample XML files: 1
+Added: 0
+Removed: 0
+Modified: 0
+Unchanged: 67
+
+Schema structure changes: none
+Enumeration changes: none
+Field changes: none
+Constraint changes: none

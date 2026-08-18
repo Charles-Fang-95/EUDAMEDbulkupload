@@ -1,0 +1,25 @@
+Baseline: 2026-08-10 dual-environment check
+Checked: 2026-08-17T09:02:33+08:00
+
+Tracked drift fields: page version text, publication date, Last-Modified, ETag, Content-Length.
+
+Production page: unchanged
+Production support page: unchanged
+Production XSD: unchanged (Tue, 04 Aug 2026 15:03:49 GMT | "2126e-65839f64ebf40" | 135790)
+Production EO samples: unchanged (Tue, 04 Aug 2026 15:03:49 GMT | "fcd3-65839f64ebf40" | 64723)
+Production UDI data dictionary: unchanged (Tue, 04 Aug 2026 15:03:49 GMT | "2263e-65839f64ebf40" | 140862)
+Production UDI business rules: unchanged (Tue, 04 Aug 2026 15:03:49 GMT | "c984a-65839f64ebf40" | 825418)
+Production UDI enumerations: unchanged (Tue, 04 Aug 2026 15:03:49 GMT | "11de6b1-65839f64ebf40" | 18736817)
+Production EO services definition: unchanged (Tue, 04 Aug 2026 15:03:49 GMT | "983668-65839f64ebf40" | 9975400)
+
+Playground page: unchanged
+Playground XSD: unchanged (Fri, 24 Jul 2026 15:25:09 GMT | "20c04-6575cfa58df40" | 134148)
+Playground EO samples: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "102f7-6575cfa499d00" | 66295)
+Playground UDI data dictionary: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "24708-6575cfa499d00" | 149256)
+Playground UDI business rules: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "b7cea-6575cfa499d00" | 752874)
+Playground UDI enumerations: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "88509-6575cfa499d00" | 558345)
+Playground EO services definition: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "e318d-6575cfa499d00" | 930189)
+
+All 12 page-advertised /en/documentation/ artifact URLs still returned HTTP 404.
+All 12 official /en/files/ fallback endpoints returned HTTP 200 with the expected content type.
+Raw GET response Date values changed as expected and are excluded from drift classification.

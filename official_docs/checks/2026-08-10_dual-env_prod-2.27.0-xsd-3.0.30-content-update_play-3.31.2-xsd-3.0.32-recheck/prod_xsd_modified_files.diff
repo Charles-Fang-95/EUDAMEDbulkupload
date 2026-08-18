@@ -1,0 +1,109 @@
+===== data/Entity/Certificate/RefusedCertificateType.xsd
+--- official_docs/checks/2026-08-10_dual-env_prod-2.27.0-xsd-3.0.30-content-update_play-3.31.2-xsd-3.0.32-recheck/unpacked/prior_prod_xsd/data/Entity/Certificate/RefusedCertificateType.xsd	2026-03-30 15:43:02
++++ official_docs/checks/2026-08-10_dual-env_prod-2.27.0-xsd-3.0.30-content-update_play-3.31.2-xsd-3.0.32-recheck/unpacked/prod_xsd/data/Entity/Certificate/RefusedCertificateType.xsd	2026-07-22 21:29:41
+@@ -47,7 +47,7 @@
+ 		<xs:sequence>
+ 			<xs:element name="applicableRegulation" type="crtf:ProductRegulationEnum"/>
+ 			<xs:element name="MFActor" type="refcrtf:ActorBaseType"/>
+-			<xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType"/>
++			<xs:element name="NBActorCode" type="commonbasic:stringSRNType"/>
+ 			<xs:element name="ARActorCodes" type="actor:ActorCodesType" minOccurs="0"/>
+ 			<xs:element name="documents" type="doct:DocumentsType"/>
+ 			<xs:element name="scopes" type="crtfscp:ProductProcedureScopesType"/>
+===== data/Entity/Device/RegulationDevice/UDIDIType.xsd
+--- official_docs/checks/2026-08-10_dual-env_prod-2.27.0-xsd-3.0.30-content-update_play-3.31.2-xsd-3.0.32-recheck/unpacked/prior_prod_xsd/data/Entity/Device/RegulationDevice/UDIDIType.xsd	2026-03-30 15:43:02
++++ official_docs/checks/2026-08-10_dual-env_prod-2.27.0-xsd-3.0.30-content-update_play-3.31.2-xsd-3.0.32-recheck/unpacked/prod_xsd/data/Entity/Device/RegulationDevice/UDIDIType.xsd	2026-07-22 21:29:41
+@@ -59,7 +59,7 @@
+                         <xs:annotation>
+                             <xs:documentation>
+                                 #FLD-UDID-157# - Maximum number of reuses. Property defines the Maximum Number of reuses applicable for the Device.
+-                                Use -1 value when the maximum number of reuses is not defined (Maximum number of reuses are not applicable), 0 if the Device is considered Single-use device and
++                                Use 1 value when the maximum number of reuses is not defined (Maximum number of reuses are not applicable), 0 if the Device is considered Single-use device and
+                                 a positive number when the Device has a limited number of reuses (provided number being the number of reuses applicable).
+                             </xs:documentation>
+                         </xs:annotation>
+===== service/Message/MessageType.xsd
+--- official_docs/checks/2026-08-10_dual-env_prod-2.27.0-xsd-3.0.30-content-update_play-3.31.2-xsd-3.0.32-recheck/unpacked/prior_prod_xsd/service/Message/MessageType.xsd	2026-03-30 15:43:02
++++ official_docs/checks/2026-08-10_dual-env_prod-2.27.0-xsd-3.0.30-content-update_play-3.31.2-xsd-3.0.32-recheck/unpacked/prod_xsd/service/Message/MessageType.xsd	2026-07-22 21:29:41
+@@ -161,40 +161,25 @@
+ 				Optional empty fields are removed from the XML responses.</xs:documentation>
+ 		</xs:annotation>
+ 		<xs:sequence>
+-			<xs:element name="conversationID" minOccurs="0" maxOccurs="1">
++			<xs:element name="conversationID" type="xs:string" minOccurs="0" maxOccurs="1">
+ 				<xs:annotation>
+ 					<xs:documentation>Allows multiple response messages to be sent as reply to a single request message.</xs:documentation>
+ 				</xs:annotation>
+-				<xs:simpleType>
+-					<xs:restriction base="xs:string">
+-						<xs:maxLength value="255"/>
+-					</xs:restriction>
+-				</xs:simpleType>
+ 			</xs:element>
+-			<xs:element name="correlationID" minOccurs="1" maxOccurs="1">
++			<xs:element name="correlationID" type="xs:string" minOccurs="1" maxOccurs="1">
+ 				<xs:annotation>
+ 					<xs:documentation>Correlates the request to the response and to the acknowledgments. It has the UUID format.</xs:documentation>
+ 				</xs:annotation>
+-				<xs:simpleType>
+-					<xs:restriction base="xs:string">
+-						<xs:maxLength value="255"/>
+-					</xs:restriction>
+-				</xs:simpleType>
+ 			</xs:element>
+ 			<xs:element name="creationDateTime" type="xs:dateTime" minOccurs="1" maxOccurs="1">
+ 				<xs:annotation>
+ 					<xs:documentation>The date and time when this message object was created</xs:documentation>
+ 				</xs:annotation>
+ 			</xs:element>
+-			<xs:element name="messageID" minOccurs="1" maxOccurs="1">
++			<xs:element name="messageID" type="xs:string" minOccurs="1" maxOccurs="1">
+ 				<xs:annotation>
+ 					<xs:documentation>Identifies uniquely a message at the level of EUDAMED. It has the UUID format.</xs:documentation>
+ 				</xs:annotation>
+-				<xs:simpleType>
+-					<xs:restriction base="xs:string">
+-						<xs:maxLength value="255"/>
+-					</xs:restriction>
+-				</xs:simpleType>
+ 			</xs:element>
+ 			<xs:element name="recipient" type="m:EndpointType" minOccurs="1" maxOccurs="1"/>
+ 			<xs:element name="payload" type="m:CoreEntityPayloadType" minOccurs="1" maxOccurs="1"/>
+===== service/Service/ServiceType.xsd
+--- official_docs/checks/2026-08-10_dual-env_prod-2.27.0-xsd-3.0.30-content-update_play-3.31.2-xsd-3.0.32-recheck/unpacked/prior_prod_xsd/service/Service/ServiceType.xsd	2026-03-13 16:01:19
++++ official_docs/checks/2026-08-10_dual-env_prod-2.27.0-xsd-3.0.30-content-update_play-3.31.2-xsd-3.0.32-recheck/unpacked/prod_xsd/service/Service/ServiceType.xsd	2026-08-04 20:50:03
+@@ -116,6 +116,8 @@
+                         </xs:annotation>
+                     </xs:element>
+                     <xs:element name="BasicUDIVersionDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
++                    <xs:element name="BasicUDIVersionDateTimeFrom" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
++                    <xs:element name="BasicUDIVersionDateTimeTo" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+                     <xs:element name="MFActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                         <xs:annotation>
+                             <xs:documentation>Wildcards are not allowed</xs:documentation>
+@@ -127,6 +129,8 @@
+                         </xs:annotation>
+                     </xs:element>
+                     <xs:element name="UDIDIVersionDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
++                    <xs:element name="UDIDIVersionDateTimeFrom" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
++                    <xs:element name="UDIDIVersionDateTimeTo" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+                     <xs:element name="Country" type="country:EUCountryWithSpecialEnum" minOccurs="0" maxOccurs="1"/>
+                     <xs:element name="RiskClass" type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="1"/>
+                     <xs:element name="State" type="e:StateEnum" minOccurs="0" maxOccurs="1">
+@@ -135,6 +139,16 @@
+                         </xs:annotation>
+                     </xs:element>
+                     <xs:element name="ApplicableLegislation" type="legislation:ApplicableLegislationType" minOccurs="0" maxOccurs="1"/>
++                    <xs:element name="SearchId" minOccurs="0" maxOccurs="1">
++                        <xs:annotation>
++                            <xs:documentation>The identifier should be used to ensure data consistency within the same search criteria when changing the page of retrieved results.</xs:documentation>
++                        </xs:annotation>
++                        <xs:simpleType>
++                            <xs:restriction base="xs:string">
++                                <xs:maxLength value="255"/>
++                            </xs:restriction>
++                        </xs:simpleType>
++                    </xs:element>
+                 </xs:sequence>
+             </xs:extension>
+         </xs:complexContent>

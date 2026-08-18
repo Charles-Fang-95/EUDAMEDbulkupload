@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/SSCP/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:sscp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/SSCP/v1" xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" xmlns:crtfissued="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1" xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../Device/CommonDeviceType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" schemaLocation="../Common/DocumentType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1" schemaLocation="../Certificate/IssuedCertificateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" schemaLocation="../Device/RegulationDevice/UDIDIType.xsd"/>
+	<xs:complexType name="SSCPDocumentType">
+		<xs:annotation>
+			<xs:documentation>#FLD-UDID-115# - Attachement. Field stores a reference to a Document uploaded in EUDAMED.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="doct:DocumentType">
+				<xs:sequence>
+					<xs:element name="masterDocument" type="xs:boolean" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-UDID-270# - Master Document. Field marks the fact that the current document is the SSCP master attachement validated by the NB.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="dateReceivedFromMF" type="xs:date" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="discarded" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SSCPDocumentsType">
+		<xs:sequence>
+			<xs:element name="document" type="sscp:SSCPDocumentType" minOccurs="1" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-115# - Attachement. Field stores a reference to a Document uploaded in EUDAMED.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="SSCP" type="sscp:SSCPType">
+		<xs:annotation>
+			<xs:documentation>Please see SSCPType</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="SSCPType">
+		<xs:annotation>
+			<xs:documentation>SSCP (Summary of safety and clinical performance) can be registered in EUDAMED by the Notified Body and can be periodically updated.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="e:Entity">
+				<xs:sequence>
+					<xs:element name="basicUDI" type="sscp:BasicUdiWithLinkedCertificateType" minOccurs="1" maxOccurs="unbounded"/>
+					<xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-UDID-113# - Notified Body. Reference to the Notified Body who uploaded the SSCP.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SSCPReferenceNumber" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-UDID-# - Notified Body Reference. Reference of the SSCP provided by the NB.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="issueDate" type="xs:date" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-UDID-287# - Start Date. Date of Submission of the SSCP will be used as element for identifying the Date (period) for which several attachments (documents) can be uploaded.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="documents" type="sscp:SSCPDocumentsType" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="SSCPRevisionNumber" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="validated" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="sscpUpload" type="sscp:SSCPUploadEnum" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="certificateID" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Field indicates a specific version of the certificate to which the Basic UDI-DI from this SS(C)P entity is linked to.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MFActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Field indicates the Single Registration Number of the Manufacturer.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="inactivated" type="xs:boolean">
+						<xs:annotation>
+							<xs:documentation>Field indicates if the SS(C)P is active.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="inactivatedFrom" type="xs:date" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Field indicates the date since when this SS(C)P was inactivated.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="SSCPUploadEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="SSCPUpload_Cert">
+				<xs:annotation>
+					<xs:documentation>Certificate registration</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="SSCPUpload_Mgmt">
+				<xs:annotation>
+					<xs:documentation>SS(C)P Management</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="LinkedCertificateType">
+		<xs:sequence>
+			<xs:element name="certificateIdentitfier" type="crtfissued:CertificateIdentifierType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="BasicUdiWithLinkedCertificateType">
+		<xs:sequence>
+				<xs:element name="DICode" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1">
+					<xs:annotation>
+						<xs:documentation>#FLD-UDID-02# - Basic UDI- DI Value / UDI-DI Code/ Package UDI-DI Code. Device Identified code/value (DI Code). Together with the Issuing Entity creates the uniqness of the element to which they are assigned (Basic UDI-DI , UDI-DI, etc.). The Basic UDI-DI is the primary identifier of a device model.It is the main key for records in the UDI database and is referenced in relevant certificates and EU declarations of conformity. The UDI-DI is a unique numeric or alphanumeric code specific to a model of device and that is also used as the access key to information stored in a UDI database. The Unit of Use DI serves to associate the use of a device with a patient in instances in which a UDI is not labeled on the individual device at the level of its unit of use, for example in the event of several units of the same device being packaged together.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="issuingEntityCode" type="udidi:IssuingEntityTypeEnum" minOccurs="1" maxOccurs="1">
+					<xs:annotation>
+						<xs:documentation>#FLD-UDID-01# - Issuing Entity. Assigned Issuing Entities that will generate the DI Codes allocated for all DI inside Eudamed (Basic UDI DI, UDI-DI, Unit of Use DI, Secondary Di , Package level DI). The Commission shall designate one or several entities to operate a system for assignment of UDIs (issuing entity).</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			<xs:element name="linkedCertificate" type="sscp:LinkedCertificateType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

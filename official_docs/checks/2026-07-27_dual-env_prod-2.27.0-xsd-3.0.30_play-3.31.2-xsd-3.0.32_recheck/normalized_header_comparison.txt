@@ -1,0 +1,15 @@
+Production baseline: 2026-07-20
+Production current: 2026-07-27
+Tracked fields: Last-Modified, ETag, Content-Length
+Result: all tracked fields unchanged for the technical-documentation page and six monitored files.
+
+Playground baseline: 2026-07-23
+Playground current: 2026-07-27
+Tracked fields: Last-Modified, ETag, Content-Length
+Result:
+- Last-Modified changed for the technical-documentation page and all six monitored files.
+- ETag changed for the technical-documentation page and all six monitored files.
+- Content-Length unchanged for the technical-documentation page and all six monitored files.
+- All six downloaded binaries have unchanged SHA-256 values.
+
+Classification: metadata republish only; no content drift.

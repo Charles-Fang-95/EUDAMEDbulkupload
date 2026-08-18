@@ -1,0 +1,14 @@
+Production versus prior baseline:
+- Technical documentation page: changed (publication date May 18 -> July 24, 2026; Last-Modified/ETag/Content-Length changed)
+- Six official /en/files/ resources: Last-Modified and ETag changed to July 27 values; Content-Length unchanged
+- Six downloaded binaries: all SHA-256 and byte comparisons unchanged
+
+Playground versus 2026-07-27 baseline:
+- Technical documentation page: Last-Modified/ETag/Content-Length unchanged
+- Six official /en/files/ resources: Last-Modified/ETag/Content-Length unchanged
+- Six downloaded binaries: all SHA-256 and byte comparisons unchanged
+
+Current-link observation:
+- Both current help pages advertise /en/documentation/ file hrefs.
+- The Production advertised /en/documentation/XSD%20schemas.zip href returned HTTP 404 when tested.
+- The official Production /en/files/XSD%20schemas.zip endpoint returned HTTP 200 and was used for binary verification.
