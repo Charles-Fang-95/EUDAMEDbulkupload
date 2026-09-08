@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:crtfcecp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1"
+           xmlns:dt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:links="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1"
+           xmlns:riskclass="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1"
+           xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:cecp="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Cecp/v1"
+           xmlns:appcrtf="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1"
+           elementFormDefault="qualified">
+
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1"
+               schemaLocation="../Common/CommentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/ApplicationCertificate/v1"
+               schemaLocation="ApplicationCertificateType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1"
+               schemaLocation="IssuedCertificateType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1"
+               schemaLocation="../Common/DecisionType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+               schemaLocation="../Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1"
+               schemaLocation="../Links/LinkType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+               schemaLocation="../Device/CommonDeviceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1"
+               schemaLocation="../Common/RiskClassEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/Scope/v1"
+               schemaLocation="ScopeType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+               schemaLocation="../Device/CommonDeviceType.xsd"/>
+
+    <xs:simpleType name="CECPFollowedStatusEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FOLLOWED">
+                <xs:annotation>
+                    <xs:documentation>FOLLOWED</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ASSIGNED">
+                <xs:annotation>
+                    <xs:documentation>ASSIGNED</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SCIENTIFIC_OPINION_PROVIDED">
+                <xs:annotation>
+                    <xs:documentation>SCIENTIFIC-OPINION-WILL-BE-PROVIDED</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SCIENTIFIC_OPINION_NOT_PROVIDED">
+                <xs:annotation>
+                    <xs:documentation>SCIENTIFIC-OPINION-WILL-NOT-BE-PROVIDED</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NOT_FOLLOWED">
+                <xs:annotation>
+                    <xs:documentation>NOT-FOLLOWED</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="REFUSED_CERTIFICATE_PARTIALLY">
+                <xs:annotation>
+                    <xs:documentation>REFUSED-CERTIFICATE-PARTIALLY</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ISSUED_CERTIFICATE_PARTIALLY">
+                <xs:annotation>
+                    <xs:documentation>ISSUED-CERTIFICATE-PARTIALLY</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_APPLICATION">
+                <xs:annotation>
+                    <xs:documentation>WITHDRAWN-APPLICATION</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="REFUSED_CERTIFICATE">
+                <xs:annotation>
+                    <xs:documentation>REFUSED-CERTIFICATE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ISSUED_CERTIFICATE">
+                <xs:annotation>
+                    <xs:documentation>ISSUED-CERTIFICATE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ISSUED_REFUSED_CERTIFICATE">
+                <xs:annotation>
+                    <xs:documentation>ISSUED-REFUSED-CERTIFICATE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="CECPScientificOpinionType">
+        <xs:sequence>
+            <xs:element name="provisionDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="provided" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="rapporteurs" type="crtfcecp:CECPScientificOpinionRapporteursType" minOccurs="1"
+                        maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CECPScientificOpinionRapporteursType">
+        <xs:sequence>
+            <xs:element name="rapporteur" type="crtfcecp:CECPScientificOpinionRapporteurType" minOccurs="2"
+                        maxOccurs="2"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CECPScientificOpinionRapporteurType">
+        <xs:sequence>
+            <xs:element name="firstName" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="lastName" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="CECPNotFollowedReasonEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="COMPLIANCE_CS_DEVICE_CATEGORY">
+                <xs:annotation>
+                    <xs:documentation>COMPLIANCE_WITH_CS_FOR_DEVICE_CATEGORY</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="COMPLIANCE_CS_DEVICE_TYPE">
+                <xs:annotation>
+                    <xs:documentation>COMPLIANCE_WITH_CS_FOR_DEVICE_TYPE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MODIFICATION_ALREADY_MARKETED_DEVICE">
+                <xs:annotation>
+                    <xs:documentation>MODIFICATION_ALREADY_MARKETED_DEVICE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RENEWAL_OF_CERTIFICATE">
+                <xs:annotation>
+                    <xs:documentation>RENEW_CERTIFICATE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="FollowedCECPType">
+        <xs:complexContent>
+            <xs:extension base="crtfcecp:NBDecisionType">
+                <xs:sequence>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="NBDecisionType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="dt:DecisionType">
+                <xs:sequence>
+                    <xs:element name="priorConsultation" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="CEAssessmentReport" type="doct:DocumentType" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:element name="CECP" type="cecp:CECPType">
+        <xs:annotation>
+            <xs:documentation>Please see SSCPType</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="CECPType">
+        <xs:sequence>
+            <xs:element name="reference" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="ARActorCode" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="MFActorCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="1" maxOccurs="1"/>
+            <xs:choice minOccurs="1" maxOccurs="1">
+                <xs:element name="NBDecisionNotFollowed" type="crtfcecp:NotFollowedCECPType" minOccurs="1"
+                            maxOccurs="1"/>
+                <xs:element name="NBDecisionFollowed" type="crtfcecp:FollowedCECPType" minOccurs="1" maxOccurs="1"/>
+            </xs:choice>
+            <xs:element name="status" type="crtfcecp:CECPFollowedStatusEnum" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="statuses" type="crtfcecp:CECPStatusesType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="applicationID" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="deviceType" type="riskclass:RiskClassEnum" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="certificateType" type="links:CertificateTypeEnum" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="certificate" type="links:CertificateIdentifierLinkType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="scientificOpinion" type="crtfcecp:CECPScientificOpinionType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="scopes" type="crtfcecp:CECPScopesType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="SOFollowed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="SODocument" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="justificationNotFollowingSO" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="finalCEAssessmentReport" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="linkedApplication" type="appcrtf:LinkedApplicationType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>FLD-CRF-356 - Keeps information about the linked refused certificate or withdrawn application.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="acceptedDisclaimer" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="NOCECPType">
+        <xs:sequence>
+            <xs:element name="basicUDI" type="commondi:DIIdentifierType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="wasCECPfollowed" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="soProvided" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="mosOutsideEudamed" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="scientificOpinion" type="crtfcecp:CECPScientificOpinionType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="SOFollowed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="SODocument" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="justificationNotFollowingSO" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="finalCEAssessmentReport" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CECPStatusesType">
+        <xs:sequence>
+            <xs:element name="status" type="crtfcecp:CECPStatusType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CECPStatusType">
+        <xs:sequence>
+            <xs:element name="status" type="crtfcecp:CECPFollowedStatusEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>FLD-CRF-311 - Indicates (enumeration) the workflow status of the CECP (for example
+                        if the clinical evaluation consultation procedure applies, if the CECP has been assigned to an
+                        Expert Panel, etc.).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="statusDate" type="xs:dateTime" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>FLD-CRF-306 - Indicates the date when the last status update has occurred.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="NotFollowedCECPType">
+        <xs:complexContent>
+            <xs:extension base="crtfcecp:NBDecisionType">
+                <xs:sequence>
+                    <xs:element name="reason" type="crtfcecp:CECPNotFollowedReasonEnum" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CECPScopesType">
+        <xs:sequence>
+            <xs:element name="scope" type="crtfcecp:CECPScopeType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CECPScopeType">
+        <xs:sequence>
+            <xs:choice minOccurs="1" maxOccurs="1">
+                <xs:element name="model" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="nameModel" type="commondi:ModelNameGroup" minOccurs="1" maxOccurs="1"/>
+            </xs:choice>
+            <xs:element name="riskClass" type="riskclass:RiskClassEnum" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="basicUDI" type="commondi:DIIdentifierType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="instructionForUse" type="doct:DocumentType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="DeviceIdentification">
+        <xs:sequence>
+            <xs:element name="basicUDIDI" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="model" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

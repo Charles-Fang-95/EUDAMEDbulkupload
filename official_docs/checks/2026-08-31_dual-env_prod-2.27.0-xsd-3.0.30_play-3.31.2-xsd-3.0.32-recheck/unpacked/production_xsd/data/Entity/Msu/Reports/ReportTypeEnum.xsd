@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/MsuReportTypeEnum/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+    <xs:simpleType name="MsuReportTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FIR">
+                <xs:annotation>
+                    <xs:documentation>Final Inspection Reports</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ASR">
+                <xs:annotation>
+                    <xs:documentation>Annual Summary Reports</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="FOUR_YRS">
+                <xs:annotation>
+                    <xs:documentation>Four Years Review Reports</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

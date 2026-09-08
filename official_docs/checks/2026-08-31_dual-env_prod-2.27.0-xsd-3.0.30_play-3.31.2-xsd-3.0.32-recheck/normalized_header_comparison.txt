@@ -1,0 +1,25 @@
+Baseline: 2026-08-24 dual-environment metadata recheck
+Checked: 2026-08-31T09:08:32+08:00
+
+Tracked drift fields: page version text, publication date, Last-Modified, ETag, Content-Length.
+
+Production technical-documentation page body: unchanged; HTTP metadata refreshed on 2026-08-27.
+Production support page body: unchanged; HTTP metadata refreshed on 2026-08-27.
+Production XSD: metadata changed, binary unchanged (Thu, 27 Aug 2026 11:33:36 GMT | "2126e-65a05b4dd4400" | 135790).
+Production EO samples: metadata changed, binary unchanged (Thu, 27 Aug 2026 11:33:35 GMT | "fcd3-65a05b4ce01c0" | 64723).
+Production UDI data dictionary: metadata changed, binary unchanged (Thu, 27 Aug 2026 11:33:36 GMT | "2263e-65a05b4dd4400" | 140862).
+Production UDI business rules: metadata changed, binary unchanged (Thu, 27 Aug 2026 11:33:36 GMT | "c984a-65a05b4dd4400" | 825418).
+Production UDI enumerations: metadata changed, binary unchanged (Thu, 27 Aug 2026 11:33:36 GMT | "11de6b1-65a05b4dd4400" | 18736817).
+Production EO services definition: metadata changed, binary unchanged (Thu, 27 Aug 2026 11:33:35 GMT | "983668-65a05b4ce01c0" | 9975400).
+
+Playground page body and HTTP metadata: unchanged.
+Playground XSD: unchanged (Fri, 24 Jul 2026 15:25:09 GMT | "20c04-6575cfa58df40" | 134148).
+Playground EO samples: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "102f7-6575cfa499d00" | 66295).
+Playground UDI data dictionary: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "24708-6575cfa499d00" | 149256).
+Playground UDI business rules: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "b7cea-6575cfa499d00" | 752874).
+Playground UDI enumerations: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "88509-6575cfa499d00" | 558345).
+Playground EO services definition: unchanged (Fri, 24 Jul 2026 15:25:08 GMT | "e318d-6575cfa499d00" | 930189).
+
+All 12 advertised /en/documentation/ artifact URLs returned HTTP 404.
+All 12 official /en/files/ endpoints returned HTTP 200 with expected content types.
+Production downloads were compared after complete transfer; all six SHA-256 values match their prior content baseline.

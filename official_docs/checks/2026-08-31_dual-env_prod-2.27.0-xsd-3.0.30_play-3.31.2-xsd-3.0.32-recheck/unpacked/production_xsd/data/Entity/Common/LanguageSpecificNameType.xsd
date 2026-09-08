@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="CommonBasicType.xsd"/>
+    <xs:complexType name="LanguageSpecificTextsType">
+        <xs:sequence>
+            <xs:element name="name" type="lsn:LanguageSpecificTextType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LanguageOptionalTextsType">
+        <xs:sequence>
+            <xs:element name="name" type="lsn:LanguageOptionalTextType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LanguageSpecificTextType">
+        <xs:sequence>
+            <xs:element name="language" type="lsn:LanguageEnum" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="textValue" type="commonbasic:stringLType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The value NA can be exported for empty values related to the mandate termination</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LanguageOptionalTextType">
+        <xs:sequence>
+            <xs:element name="language" type="lsn:LanguageEnum" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="textValue" type="commonbasic:stringLType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="LanguageEnum">
+        <xs:annotation>
+            <xs:documentation>
+                Official support EU Languages supported by MDR Eudamed.
+                Languages codes taken from ISO.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ANY">
+                <xs:annotation>
+                    <xs:documentation>The ANY value indicates the provided text does not have a specific language.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="EN">
+                <xs:annotation>
+                    <xs:documentation>English</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="FR">
+                <xs:annotation>
+                    <xs:documentation>French</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="DE">
+                <xs:annotation>
+                    <xs:documentation>German</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NL">
+                <xs:annotation>
+                    <xs:documentation>Dutch</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ES">
+                <xs:annotation>
+                    <xs:documentation>Spanish</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="BG">
+                <xs:annotation>
+                    <xs:documentation>Bulgarian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CS">
+                <xs:annotation>
+                    <xs:documentation>Czech</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="DA">
+                <xs:annotation>
+                    <xs:documentation>Danish</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ET">
+                <xs:annotation>
+                    <xs:documentation>Estonian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="EL">
+                <xs:annotation>
+                    <xs:documentation>Greek</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="GA">
+                <xs:annotation>
+                    <xs:documentation>Irish</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="HR">
+                <xs:annotation>
+                    <xs:documentation>Croatian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IT">
+                <xs:annotation>
+                    <xs:documentation>Italian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="LV">
+                <xs:annotation>
+                    <xs:documentation>Latvian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="LT">
+                <xs:annotation>
+                    <xs:documentation>Lithuanian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="HU">
+                <xs:annotation>
+                    <xs:documentation>Hungarian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MT">
+                <xs:annotation>
+                    <xs:documentation>Maltese</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="PL">
+                <xs:annotation>
+                    <xs:documentation>Polish</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="PT">
+                <xs:annotation>
+                    <xs:documentation>Portuguese</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RO">
+                <xs:annotation>
+                    <xs:documentation>Romanian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SK">
+                <xs:annotation>
+                    <xs:documentation>Slovak</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SL">
+                <xs:annotation>
+                    <xs:documentation>Slovenian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="FI">
+                <xs:annotation>
+                    <xs:documentation>Finnish</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SV">
+                <xs:annotation>
+                    <xs:documentation>Swedish</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IS">
+                <xs:annotation>
+                    <xs:documentation>Icelandic</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NO">
+                <xs:annotation>
+                    <xs:documentation>Norwegian</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="TR">
+                <xs:annotation>
+                    <xs:documentation>Turkish</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="Languages">
+        <xs:list itemType="lsn:LanguageEnum"/>
+    </xs:simpleType>
+</xs:schema>

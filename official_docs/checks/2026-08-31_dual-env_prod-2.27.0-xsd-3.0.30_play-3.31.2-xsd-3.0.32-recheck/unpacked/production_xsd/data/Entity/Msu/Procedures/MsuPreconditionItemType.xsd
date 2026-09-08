@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema
+        targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Precondition/v1"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:precond="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Precondition/v1"
+        elementFormDefault="qualified">
+    <xs:simpleType name="PreconditionTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="QMS"/>
+            <xs:enumeration value="ANNEX_I"/>
+            <xs:enumeration value="RESOLVE_MDR"/>
+            <xs:enumeration value="RESOLVE_IVDR"/>
+            <xs:enumeration value="EU_CERTIFICATE"/>
+            <xs:enumeration value="OTHER"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="MsuPreconditionItemType">
+        <xs:sequence>
+            <xs:element name="preconditionType" minOccurs="1" maxOccurs="1" type="precond:PreconditionTypeEnum"/>
+            <xs:element name="preconditionTypeOtherDescription" minOccurs="0" maxOccurs="1" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MsuPreconditionsItemType">
+        <xs:sequence>
+            <xs:element name="preconditionItem" type="precond:MsuPreconditionItemType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1"
+           xmlns:crtfissued="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:links="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1"
+           xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           xmlns:country="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" schemaLocation="../Common/CountryEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../Device/CommonDeviceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1" schemaLocation="../Device/RegulationDevice/BasicUDIType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1" schemaLocation="../../Entity/Certificate/IssuedCertificateType.xsd"/>
+    <xs:complexType name="EUDICertificateLinkType">
+        <xs:sequence>
+            <xs:element name="certificate" type="links:CertificateIdentifierLinkType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="certificateType" type="links:CertificateTypeEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-60# - Certificate Type (Technical Documentation, Type Examination, etc). When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property defines the type of Product Certificate associate with the Device.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="expiryDate" type="xs:date" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-64# - Expiry Date.When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property stores the Certificate Expiry Date of the Product Certificate
+                        (mandatory only for Directive certificates)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CertificateLinkType">
+        <xs:complexContent>
+            <xs:extension base="links:Link">
+                <xs:sequence>
+                    <xs:element name="certificate" type="links:CertificateIdentifierLinkType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="certificateType" type="links:CertificateTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-60# - Certificate Type (Technical Documentation, Type Examination, etc). When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property defines the type of Product Certificate associate with the Device.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="expiryDate" type="xs:date" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-64# - Expiry Date.When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property stores the Certificate Expiry Date of the Product Certificate
+                                (mandatory only for Directive certificates)
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="issueDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="startValidityDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="certificateStatus" type="crtfissued:CertificateStatusEnum" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="decisionDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="startingApplicabilityDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="DeviceCertificateLinkType">
+        <xs:sequence>
+            <xs:element name="certificateNumber" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-61# - Certificate Number . Property stores the Certificate Number of the Certificate. Attribute is required for Legacy Devices.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="expiryDate" type="xs:date" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-64# - Expiry Date. Property stores the Certificate Expiry Date of the Certificate. Attribute is required for Legacy Devices.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-63# - Notified Body actor code. Property stores the reference to the Notified Body who issued the Certificate.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="certificateRevisionNumber" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-62# - Revision Number. Property stores the Certificate Revision Number of the Certificate.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="certificateType" type="links:GenericCertificateTypeEnum" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-60# - Certificate Type (Technical Documentation, Type Examination, etc). Property defines the type of Product Certificate associate with the Device.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="DeviceRelatedLinkType">
+        <xs:complexContent>
+            <xs:extension base="links:Link">
+                <xs:sequence>
+                    <xs:element name="diIdentifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-180# - Related UDI-DI. UDI-DI related to the current UDI-DI / EUDAMED ID.
+
+                                The reference will be used in order to express the link between a Regulation Device and a Legacy Device (to show that is the same Device). Relationship will be from the Regulation Device to the Legacy Device.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="type" type="links:DeviceRelatedTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-181# - Relationship Type. Type of Relationship created between UDI-DI.
+
+                                The relationships between the different UDI-DI`s can be of several types (defining the business context that implied creating the relationship between these UDI-DI`s)
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="DeviceRelatedTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="LEGACY_REGULATION_DEVICE_LINK"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="EUDICertificateLinksType">
+        <xs:sequence>
+            <xs:element name="certificateLink" type="links:EUDICertificateLinkType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="CertificateTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="IVDR_PRODUCTION_QUALITY_ASSURANCE"/>
+            <xs:enumeration value="IVDR_QUALITY_MANAGEMENT_SYSTEM"/>
+            <xs:enumeration value="IVDR_TECHNICAL_DOCUMENTATION"/>
+            <xs:enumeration value="IVDR_TYPE_EXAMINATION"/>
+            <xs:enumeration value="MDR_PRODUCT_VERIFICATION"/>
+            <xs:enumeration value="MDR_QUALITY_ASSURANCE"/>
+            <xs:enumeration value="MDR_QUALITY_MANAGEMENT_SYSTEM"/>
+            <xs:enumeration value="MDR_TECHNICAL_DOCUMENTATION"/>
+            <xs:enumeration value="MDR_TYPE_EXAMINATION"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="LegacyCertificateTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MDD_II_EX_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex II excluding section 4 (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_II_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex II section 4 (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_III">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex III (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_IV">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex IV (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_V">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex V (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_VI">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex VI (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_II_EX_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 2 excluding section 4 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_II_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 2 section 4 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_III">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 3 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_IV">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 4 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_V">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 5 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_III_6">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex III section 6 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_IV_EX_4_6">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex IV excl. section 4 and 6 (Applicable for IVDD) IVDD_IV_
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_IV_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex IV section 4 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_IV_6">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex IV section 6 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_V">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex V (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_VI">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex VI (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_VII_EX_5">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex VII excluding section 5 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_VII_5">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex VII section 5 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="GenericCertificateTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="IVDR_PRODUCTION_QUALITY_ASSURANCE"/>
+            <xs:enumeration value="IVDR_QUALITY_MANAGEMENT_SYSTEM"/>
+            <xs:enumeration value="IVDR_TECHNICAL_DOCUMENTATION"/>
+            <xs:enumeration value="IVDR_TYPE_EXAMINATION"/>
+            <xs:enumeration value="MDR_PRODUCT_VERIFICATION"/>
+            <xs:enumeration value="MDR_QUALITY_ASSURANCE"/>
+            <xs:enumeration value="MDR_QUALITY_MANAGEMENT_SYSTEM"/>
+            <xs:enumeration value="MDR_TECHNICAL_DOCUMENTATION"/>
+            <xs:enumeration value="MDR_TYPE_EXAMINATION"/>
+
+            <xs:enumeration value="MDD_II_EX_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex II excluding section 4 (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_II_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex II section 4 (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_III">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex III (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_IV">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex IV (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_V">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex V (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_VI">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 93/42/EEC Annex VI (Applicable for MDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_II_EX_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 2 excluding section 4 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_II_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 2 section 4 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_III">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 3 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_IV">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 4 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_V">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 90/385/EEC Annex 5 (Applicable for AIMDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_III_6">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex III section 6 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_IV_EX_4_6">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex IV excl. section 4 and 6 (Applicable for IVDD) IVDD_IV_
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_IV_4">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex IV section 4 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_IV_6">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex IV section 6 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_V">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex V (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_VI">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex VI (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_VII_EX_5">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex VII excluding section 5 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_VII_5">
+                <xs:annotation>
+                    <xs:documentation>
+                        Directive 98/79/EC Annex VII section 5 (Applicable for IVDD)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="CertificateLinksType">
+        <xs:sequence>
+            <xs:element name="certificateLink" type="links:CertificateLinkType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ClinicalInvestigationLinksType">
+        <xs:sequence>
+            <xs:element name="clinicalInvestigationLink" type="links:ClinicalInvestigationLinkType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="DeviceCertificateLinksType">
+        <xs:sequence>
+            <xs:element name="deviceCertificateLink" type="links:DeviceCertificateLinkType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ClinicalInvestigationLinkType">
+        <xs:annotation>
+            <xs:documentation>Clinical Investigation Link Class stores details about the Clinical Investigations performed for the Device in order to create a link to the Clinical Investigations module</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="links:Link">
+                <xs:sequence>
+                    <xs:element name="clinicalInvestigationReference" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-51# - Clinical Investigation reference number. When registering the Device - where applicable, the single identification number of the clinical investigation or investigations conducted in relation to the device or a link to the clinical investigation must be provided. Field stores the Clinical Investigation Number provided by the user when the Clinical Investigation is not registered in EUDAMED.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="nonEUApplicableCountries" type="country:NONEUCountriesType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-300# List of Countries were the Clinical Investigation has been performed. Field is optional and must be provided only for Clinical Investigations performed Outside EU (Non EU Countries only). Several countries codes can be provided in the field, separated by space. Ex: AD AE AM
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CertificateIdentifierLinkType">
+        <xs:sequence>
+            <xs:element name="certificateNumber" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-61# - Certificate Number. When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property stores the Certificate Number of the Product Certificate</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="certificateRevisionNumber" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-62# - Revision Number. When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property stores the Certificate Revision Number of the Product Certificate.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="NBActorCode" type="commonbasic:stringNBActorCodeType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>#FLD-UDID-63# - Notified Body. When registering the Device, for Devices covered by Product certificates, user will have to provide identification details of the Product Certificate covering the Device. Property stores the reference to the Notified Body that issued the Product Certificate.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ActorLinkType">
+        <xs:complexContent>
+            <xs:extension base="links:Link">
+                <xs:sequence>
+                    <xs:element name="actorCode" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="Link" abstract="true">
+        <xs:sequence>
+            <xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Version represent the version of the linked object</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

@@ -109,6 +109,17 @@ SUPPORTED_SERVICES = {
         "after": "适合更改规格、警告、存储条件等 UDI-DI 层数据。国家/市场信息错误应优先通过 update/create new version 修正；只有器械身份、UDI-DI 或 Basic 关联本身错误且无法更新纠正时，才考虑 discard/逻辑删除并重建。",
         "after_en": "Suitable for changing specifications, warnings, storage conditions and other UDI-DI level data. Market information errors should be corrected through update/create new version where possible; discard and re-registration should be reserved for device identity, UDI-DI or Basic linkage errors that cannot be corrected by update.",
     },
+    "PRODUCT_DESIGNER.PUT": {
+        "task_zh": "更新原始制造商信息",
+        "task_en": "Update original manufacturer",
+        "label": "Update product original manufacturer",
+        "scope": "更新已注册器械的原始制造商。",
+        "scope_en": "Update the original manufacturer of a registered device.",
+        "requires": "填写 Product Designer SRN 或组织名称及地址，二选一；不需要 UDI 当前版本号。旧版 Product Designer ID 请留空。",
+        "requires_en": "Provide Product Designer SRN or organisation name and address, exclusively. No UDI current version is required. Leave the deprecated Product Designer ID blank.",
+        "after": "在 EUDAMED 选择 Update product original manufacturer 上传。空白不用于删除；提交前请核对完整组织信息。",
+        "after_en": "Upload using Update product original manufacturer in EUDAMED. Blank values are not a deletion request; review the complete organisation information before submitting.",
+    },
     "MARKET_INFO.PATCH": {
         "task_zh": "更新已注册 UDI-DI 的市场国家 / 上市日期",
         "task_en": "Update market countries / dates for an existing UDI-DI",
@@ -133,13 +144,7 @@ SUPPORTED_SERVICES = {
     },
 }
 
-UNAVAILABLE_SERVICES = [
-    {
-        "label": "Update product original manufacturer",
-        "status": "暂未开放",
-        "status_en": "Not available yet",
-    },
-]
+UNAVAILABLE_SERVICES = []
 
 
 # 字段规格映射：field 名 -> template_schema 列定义，用于详情页按 schema 渲染下拉 / 说明 / 必填
@@ -786,7 +791,7 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
         if result.get("normalized_filename"):
             normalized_link = (
                 f'<p><a class="button primary" href="/download/{esc(result["normalized_filename"])}">'
-                f'{t("下载规范化 v2.12 模板副本", "Download normalized v2.12 workbook")}</a></p>'
+                f'{t("下载规范化 v2.13 模板副本", "Download normalized v2.13 workbook")}</a></p>'
                 f'<p class="muted">{t("原始上传文件未被覆盖；副本保留 Local Record ID 和计算输入，并写入最终 B-/D-/UDI-DI 关联。", "The uploaded workbook was not overwritten. The copy retains Local Record ID and calculation input and fills final B-/D-/UDI-DI links.")}</p>'
             )
         import_id = result.get("import_id")
@@ -1360,7 +1365,7 @@ def service_wizard() -> str:
       var task = document.getElementById('wiz-task');
       if (!kind || !task) return;
       var newTasks = ['DEVICE.POST', 'UDI_DI.POST'];
-      var updateTasks = ['Basic_UDI.PATCH', 'UDI_DI.PATCH', 'MARKET_INFO.PATCH', 'PACKAGE_UDI.PATCH'];
+      var updateTasks = ['Basic_UDI.PATCH', 'UDI_DI.PATCH', 'MARKET_INFO.PATCH', 'PACKAGE_UDI.PATCH', 'PRODUCT_DESIGNER.PUT'];
       function chooseDefault() {{
         var list = kind.value === 'new' ? newTasks : updateTasks;
         if (list.indexOf(task.value) === -1) task.value = list[0];

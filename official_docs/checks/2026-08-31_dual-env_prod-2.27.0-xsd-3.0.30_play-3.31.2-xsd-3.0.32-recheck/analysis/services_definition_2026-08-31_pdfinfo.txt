@@ -1,0 +1,18 @@
+Creator:         Antenna House Formatter V7.4 MR13 Amazon Linux 2 Graviton2 : 7.4.14.68070 (2025-09-19T10:02+09)
+Producer:        Adobe Acrobat (64-bit) 26 Paper Capture Plug-in
+CreationDate:    Tue Apr 21 14:43:43 2026 CST
+ModDate:         Wed May 13 18:43:36 2026 CST
+Custom Metadata: no
+Metadata Stream: yes
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           14
+Encrypted:       no
+Page size:       595.276 x 841.89 pts (A4)
+Page rot:        0
+File size:       9975400 bytes
+Optimized:       no
+PDF version:     1.7

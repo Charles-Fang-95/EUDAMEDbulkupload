@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/EORoleEnum/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+    <xs:simpleType name="EORoleEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MANUFACTURER"/>
+            <xs:enumeration value="AUTHORISED_REPRESENTATIVE"/>
+            <xs:enumeration value="IMPORTER"/>
+            <xs:enumeration value="SYSTEM_PROCEDURE_PACK_PRODUCER"/>
+            <xs:enumeration value="DISTRIBUTOR"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

@@ -61,7 +61,16 @@ def run_with_reloader():
 
 
 if __name__ == "__main__":
-    if getattr(sys, "frozen", False):
+    if "--port" in sys.argv:
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--port", type=int, required=True)
+        parser.add_argument("--no-reload", action="store_true")
+        args = parser.parse_args()
+        if not 1024 <= args.port <= 65535:
+            parser.error("port must be between 1024 and 65535")
+        run_server(port=args.port, max_port_tries=1)
+    elif getattr(sys, "frozen", False):
         run_server()
     elif "--no-reload" in sys.argv or os.environ.get("EUDAMED_RELOAD_CHILD") == "1":
         run_server()

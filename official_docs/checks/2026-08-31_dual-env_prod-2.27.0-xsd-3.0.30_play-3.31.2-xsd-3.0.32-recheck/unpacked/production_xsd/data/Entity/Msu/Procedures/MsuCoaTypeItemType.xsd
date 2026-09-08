@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema
+        targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/CorrectiveAction/CorrectiveActionType/v1"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:coaType="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/CorrectiveAction/CorrectiveActionType/v1"
+        elementFormDefault="qualified">
+    <xs:simpleType name="CorrectiveActionTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="BRING_INTO_COMPLIANCE"/>
+            <xs:enumeration value="FSCA"/>
+            <xs:enumeration value="RESTRICT"/>
+            <xs:enumeration value="SUBJECT_TO_REQUIREMENTS"/>
+            <xs:enumeration value="WITHDRAW"/>
+            <xs:enumeration value="RECALL"/>
+            <xs:enumeration value="OTHER"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="MsuCoaTypeItemType">
+        <xs:sequence>
+            <xs:element name="type" minOccurs="1" maxOccurs="1" type="coaType:CorrectiveActionTypeEnum"/>
+            <xs:element name="typeDescription" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MsuCoaTypesItemType">
+        <xs:sequence>
+            <xs:element name="coaTypeItemType" type="coaType:MsuCoaTypeItemType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

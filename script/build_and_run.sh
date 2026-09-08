@@ -21,15 +21,12 @@ RESOURCE_ROOT="$APP_RESOURCES/EUDAMEDLocalBeta"
 
 pkill -x "$EXECUTABLE_NAME" >/dev/null 2>&1 || true
 
-mkdir -p "$BUILD_CACHE/home" "$BUILD_CACHE/swiftpm" "$BUILD_CACHE/clang-modules"
-export HOME="$BUILD_CACHE/home"
+mkdir -p "$BUILD_CACHE/swiftpm" "$BUILD_CACHE/clang-modules"
 export CLANG_MODULE_CACHE_PATH="$BUILD_CACHE/clang-modules"
-if [[ -d "/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk" ]]; then
-  export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk"
-fi
 
-swift build --package-path "$PACKAGE_DIR" --cache-path "$BUILD_CACHE/swiftpm" --disable-sandbox
-BUILD_BINARY="$(swift build --package-path "$PACKAGE_DIR" --cache-path "$BUILD_CACHE/swiftpm" --disable-sandbox --show-bin-path)/$EXECUTABLE_NAME"
+
+swift build -c release --package-path "$PACKAGE_DIR" --cache-path "$BUILD_CACHE/swiftpm" --disable-sandbox
+BUILD_BINARY="$(swift build -c release --package-path "$PACKAGE_DIR" --cache-path "$BUILD_CACHE/swiftpm" --disable-sandbox --show-bin-path)/$EXECUTABLE_NAME"
 
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS" "$RESOURCE_ROOT"
@@ -53,9 +50,14 @@ copy_item() {
 }
 
 copy_item "$ROOT_DIR/local_beta" "$RESOURCE_ROOT/local_beta"
-copy_item "$ROOT_DIR/EUDAMED_TOOL_v2" "$RESOURCE_ROOT/EUDAMED_TOOL_v2"
-copy_item "$ROOT_DIR/official_docs" "$RESOURCE_ROOT/official_docs"
-copy_item "$ROOT_DIR/EUDAMED_Template_v2.6.xlsx" "$RESOURCE_ROOT/EUDAMED_Template_v2.6.xlsx"
+copy_item "$ROOT_DIR/EUDAMED_TOOL_v2/lib" "$RESOURCE_ROOT/EUDAMED_TOOL_v2/lib"
+copy_item "$ROOT_DIR/EUDAMED_TOOL_v2/validator.py" "$RESOURCE_ROOT/EUDAMED_TOOL_v2/validator.py"
+copy_item "$ROOT_DIR/official_docs/unpacked/xsd_production" "$RESOURCE_ROOT/official_docs/unpacked/xsd_production"
+TOOL_VERSION="$(cd "$ROOT_DIR" && python3 -c 'from local_beta.constants import TOOL_VERSION; print(TOOL_VERSION)')"
+for template in $(cd "$ROOT_DIR" && python3 -c 'from local_beta.constants import TEMPLATE_FILENAME, TEMPLATE_EN_FILENAME; print(TEMPLATE_FILENAME, TEMPLATE_EN_FILENAME)'); do
+  test -f "$ROOT_DIR/$template" || { echo "Missing template: $template" >&2; exit 1; }
+  copy_item "$ROOT_DIR/$template" "$RESOURCE_ROOT/$template"
+done
 copy_item "$ROOT_DIR/run_local_beta.py" "$RESOURCE_ROOT/run_local_beta.py"
 copy_item "$ROOT_DIR/README.md" "$RESOURCE_ROOT/README.md"
 copy_item "$ROOT_DIR/LOCAL_BETA_README.md" "$RESOURCE_ROOT/LOCAL_BETA_README.md"
@@ -86,9 +88,9 @@ cat >"$INFO_PLIST" <<PLIST
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.4</string>
+  <string>$TOOL_VERSION</string>
   <key>CFBundleVersion</key>
-  <string>1</string>
+  <string>$TOOL_VERSION</string>
   <key>LSMinimumSystemVersion</key>
   <string>$MIN_SYSTEM_VERSION</string>
   <key>NSPrincipalClass</key>
@@ -103,6 +105,9 @@ cat >"$INFO_PLIST" <<PLIST
 </dict>
 </plist>
 PLIST
+
+/usr/bin/codesign --force --deep --sign - "$APP_BUNDLE"
+/usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$DIST_DIR/EUDAMED_Local_Beta_Mac_$(uname -m).zip"
 
 open_app() {
   /usr/bin/open -n "$APP_BUNDLE"

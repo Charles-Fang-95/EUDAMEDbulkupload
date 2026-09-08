@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Message/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:m="https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Message/v1" elementFormDefault="qualified">
+	<xs:include schemaLocation="Message/MessageType.xsd"/>
+	<xs:element name="Acknowledgement" type="m:AcknowledgementType"/>
+	<xs:element name="PullRequest" type="m:PullRequestType"/>
+	<xs:element name="PullResponse" type="m:PullResponseType"/>
+	<xs:element name="Push" type="m:PushType"/>
+</xs:schema>

@@ -538,3 +538,74 @@ class SystemProcedurePackProfile(XSDValidationBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class OriginalManufacturerTests(XSDValidationBase):
+    def test_original_manufacturer_service_and_registration(self):
+        variants = [
+            {"Product Designer SRN": "DE-MF-000000002"},
+            {"Product Designer Organisation Name": "Original & Manufacturer", "Product Designer Country": "CN", "Product Designer Post Code": "200000", "Product Designer City": "Shanghai", "Product Designer Street": "Example", "Product Designer Street Number": "12"},
+        ]
+        for profile in WORKING_PROFILES:
+            for values in variants:
+                _, uid = self._seed(profile, version="1", udi_over=values)
+                for service in ("DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "PRODUCT_DESIGNER.PUT"):
+                    with self.subTest(profile=profile, service=service, values=values):
+                        self._assert_valid(service, [uid], "original manufacturer")
+                        doc = ET.fromstring(self._xmls(service, [uid])[0])
+                        self.assertEqual(len(doc.xpath('//*[local-name()="productDesignerActor"]')), 1)
+                        if service == "PRODUCT_DESIGNER.PUT":
+                            self.assertEqual(doc.xpath('//*[local-name()="recipient"]//*[local-name()="serviceOperation"]/text()'), ["PUT"])
+
+    def test_original_manufacturer_invalid_inputs_are_blocked(self):
+        variants = [{}, {"Product Designer ID": "internal-42"},
+                    {"Product Designer SRN": "bad"},
+                    {"Product Designer SRN": "DE-MF-000000002", "Product Designer Organisation Name": "Conflict"},
+                    {"Product Designer Organisation Name": "Org", "Product Designer Country": "CN"},
+                    {"Product Designer Organisation Name": "Org", "Product Designer Country": "XX", "Product Designer Post Code": "1"}]
+        for values in variants:
+            _, uid = self._seed("MDR", udi_over=values)
+            self.assertTrue(self.exporter.validate("PRODUCT_DESIGNER.PUT", [uid])["errors"], values)
+
+    def test_original_manufacturer_pr_is_blocked(self):
+        _, uid = self._seed("PR", udi_over={"Product Designer SRN": "DE-MF-000000002"})
+        for service in ("DEVICE.POST", "PRODUCT_DESIGNER.PUT"):
+            self.assertTrue(self.exporter.validate(service, [uid])["errors"])
+
+    def test_template_import_preserves_original_manufacturer(self):
+        from unittest.mock import patch
+        import openpyxl
+        from local_beta.importer import WorkbookImporter
+        from local_beta.template_schema import ENTRY_SHEETS, RELATED_SHEETS, columns_for_entry_sheet
+        values = {"Nomenclature Code": "W0101", "Product Designer Organisation Name": "Factory <A>", "Product Designer Country": "CN", "Product Designer Post Code": "200000", "Product Designer City": "Shanghai"}
+        _, uid = self._seed("MDR", udi_over=values)
+        item = self.repo.get_udis_by_ids([uid])[0]
+        basic = self.repo.get_basic_by_code(item["basic_code"])["payload"]
+        for filename in (constants.TEMPLATE_FILENAME, constants.TEMPLATE_EN_FILENAME):
+            wb = openpyxl.load_workbook(constants.ROOT_DIR / filename)
+            for sheet in list(ENTRY_SHEETS) + list(RELATED_SHEETS):
+                ws = wb[sheet]
+                for row in ws.iter_rows(min_row=4):
+                    for cell in row:
+                        cell.value = None
+            ws = wb["MDR"]
+            for col, spec in enumerate(columns_for_entry_sheet("MDR"), 1):
+                source = basic if spec["entity"] == "basic" else item["payload"]
+                ws.cell(4, col).value = source.get(spec["field"])
+            market = wb["Market Info"]
+            for col, spec in enumerate(RELATED_SHEETS["Market Info"]["columns"], 1):
+                market.cell(4, col).value = item["market_rows"][0].get(spec["field"])
+            path = self.tmp / filename
+            wb.save(path)
+            imported = Repository(db_path=self.tmp / (filename + ".db"))
+            with patch("local_beta.importer.EXPORT_DIR", self.tmp):
+                result = WorkbookImporter(imported).import_workbook(path)
+            self.assertFalse(result["validation"]["errors"], result["validation"]["errors"])
+            records = imported.list_udis(limit=999)
+            self.assertEqual(len(records), 1, result)
+            row = imported.get_udis_by_ids([records[0]["id"]])[0]
+            for field, value in values.items():
+                self.assertEqual(row["payload"].get(field), value, (filename, field))
+            output = BetaXMLExporter(imported).export("PRODUCT_DESIGNER.PUT", [row["id"]])
+            self.assertFalse(output["errors"])
+            doc = ET.parse(output["file_path"])
+            self.assertTrue(_schema().validate(doc), _schema().error_log)

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" xmlns:comment="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" schemaLocation="CommentType.xsd"/>
+	<xs:complexType name="DecisionType">
+		<xs:sequence>
+			<xs:element name="comments" type="comment:CommentsType" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-MAN-012# - Justification. Mandate assessment justification
+#FLD-ACT-081# - Justification. An assessment justification describing in detail the reason for the outcome actor registration assesment.
+#FLD-UDID-86# - Decision is related to the Confirmation decision taken by the Notified Body regarding the validation/ confirmation of the details entered by the Manufacturer in the Device Data. Field stores the Reason (comment) why a specific Decision has been made.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="date" type="xs:date" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-MAN-013# - Decision date. Mandate assessment date.
+#FLD-ACT-082# - Decision date. The actor registration assessment decision date.
+#FLD-UDID-80# - Decision is related to the Confirmation decision taken by the Notified Body regarding the validation/ confirmation of the details entered by the Manufacturer in the Device Data. Field stores the Date when the decision to validate the link of Certificate with Device has been taken.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ownerActorCode" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-MAN-015# - Decision provider. Account of the user who took the Decision.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DecisionsType">
+		<xs:sequence>
+			<xs:element name="decision" type="dt:DecisionType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

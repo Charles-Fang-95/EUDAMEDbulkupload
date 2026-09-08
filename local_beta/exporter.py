@@ -16,6 +16,10 @@ from .xsd_version import get_tool_xsd_version
 from .storage import Repository
 
 NS = {
+    "pd": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/v1",
+    "pda": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/ProductDesigner/v1",
+    "party": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1",
+    "address": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1",
     "xsi": "http://www.w3.org/2001/XMLSchema-instance",
     "m": "https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Message/v1",
     "s": "https://ec.europa.eu/tools/eudamed/dtx/servicemodel/Service/v1",
@@ -121,6 +125,10 @@ COUNTRY_CODE_MAP = {
 # 官方 XSD occurrence=1 的器械特征布尔字段：留空时工具仍按 false 输出，但预检要提示用户确认，
 # 避免「漏填 Implantable 等于声明非植入」这类无声错报。按法规分组，只对该法规会输出的字段提示。
 MANDATORY_BASIC_BOOLEANS = {
+    "pd": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/v1",
+    "pda": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/ProductDesigner/v1",
+    "party": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1",
+    "address": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1",
     "common_device": [
         "Presence of Human Tissues",
         "Presence of Animal Tissues",
@@ -144,6 +152,10 @@ MANDATORY_BASIC_BOOLEANS = {
     ],
 }
 MANDATORY_UDI_BOOLEANS = {
+    "pd": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/v1",
+    "pda": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/PD/ProductDesigner/v1",
+    "party": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1",
+    "address": "https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1",
     "all": [
         "Single Use Device",
         "Device Labelled as Sterile",
@@ -210,6 +222,8 @@ class BetaXMLExporter:
         service_type = batch["service_type"]
         if service_type == "Basic_UDI.PATCH":
             return self._build_basic_patch(records)
+        if service_type == "PRODUCT_DESIGNER.PUT":
+            return self._build_product_designer_put(records)
         if service_type == "MARKET_INFO.PATCH":
             return self._build_market_info_patch(records)
         if service_type == "PACKAGE_UDI.PATCH":
@@ -320,7 +334,7 @@ class BetaXMLExporter:
             errors.append("请至少选择一条记录。")
 
         selected_records = []
-        if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "MARKET_INFO.PATCH", "PACKAGE_UDI.PATCH"}:
+        if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "MARKET_INFO.PATCH", "PACKAGE_UDI.PATCH", "PRODUCT_DESIGNER.PUT"}:
             udis = self.repository.get_udis_by_ids(record_ids)
             selected_records = udis
             if len(udis) != len(record_ids):
@@ -370,6 +384,8 @@ class BetaXMLExporter:
                             self._validate_basic_enum_fields(errors, basic["basic_code"], basic["payload"])
                             self._validate_cmr_rows(errors, basic["basic_code"], basic.get("cmr_rows") or [])
                             self._warn_blank_basic_booleans(warnings, basic["basic_code"], basic["payload"])
+                if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "PRODUCT_DESIGNER.PUT"}:
+                    self._validate_product_designer(errors, item, required=service_type == "PRODUCT_DESIGNER.PUT")
                 if service_type == "MARKET_INFO.PATCH":
                     self._validate_market_rows(errors, item, require_rows=True)
                 if service_type == "PACKAGE_UDI.PATCH":
@@ -766,6 +782,7 @@ class BetaXMLExporter:
             "Basic_UDI.PATCH": "device:BasicUDI",
             "MARKET_INFO.PATCH": "mktinfo:DTXMarketInfo",
             "PACKAGE_UDI.PATCH": "device:DTXPackageUDI",
+            "PRODUCT_DESIGNER.PUT": "pd:DTXProductDesigner",
         }.get(service_type, "device:UDIDIData")
 
     def _plan_device_post_batches(self, records: list[dict]) -> list[dict]:
@@ -1112,6 +1129,70 @@ class BetaXMLExporter:
             sender_operation="GET",
         )
 
+    def _validate_product_designer(self, errors, item, required=False):
+        data = item["payload"]
+        values = {k: str(v or "").strip() for k, v in data.items() if k.startswith("Product Designer ")}
+        srn = values.get("Product Designer SRN", "")
+        name = values.get("Product Designer Organisation Name", "")
+        details = any(v for k, v in values.items() if k not in {"Product Designer SRN", "Product Designer ID"})
+        prefix = f"UDI-DI {item['udi_code']} Original manufacturer: "
+        if values.get("Product Designer ID"):
+            errors.append(prefix + "Product Designer ID 是旧版内部字段，不能上传；请使用 SRN 或组织名称。")
+        if not (srn or name or details):
+            if required:
+                errors.append(prefix + "请填写 SRN 或组织名称；空白不会用于删除原始制造商。")
+            return
+        if self._profile(item.get("basic_payload") or data) == "PR":
+            errors.append(prefix + "System / Procedure Pack 暂不支持原始制造商上传。")
+        if srn and details:
+            errors.append(prefix + "SRN 与组织信息只能选择一种，不能同时填写。")
+        if srn and (not re.fullmatch(r"[A-Z]{2}-MF-[0-9]{9}", srn) or srn[:2] not in ENUM_SOURCES["designer_country"]):
+            errors.append(prefix + "请填写制造商 Actor ID/SRN（例如 DE-MF-000000001）。")
+        if details and not name:
+            errors.append(prefix + "组织信息必须包含 Organisation Name。")
+        address_fields = ("Country", "Post Code", "City", "Street", "Street Number")
+        if any(values.get("Product Designer " + f) for f in address_fields):
+            if not values.get("Product Designer Country") or not values.get("Product Designer Post Code"):
+                errors.append(prefix + "填写地址时 Country 和 Post Code 必填。")
+        country = values.get("Product Designer Country")
+        if country and country not in ENUM_SOURCES["designer_country"]:
+            errors.append(prefix + "Country 必须为官方国家代码。")
+        for field, limit in (("Organisation Name", 2000), ("City", 500), ("Street", 500), ("Post Code", 120), ("Street Number", 120)):
+            if len(values.get("Product Designer " + field, "")) > limit:
+                errors.append(prefix + f"{field} 超过 {limit} 字符。")
+
+    def _append_product_designer(self, parent, data, prefix="udidi"):
+        srn = str(data.get("Product Designer SRN") or "").strip()
+        name = str(data.get("Product Designer Organisation Name") or "").strip()
+        if not (srn or name):
+            return
+        actor = ET.SubElement(parent, qn(prefix, "productDesignerActor"))
+        if srn:
+            self._text(actor, "udidi", "productDesignerActorCode", srn)
+            return
+        organisation = ET.SubElement(actor, qn("udidi", "productDesignerOrganisation"))
+        if data.get("Product Designer Country"):
+            address = ET.SubElement(organisation, qn("party", "geographicAddress"))
+            for field, tag in (("City", "city"), ("Country", "country"), ("Post Code", "postCode"), ("Street", "street"), ("Street Number", "streetNum")):
+                self._text(address, "address", tag, data.get("Product Designer " + field))
+        text = ET.SubElement(organisation, qn("udidi", "organizationName"))
+        self._text(text, "lsn", "language", "ANY")
+        self._text(text, "lsn", "textValue", name)
+
+    def _build_product_designer_put(self, udis):
+        nodes = []
+        for item in udis:
+            node = ET.Element(qn("pd", "DTXProductDesigner"))
+            data = item["payload"]
+            self._append_identifier(node, "pda", "uDIDIIdentifier", data.get("UDI-DI Code"), data.get("UDI-DI Issuing Entity"))
+            self._append_product_designer(node, data, prefix="pda")
+            nodes.append(node)
+        return self._build_push_message(
+            recipient_service_id="PRODUCT_DESIGNER", recipient_operation="PUT",
+            payload_nodes=nodes, sender_code=self._sender_code_from_udi_rows(udis),
+            sender_service_id="REPLY_SERVICE", sender_operation="GET",
+        )
+
     def _build_market_info_patch(self, udis: list[dict]):
         payload_nodes = [self._build_market_info_node(item) for item in udis]
         sender_code = self._sender_code_from_udi_rows(udis)
@@ -1448,6 +1529,8 @@ class BetaXMLExporter:
         self._append_device_marking(parent, data)
         if profile in {"MDR", "IVDR"} and self._has_value(data.get("Quantity of Device")):
             self._text(parent, "udidi", "baseQuantity", data.get("Quantity of Device"))
+
+        self._append_product_designer(parent, data)
 
         if profile == "MDR":
             self._append_annex_xvi(parent, item.get("annex_xvi_rows") or [])

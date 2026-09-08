@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+    <xs:simpleType name="ApplicableLegislationType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MDR">
+                <xs:annotation>
+                    <xs:documentation>REGULATION (EU) 2017/745 on medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDR">
+                <xs:annotation>
+                    <xs:documentation>REGULATION (EU) 2017/746 on in vitro diagnostic medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD">
+                <xs:annotation>
+                    <xs:documentation>Council Directive 93/42/EEC on Medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD">
+                <xs:annotation>
+                    <xs:documentation>Council Directive 90/385/EEC - Approximation of the laws of the Member States relating to active implantable medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD">
+                <xs:annotation>
+                    <xs:documentation>Directive 98/79/EC on in vitro diagnostic medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="OCMApplicableLegislationType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MDR">
+                <xs:annotation>
+                    <xs:documentation>REGULATION (EU) 2017/745 on medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD">
+                <xs:annotation>
+                    <xs:documentation>Council Directive 93/42/EEC on Medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD">
+                <xs:annotation>
+                    <xs:documentation>Council Directive 90/385/EEC - Approximation of the laws of the Member States relating to active implantable medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD">
+                <xs:annotation>
+                    <xs:documentation>Directive 98/79/EC on in vitro diagnostic medical devices</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NONE">
+                <xs:annotation>
+                    <xs:documentation>None</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

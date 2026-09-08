@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/DICertificateDecision/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dicertificate="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/DICertificateDecision/v1" xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" xmlns:crtfissued="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1" xmlns:dt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../Device/CommonDeviceType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" schemaLocation="../Common/DecisionType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1" schemaLocation="../Certificate/IssuedCertificateType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+	<xs:complexType name="DICertificateDecisionType">
+		<xs:complexContent>
+			<xs:extension base="e:Entity">
+				<xs:sequence>
+					<xs:element name="certificateIdentitfier" type="crtfissued:CertificateIdentifierType" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="decision" type="dt:DecisionType" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="DIIdentifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

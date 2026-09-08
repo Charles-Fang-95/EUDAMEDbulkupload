@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:party="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1" xmlns:address="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1" xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" xmlns:country="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Country/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1" schemaLocation="AddressType.xsd"/>
+	<xs:element name="Person" type="party:PersonType"/>
+	<xs:element name="Organisation" type="party:OrganisationType"/>
+	<xs:complexType name="PartyType" abstract="true">
+		<xs:sequence>
+			<xs:element name="geographicAddress" type="address:GeographicAddressType" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>FLD-EUD-029</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contactsDetails" type="address:ElectronicContactsType" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>FLD-EUD-026</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="OrganisationType">
+		<xs:complexContent>
+			<xs:extension base="party:PartyType">
+				<xs:sequence>
+					<xs:element name="names" type="lsn:LanguageSpecificTextsType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-023# - Organisation name. Multilingual organisation names of the actor.
+#FLD-UDID-225# - Name. Details of the Product Designer (Original Manufacturer) who Manufactured (produced) or Designed the Device. Field stores the Name of the Organisation (Manufacturer) that designed and manufactured the Device (UDI-DI). Required in case the PD Organisation link is provided (ProductDesignerLink relates to an Organisation)</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="nationalTraderRegistry" type="commonbasic:stringMType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-031# - National Trade register. National Trade Register Id.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="shortNames" type="lsn:LanguageSpecificTextsType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-024# - Abbreviated Name. Multilingual organisation abbreviated names of the actor.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="PersonType">
+		<xs:complexContent>
+			<xs:extension base="party:PartyType">
+				<xs:sequence>
+					<xs:element name="firstName" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-021# - Contact first name. The actor's private contact person.
+#FLD-ACT-049# - Regulatory Responsible Name</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="lastName" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-021# - Contact last name. The actor's private contact person.
+#FLD-ACT-049# - Regulatory Responsible Name</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="responsabilities" type="commonbasic:stringMType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-045# - Responsible for. The domains covered by this regulatory responsible.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="PeopleType">
+		<xs:sequence>
+			<xs:element name="person" type="party:PersonType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

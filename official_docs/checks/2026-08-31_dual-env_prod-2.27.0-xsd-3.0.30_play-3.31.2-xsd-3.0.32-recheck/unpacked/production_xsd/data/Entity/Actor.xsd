@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:actor="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+		   xmlns:actorrel="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/Relationship/v1"
+		   elementFormDefault="qualified">
+
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/Relationship/v1" schemaLocation="Actor/RelationshipType.xsd"/>
+	<xs:include schemaLocation="Actor/ActorType.xsd"/>
+
+	<xs:element name="NONEUMFActor" type="actor:NONEUMFActorType"/>
+	<xs:element name="EUMFActor" type="actor:EUMFActorType"/>
+	<xs:element name="ARActor" type="actor:ARActorType"/>
+	<xs:element name="PRActor" type="actor:PRActorType"/>
+	<xs:element name="Mandate" type="actorrel:MandateType"/>
+	<xs:element name="IMActor" type="actor:IMActorType"/>
+	<xs:element name="EOActor" type="actor:EOActorType"/>
+	<xs:element name="Actor" type="actor:ActorType"/>
+	<xs:element name="SPActor" type="actor:SPActorType"/>
+
+</xs:schema>
+

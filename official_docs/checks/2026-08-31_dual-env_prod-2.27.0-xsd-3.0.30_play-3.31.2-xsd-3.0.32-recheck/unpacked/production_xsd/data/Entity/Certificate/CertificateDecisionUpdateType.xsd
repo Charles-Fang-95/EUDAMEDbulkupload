@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/CertificateDecisionUpdate/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:crtfdecisionupdate="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/CertificateDecisionUpdate/v1"
+           xmlns:dt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+           elementFormDefault="qualified">
+
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Certificate/IssuedCertificate/v1" schemaLocation="IssuedCertificateType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" schemaLocation="../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" schemaLocation="../Common/DecisionType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../Common/LanguageSpecificNameType.xsd"/>
+    <xs:complexType name="CertificateStatusChangeDecisionType">
+        <xs:complexContent>
+            <xs:extension base="dt:DecisionType">
+                <xs:sequence>
+                    <xs:element name="statusChangeDecisionDocuments" type="doct:DocumentsType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="statusChangeReason" type="crtfdecisionupdate:CertificateStatusChangeReasonEnum" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element name="startApplicabilityDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="otherChangeReason" type="lsn:LanguageSpecificTextsType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="CertificateStatusChangeReasonEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="AMENDED_MNF_AR_CHANGE">
+                <xs:annotation>
+                    <xs:documentation>Editorial change of manufacturer/authorized representative</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AMENDED_MNF_DATA_CHANGE">
+                <xs:annotation>
+                    <xs:documentation>Change of manufacturer's data</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AMENDED_AR_DATA_CHANGE">
+                <xs:annotation>
+                    <xs:documentation>Change of Authorised representative's data</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AMENDED_AR_SRN_CHANGE">
+                <xs:annotation>
+                    <xs:documentation>Change of Authorised representative (SRN)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AMENDED_OTHER">
+                <xs:annotation>
+                    <xs:documentation>Other</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CANCELLED_OTHER">
+                <xs:annotation>
+                    <xs:documentation>Other</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_CHANGES_BEFORE_APPROVAL">
+                <xs:annotation>
+                    <xs:documentation>Compliance: substantial changes implemented before approval</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_FAILURE_NON_CONFORMITIES">
+                <xs:annotation>
+                    <xs:documentation>Compliance: failure to close non-conformities</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_FAILURE_QUALITY_MANAGEMENT">
+                <xs:annotation>
+                    <xs:documentation>Compliance: Quality Management System failure</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_PRODUCT_QUALITY_ISSUES">
+                <xs:annotation>
+                    <xs:documentation>Compliance: product quality issues</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_MDR_IVDR_REQ_NOT_MET">
+                <xs:annotation>
+                    <xs:documentation>Compliance: Requirements of the MDR/IVDR Regulations not met</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_NOT_ON_MARKET">
+                <xs:annotation>
+                    <xs:documentation>Product: obsolete – no longer placed on the market</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_PRODUCT_RECLASSIFIED">
+                <xs:annotation>
+                    <xs:documentation>Product: has been reclassified</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_REDUCE_SCOPE">
+                <xs:annotation>
+                    <xs:documentation>NB reduces certificate scope</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="RESTRICTED_OTHER">
+                <xs:annotation>
+                    <xs:documentation>Other</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUPPLEMENTED_DEVICE_GROUP">
+                <xs:annotation>
+                    <xs:documentation>Product: add a device(s)/group of device(s)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUPPLEMENTED_CHANGE_APPROVED">
+                <xs:annotation>
+                    <xs:documentation>Product: change to the approved type/device</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUPPLEMENTED_OTHER">
+                <xs:annotation>
+                    <xs:documentation>Other</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUSPENDED_CHANGES_BEFORE_APPROVAL">
+                <xs:annotation>
+                    <xs:documentation>Compliance: substantial changes implemented before approval</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUSPENDED_FAILURE_NON_CONFORMITIES">
+                <xs:annotation>
+                    <xs:documentation>Compliance: failure to close non-conformities</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUSPENDED_FAILURE_QUALITY_MANAGEMENT">
+                <xs:annotation>
+                    <xs:documentation>Compliance: Quality Management System failure</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUSPENDED_PRODUCT_QUALITY_ISSUES">
+                <xs:annotation>
+                    <xs:documentation>Compliance: product quality issues</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUSPENDED_MDR_IVDR_REQ_NOT_MET">
+                <xs:annotation>
+                    <xs:documentation>Compliance: Requirements of the MDR/IVDR Regulations not met</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUSPENDED_FAILURE_CONTRACTUAL_OBLIGATIONS">
+                <xs:annotation>
+                    <xs:documentation>Client: fails to meet contractual obligations</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SUSPENDED_OTHER">
+                <xs:annotation>
+                    <xs:documentation>Other</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_CHANGES_BEFORE_APPROVAL">
+                <xs:annotation>
+                    <xs:documentation>Compliance: substantial changes implemented before approval</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_FAILURE_NON_CONFORMITIES">
+                <xs:annotation>
+                    <xs:documentation>Compliance: failure to close non-conformities</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_FAILURE_QUALITY_MANAGEMENT">
+                <xs:annotation>
+                    <xs:documentation>Compliance: Quality Management System failure</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_PRODUCT_QUALITY_ISSUES">
+                <xs:annotation>
+                    <xs:documentation>Compliance: product quality issues</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_MDR_IVDR_REQ_NOT_MET">
+                <xs:annotation>
+                    <xs:documentation>Compliance: Requirements of the MDR/IVDR Regulations not met</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_NOT_ON_MARKET">
+                <xs:annotation>
+                    <xs:documentation>Product: obsolete – no longer placed on the market</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_PRODUCT_CLASSIFIED">
+                <xs:annotation>
+                    <xs:documentation>Product: has been reclassified</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_NOT_LEGAL_MANUFACTURER">
+                <xs:annotation>
+                    <xs:documentation>Client: is no longer the legal manufacturer</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_TRANSFERRED_TO_OTHER_NB">
+                <xs:annotation>
+                    <xs:documentation>Client: has transferred to another NB</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_FAILURE_CONTRACTUAL_OBLIGATIONS">
+                <xs:annotation>
+                    <xs:documentation>Client: fails to meet contractual obligations</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WITHDRAWN_OTHER">
+                <xs:annotation>
+                    <xs:documentation>Other</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="REINSTATED_ISSUE_RESOLVED">
+                <xs:annotation>
+                    <xs:documentation>Certificate re-instated as issue now resolved</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="REINSTATED_OTHER">
+                <xs:annotation>
+                    <xs:documentation>Other</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

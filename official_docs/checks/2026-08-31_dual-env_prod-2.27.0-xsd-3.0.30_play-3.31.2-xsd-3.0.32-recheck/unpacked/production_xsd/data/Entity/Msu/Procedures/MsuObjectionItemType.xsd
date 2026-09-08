@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Objection/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:objct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Objection/v1"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:vd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1" schemaLocation="../VersionDataType.xsd"/>
+    <xs:simpleType name="ObjectionStatusEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PROPOSED"/>
+            <xs:enumeration value="WITHDRAWN"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="MsuObjectionItemType">
+        <xs:complexContent>
+            <xs:extension base="vd:VersionDataType">
+                <xs:sequence>
+                    <xs:element name="procedureIdentifier" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                    <xs:element name="measureIdentifier" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                    <xs:element name="identifier" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="localCaObjectionReference" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="justification" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="status" minOccurs="1" maxOccurs="1" type="objct:ObjectionStatusEnum"/>
+                    <xs:element name="initiatingCa" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="justificationDocument" type="doct:DocumentType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MsuObjectionsItemType">
+        <xs:sequence>
+            <xs:element name="objectionItem" type="objct:MsuObjectionItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

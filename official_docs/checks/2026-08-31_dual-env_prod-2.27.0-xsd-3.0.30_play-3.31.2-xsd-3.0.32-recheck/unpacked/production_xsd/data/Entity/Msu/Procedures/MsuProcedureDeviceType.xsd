@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/ProcedureDevice/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:pd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/ProcedureDevice/v1"
+           xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:legislation="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1"
+           xmlns:riskclass="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1"
+           xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+           xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../../Device/CommonDeviceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Legislation/v1" schemaLocation="../../Common/LegislationType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" schemaLocation="../../Common/RiskClassEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../../Common/LanguageSpecificNameType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" schemaLocation="../../Device/RegulationDevice/UDIDIType.xsd"/>
+    <xs:simpleType name="MsuDeviceScopeType">
+        <xs:annotation>
+            <xs:documentation>
+                The device scope type, it can be either UDI-DI/EUDAMED ID, Basic UDI-DI/EUDAMED DI, Name, Category, Production identifier
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="UDI"/>
+            <xs:enumeration value="BUDI"/>
+            <xs:enumeration value="Name"/>
+            <xs:enumeration value="Category"/>
+            <xs:enumeration value="UDIPI"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="MsuUdiPiTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="BATCH_NUMBER"/>
+            <xs:enumeration value="SERIALISATION_NUMBER"/>
+            <xs:enumeration value="MANUFACTURING_DATE"/>
+            <xs:enumeration value="EXPIRATION_DATE"/>
+            <xs:enumeration value="SOFTWARE_IDENTIFICATION"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="EMDNType">
+        <xs:sequence>
+            <xs:element name="code" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="description" type="lsn:LanguageSpecificTextsType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="emdns">
+        <xs:sequence>
+            <xs:element name= "emdnType" type="pd:EMDNType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LinkedEconomicOperatorType">
+        <xs:sequence>
+            <xs:element name="registered" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="registeredEO" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="srn" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="nonRegisteredEO" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="identifier" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LinkedEconomicOperatorsType">
+        <xs:sequence>
+            <xs:element name= "linkedEO" type="pd:LinkedEconomicOperatorType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MsuProcedureDeviceType">
+        <xs:sequence>
+            <xs:element name="registered" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="deviceScopeType" type="pd:MsuDeviceScopeType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="piType" type="pd:MsuUdiPiTypeEnum" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="piValue" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="deviceIdentifierKnown" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="registeredDevice" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="diIdentifierCode" type="commondi:DIIdentifierType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="nonRegisteredDevice" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="emdns" type="pd:emdns" minOccurs="0" maxOccurs="1"/>
+                        <xs:element name="tradeName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                        <xs:element name="applicableLegislation" minOccurs="1" maxOccurs="1" type="legislation:ApplicableLegislationType"/>
+                        <xs:element name="riskClass" minOccurs="1" maxOccurs="1" type="riskclass:RiskClassEnum"/>
+                        <xs:element name="budiCode" type="xs:string" minOccurs="0"/>
+                        <xs:element name="budiIssuingEntity" minOccurs="0" type="udidi:IssuingEntityTypeEnum"/>
+                        <xs:element name="udiCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                        <xs:element name="udiIssuingEntity" minOccurs="0" maxOccurs="1" type="udidi:IssuingEntityTypeEnum"/>
+                        <xs:element name="deviceModel" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                        <xs:element name="deviceName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="linkedToEo" minOccurs="0" maxOccurs="1" type="xs:boolean"/>
+            <xs:element name="linkedEconomicOperators" minOccurs="0" maxOccurs="1" type="pd:LinkedEconomicOperatorsType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ProcedureDevicesType">
+        <xs:sequence>
+            <xs:element name="procedureDeviceType" type="pd:MsuProcedureDeviceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

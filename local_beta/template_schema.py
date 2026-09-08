@@ -12,7 +12,7 @@ COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.12"
+TEMPLATE_VERSION = "v2.13"
 
 
 _FORMAT_EN = {
@@ -105,8 +105,14 @@ _DESCRIPTION_EN_OVERRIDES = {
     "Trade Name Language": "Language for the quick trade name column. ANY means no specific language is declared; it does not translate the name and does not limit you to one trade name.",
     "Additional Information URL": "Official FLD-UDID-174 URL for additional information. It is exported as udidi:website. It may point to a product information page or eIFU webpage, but EUDAMED DTX does not provide a separate eIFU URL field.",
     "Reference Number": "Reference / catalogue number. Required in EUDAMED XML.",
-    "Product Designer SRN": "Product designer / original manufacturer SRN. The separate update service is not implemented yet.",
-    "Product Designer ID": "Product designer internal ID. The separate update service is not implemented yet.",
+    "Product Designer SRN": "Original manufacturer Actor ID/SRN; choose SRN or organisation details. Supports registration and PRODUCT_DESIGNER.PUT.",
+    "Product Designer Organisation Name": "Original manufacturer organisation name; choose this or SRN.",
+    "Product Designer Country": "Original manufacturer country code; required when providing an address.",
+    "Product Designer Post Code": "Original manufacturer postal code; required when providing an address.",
+    "Product Designer City": "Original manufacturer city.",
+    "Product Designer Street": "Original manufacturer street.",
+    "Product Designer Street Number": "Original manufacturer street number.",
+    "Product Designer ID": "Deprecated internal ID; leave blank. Use Product Designer SRN or Organisation Name.",
     "PI Lot/Batch Number": "Conditional: for MDR/IVDR Regulation Device or SPP, indicate whether this UDI-PI type applies. Not exported for MDD/AIMDD/IVDD Legacy.",
     "PI Expiration Date": "Conditional: for MDR/IVDR Regulation Device or SPP, indicate whether this UDI-PI type applies. Not exported for MDD/AIMDD/IVDD Legacy.",
     "PI Manufacturing Date": "Conditional: for MDR/IVDR Regulation Device or SPP, indicate whether this UDI-PI type applies. Not exported for MDD/AIMDD/IVDD Legacy.",
@@ -447,8 +453,14 @@ MAIN_COLUMNS = [
     _col("UDI", "UDI - Trade Name Language", "udi", "Trade Name Language", False, "language_any", "商品名快捷列语言。ANY 表示不限定具体语言；不会自动翻译，也不代表只能有一个 Trade Name。多语言/多个商品名请使用 Trade Names sheet。", "ANY", "下拉选择", requirement="conditional"),
     _col("UDI", "UDI - Additional Information URL / eIFU webpage", "udi", "Additional Information URL", False, None, "官方字段 FLD-UDID-174：URL for additional information，会输出到 XML 的 udidi:website。可填写产品信息页或 eIFU 网页入口，但 EUDAMED DTX 没有单独 eIFU URL 字段。", "", "URL"),
     _col("UDI", "UDI - Reference Number*", "udi", "Reference Number", True, None, "Reference / Catalogue Number；EUDAMED XML 必填。", "REF-001", "文本"),
-    _col("UDI", "UDI - Product Designer SRN", "udi", "Product Designer SRN", False, None, "产品原始制造商/设计者 SRN；当前独立 update service 未实现。", "", "文本"),
-    _col("UDI", "UDI - Product Designer ID", "udi", "Product Designer ID", False, None, "产品设计者内部 ID；当前独立 update service 未实现。", "", "文本"),
+    _col("UDI", "UDI - Product Designer SRN", "udi", "Product Designer SRN", False, None, "原始制造商 Actor ID/SRN；与组织信息二选一。支持首次注册与 PRODUCT_DESIGNER.PUT。", "", "文本"),
+    _col("UDI", "UDI - Product Designer Organisation Name", "udi", "Product Designer Organisation Name", False, None, "原始制造商组织名称；与 SRN 二选一。", "", "文本"),
+    _col("UDI", "UDI - Product Designer Country", "udi", "Product Designer Country", False, 'designer_country', "原始制造商地址国家代码；填写地址时必填。", "", "文本"),
+    _col("UDI", "UDI - Product Designer Post Code", "udi", "Product Designer Post Code", False, None, "原始制造商地址邮编；填写地址时必填。", "", "文本"),
+    _col("UDI", "UDI - Product Designer City", "udi", "Product Designer City", False, None, "原始制造商城市。", "", "文本"),
+    _col("UDI", "UDI - Product Designer Street", "udi", "Product Designer Street", False, None, "原始制造商街道。", "", "文本"),
+    _col("UDI", "UDI - Product Designer Street Number", "udi", "Product Designer Street Number", False, None, "原始制造商门牌号。", "", "文本"),
+    _col("UDI", "UDI - Product Designer ID", "udi", "Product Designer ID", False, None, "旧版内部 ID，不可上传，请留空并改填 SRN 或 Organisation Name。", "", "文本"),
     _col("UDI", "UDI - PI Lot/Batch Number", "udi", "PI Lot/Batch Number", False, "boolean", "条件填写：MDR/IVDR Regulation Device 或 SPP 需要声明适用的 UDI-PI 类型时填写 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出。", "TRUE", "TRUE / FALSE", requirement="conditional"),
     _col("UDI", "UDI - PI Expiration Date", "udi", "PI Expiration Date", False, "boolean", "条件填写：MDR/IVDR Regulation Device 或 SPP 需要声明适用的 UDI-PI 类型时填写 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出。", "TRUE", "TRUE / FALSE", requirement="conditional"),
     _col("UDI", "UDI - PI Manufacturing Date", "udi", "PI Manufacturing Date", False, "boolean", "条件填写：MDR/IVDR Regulation Device 或 SPP 需要声明适用的 UDI-PI 类型时填写 TRUE/FALSE；MDD/AIMDD/IVDD Legacy 不输出。", "TRUE", "TRUE / FALSE", requirement="conditional"),
@@ -616,7 +628,7 @@ ENTRY_SHEETS = OrderedDict(
     }
 )
 
-# v2.4-v2.12 mixed main sheets remain accepted for direct import/migration.
+# v2.4-v2.13 mixed main sheets remain accepted for direct import/migration.
 # They are never generated in the current four-sheet template.
 LEGACY_ENTRY_SHEETS = OrderedDict(
     {
@@ -665,6 +677,7 @@ ENUM_SOURCES = OrderedDict(
         ],
         "language": _xsd_language_values(include_any=False),
         "language_any": _xsd_language_values(include_any=True),
+        "designer_country": _xsd_country_values("CountryEnum"),
         "country_code": _xsd_country_values(),
         "storage_condition": _xsd_enum_values("StorageHandlingConditionEnum", "SHC099"),
         "critical_warning": _xsd_enum_values("CriticalWarningEnum", "CW999"),

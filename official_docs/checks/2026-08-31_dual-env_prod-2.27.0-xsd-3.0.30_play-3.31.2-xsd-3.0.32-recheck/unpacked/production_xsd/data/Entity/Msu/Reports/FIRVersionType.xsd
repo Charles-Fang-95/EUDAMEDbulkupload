@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/FIRVersionType/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:r="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDataType/v1"
+           xmlns:fir="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/FIRVersionType/v1"
+           xmlns:eoType="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/MSUEconomicOperatorType/v1"
+           xmlns:rd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDocumentType/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDataType/v1" schemaLocation="ReportDataType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/EORoleEnum/v1" schemaLocation="../EORoleEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/MSUEconomicOperatorType/v1" schemaLocation="../MSUEconomicOperatorType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Reports/ReportDocumentType/v1" schemaLocation="ReportDocumentType.xsd"/>
+    <xs:complexType name="FIRVersionType">
+        <xs:complexContent>
+            <xs:extension base="r:ReportDataType">
+                <xs:sequence>
+                    <xs:element name="MSUEconomicOperatorType" type="eoType:MSUEconomicOperatorType" minOccurs="1" maxOccurs="unbounded"/>
+                    <xs:element name="NBCode" minOccurs="0" maxOccurs="unbounded" type="xs:string">
+                    </xs:element>
+                    <xs:element name="reportDocumentType" type="rd:ReportDocumentType"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:element name="FIRVersionType" type="fir:FIRVersionType"/>
+</xs:schema>

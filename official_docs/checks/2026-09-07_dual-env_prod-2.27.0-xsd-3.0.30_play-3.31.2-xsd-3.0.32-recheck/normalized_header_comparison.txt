@@ -1,0 +1,14 @@
+# 2026-09-07 normalized comparison against 2026-08-31
+
+Compared fields: final HTTP status, Last-Modified, ETag, Content-Length, Content-Type.
+Excluded volatile response Date and transport/proxy headers.
+
+- Production technical-documentation page: unchanged; body SHA-256 dd4ccd2a378b3dd7b941244d70a80e3774bd50512387ac188052b64bbc567dbe.
+- Production M2M support page: unchanged; body SHA-256 cdf07cb13b8620ae2ffeec9d00b12c756de209f4308d802e3008660ba9e3f0e2.
+- Playground technical-documentation page: unchanged; body SHA-256 75c052355b3d4238d61ac61d46bd10886e64e6b9541766f4e156ab8d169dba25.
+- Production /en/files/ resources (XSD, EO samples, data dictionary, business rules, enumerations, services definition): all tracked fields unchanged.
+- Playground /en/files/ resources (same six): all tracked fields unchanged.
+- Advertised /en/documentation/ artifact URLs: 12/12 still HTTP 404.
+- Verified /en/files/ artifact URLs: 12/12 HTTP 200 with expected content types.
+
+Decision: metadata-only recheck. No artifact was re-downloaded; checksum-verified prior snapshots and manifests were reused.

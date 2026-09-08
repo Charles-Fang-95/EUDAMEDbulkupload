@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+		   xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:actor="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/v1"
+		   xmlns:actorrel="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/Relationship/v1"
+		   xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+		   xmlns:party="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1"
+		   xmlns:links="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1"
+		   elementFormDefault="qualified">
+
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/Relationship/v1" schemaLocation="RelationshipType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1" schemaLocation="../Party/Party.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" schemaLocation="../Links/LinkType.xsd"/>
+
+	<xs:complexType name="ActorType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>Stores Core data of an actor
+				Is identified by a Single Registration Number
+				An Organisation registered in Eudamed in order to act with a specific Actor role.
+				Organisations acting with more than one role are registered in Eudamed as distinct Actors, one per role.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="e:Entity">
+				<xs:sequence>
+					<xs:element name="actorCode" type="commonbasic:stringSRNType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-001# - Description: Actor Identifier (of SRN pattern type for Economic Operators and Sponsors)</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="statusFromDate " type="xs:date" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-002# - Activity Cease Date. The date when an actor has been desactivated</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="statusChangeReason" type="xs:string" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-0XX# - Description: Reason that the Actor provides when he Deactivates or Re-Activates himself
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="actorStatus" type="actor:ActorStatusEnum" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>The actor status, ACTIVE when REGISTERED, actor can set status as INACTIVE.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="contactPerson" type="party:PersonType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-035# Organisation Contact. Contact person information for the organisation</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="organisation" type="party:OrganisationType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-008# - Organisation. All actors within the system are representing an organisation containing contact information and address information</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="responsableCA" type="links:ActorLinkType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-012# - Responsible CA.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="ActorStateEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="DRAFT"/>
+			<xs:enumeration value="NANDO_INPUT"/>
+			<xs:enumeration value="REGISTERED"/>
+			<xs:enumeration value="TERMINATED"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="ActorStatusEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ACTIVE"/>
+			<xs:enumeration value="INACTIVE"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:complexType name="EOActorType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>#FLD-ACT-004# - Actor roles. An actor is of a specific type and defines what information is required in Eudamed so operations can be performed within the system. Each actor type has a set of tasks. A predefined set of actor types has been defined based on the system requirements.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="actor:ActorType">
+				<xs:sequence>
+					<xs:element name="EORI" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-030# - Economic Operators Registration and Identification number (applies only to Economic Operators).</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="lastConfirmation" type="xs:dateTime" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-005# - Last actor detail confirmation date. This date contains the last verified actor detail information check performed by the LAA. This is a two yearly requirement imposed to keep the actor information within the system up to date.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="VATCode" type="commonbasic:stringXSType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-ACT-032# - VAT number. The national VAT code attributed by the country of residence of the organisation.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="EUMFActorType">
+		<xs:annotation>
+			<xs:documentation>#FLD-ACT-004# - Actor roles = Manufacturer, from within the EU.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="actor:EOActorType">
+				<xs:sequence>
+					<xs:element name="PRRCPersons" type="party:PeopleType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Ref:#FLD-ACT-006#
+								Description: Person responsible for regulatory compliance.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="ARActorType">
+		<xs:annotation>
+			<xs:documentation>#FLD-ACT-004# - Actor roles = Authorised Representative</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="actor:EOActorType">
+				<xs:sequence>
+					<xs:element name="PRRCPersons" type="party:PeopleType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Economic Operators</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="mandates" type="actorrel:MandatesType" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="IMActorType">
+		<xs:annotation>
+			<xs:documentation>"#FLD-ACT-004# - Actor roles = Importer</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="actor:EOActorType">
+				<xs:sequence>
+					<xs:element name="relationships" type="actorrel:LinkedRelationshipsType" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="PRActorType">
+		<xs:annotation>
+			<xs:documentation>#FLD-ACT-004# - Actor roles = Producer</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="actor:EOActorType">
+				<xs:sequence/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="NONEUMFActorType">
+		<xs:annotation>
+			<xs:documentation>#FLD-ACT-004# - Actor roles = Manufacturer, from without the EU.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="actor:EOActorType">
+				<xs:sequence>
+					<xs:element name="PRRCPersons" type="party:PeopleType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Ref:#FLD-ACT-006#
+								Description: Person responsible for regulatory compliance.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="relationships" type="actorrel:LinkedRelationshipsType" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="mandates" type="actorrel:MandatesType" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="SPActorType">
+		<xs:annotation>
+			<xs:documentation>#FLD-ACT-004# - Actor roles = SP</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="actor:EOActorType">
+				<xs:sequence>
+					<xs:element name="PRRCPersons" type="party:PeopleType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Ref:#FLD-ACT-006#
+								Description: Person responsible for regulatory compliance.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="BaseActorType">
+		<xs:annotation>
+			<xs:documentation>Entity containing Actor code and version</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Version represent the version of the Base Actor Type</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="actorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Description: Actor Identifier (of SRN pattern type)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="ActorCodesType">
+		<xs:sequence>
+			<xs:element name="code" type="commonbasic:stringSRNType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+
+</xs:schema>
+

@@ -14,13 +14,15 @@ if (-not $SkipVenv) {
         py -3 -m venv .venv-win
     }
     & ".\.venv-win\Scripts\python.exe" -m pip install --upgrade pip
-    & ".\.venv-win\Scripts\python.exe" -m pip install pyinstaller
+    & ".\.venv-win\Scripts\python.exe" -m pip install pyinstaller openpyxl et_xmlfile
+    if ($LASTEXITCODE -ne 0) { throw "Build dependency installation failed" }
     $Python = ".\.venv-win\Scripts\python.exe"
 } else {
     $Python = "python"
 }
 
-& $Python -m compileall local_beta
+& $Python -m compileall local_beta EUDAMED_TOOL_v2/validator.py
+if ($LASTEXITCODE -ne 0) { throw "Python compilation failed" }
 
 $ConsoleMode = "--windowed"
 if ($Console) {
@@ -34,12 +36,14 @@ if ($Console) {
     $ConsoleMode `
     --name EUDAMED_Local_Beta `
     --add-data "local_beta;local_beta" `
-    --add-data "EUDAMED_TOOL_v2;EUDAMED_TOOL_v2" `
-    --add-data "official_docs;official_docs" `
-    --add-data "EUDAMED_Template_v2.12.xlsx;." `
-    --add-data "EUDAMED_Template_v2.12_EN.xlsx;." `
+    --add-data "EUDAMED_TOOL_v2/lib;EUDAMED_TOOL_v2/lib" `
+    --add-data "EUDAMED_TOOL_v2/validator.py;EUDAMED_TOOL_v2" `
+    --add-data "official_docs/unpacked/xsd_production;official_docs/unpacked/xsd_production" `
+    --add-data "EUDAMED_Template_v2.13.xlsx;." `
+    --add-data "EUDAMED_Template_v2.13_EN.xlsx;." `
     --add-data "README.md;." `
     run_local_beta.py
+if ($LASTEXITCODE -ne 0) { throw "PyInstaller build failed; refusing to archive stale artifacts" }
 
 $ZipPath = "dist\EUDAMED_Local_Beta_Windows.zip"
 if (Test-Path $ZipPath) {

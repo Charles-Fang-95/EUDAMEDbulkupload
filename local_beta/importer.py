@@ -100,7 +100,7 @@ class WorkbookImporter:
                         "field": "",
                         "value": workbook_path.name,
                         "error_type": "unsupported_template",
-                        "message": "未识别到可导入的 EUDAMED 模板数据。请使用当前 v2.12 的 MDR、MDD_AIMDD、IVDR 或 IVDD 主表。",
+                        "message": "未识别到可导入的 EUDAMED 模板数据。请使用当前 v2.13 的 MDR、MDD_AIMDD、IVDR 或 IVDD 主表。",
                         "suggestion": f"旧模板或客户原始清单不要直接导入；请先迁移/映射到当前 {TEMPLATE_VERSION} 模板字段，确认字段含义后再导入。",
                     }
                 ],
@@ -568,7 +568,7 @@ class WorkbookImporter:
                     "value": "",
                     "warning_type": "LEGACY_EIFU_URL_NOT_OUTPUT",
                     "message": "检测到旧模板字段 UDI - eIFU URL。0.9.6 模板曾明确该字段不输出到 XML；本次导入不会自动把它映射到官方 URL for additional information。",
-                    "suggestion": "如该链接确实需要提交到 EUDAMED，请在当前 v2.12 模板中人工复制到 UDI - Additional Information URL / eIFU webpage 后再导入。",
+                    "suggestion": "如该链接确实需要提交到 EUDAMED，请在当前 v2.13 模板中人工复制到 UDI - Additional Information URL / eIFU webpage 后再导入。",
                 }
             )
 
@@ -887,7 +887,7 @@ class WorkbookImporter:
                     "value": "MDR_MDD / IVDR_IVDD",
                     "warning_type": "TEMPLATE_LAYOUT_MIGRATION",
                     "message": "检测到拆表前的 v2.12 混合主表；本次仍兼容导入，规范化副本会按法规迁移到四个主表。",
-                    "suggestion": "后续请使用包含 MDR、MDD_AIMDD、IVDR、IVDD 的当前 v2.12 模板。",
+                    "suggestion": "后续请使用包含 MDR、MDD_AIMDD、IVDR、IVDD 的当前 v2.13 模板。",
                 }
             )
             return warnings

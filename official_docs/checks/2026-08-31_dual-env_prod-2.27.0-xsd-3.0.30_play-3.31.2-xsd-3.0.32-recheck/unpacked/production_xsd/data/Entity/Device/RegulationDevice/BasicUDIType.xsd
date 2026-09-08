@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:basicudi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/BasicUDI/v1" xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" xmlns:dt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" xmlns:links="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" xmlns:comment="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" xmlns:risk="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1"
+           xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/RiskClass/v1" schemaLocation="../../Common/RiskClassEnum.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../../Common/LanguageSpecificNameType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../../Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" schemaLocation="../../Common/CommentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" schemaLocation="../../Links/LinkType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../CommonDeviceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" schemaLocation="../../Common/DecisionType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../../Entity.xsd"/>
+    <xs:simpleType name="MDRSpecialDeviceTypeEnum">
+        <xs:annotation>
+            <xs:documentation>
+                - Software
+                - Standard soft contact lenses
+                - Rigid Gas Permeable (RGP) &amp; Made-to-Order Soft Contact Lenses
+                - Orthopaedic
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MDR_SOFTWARE">
+                <xs:annotation>
+                    <xs:documentation>Software. Applicable for the following Applicable Legislations : MDR, MDD, AIMDD,IVDR, IVDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDR_STANDARD_SOFT_CONTACT_LENSES">
+                <xs:annotation>
+                    <xs:documentation>Standard soft contact lenses. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDR_RIGID_GAS_PERMEABLE">
+                <xs:annotation>
+                    <xs:documentation>Rigid Gas Permeable (RGP) Contact Lenses. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDR_MADE_TO_ORDER">
+                <xs:annotation>
+                    <xs:documentation>Made to order soft contact lenses. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDR_SPECTACLES_FRAMES">
+                <xs:annotation>
+                    <xs:documentation>Spectacle frames. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDR_SPECTACLES_LENSES">
+                <xs:annotation>
+                    <xs:documentation>Spectacle lenses. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDR_READY_MADE_SPECTACLES">
+                <xs:annotation>
+                    <xs:documentation>Ready-made reading spectacles. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDR_ORTHOPEDIC">
+                <xs:annotation>
+                    <xs:documentation>Orthopedic. Applicable for the following Applicable Legislations : MDR, MDD, AIMDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_SOFTWARE">
+                <xs:annotation>
+                    <xs:documentation>Software. Applicable for the following Applicable Legislations : MDR, MDD, AIMDD,IVDR, IVDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_STANDARD_SOFT_CONTACT_LENSES">
+                <xs:annotation>
+                    <xs:documentation>Standard soft contact lenses. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_RIGID_GAS_PERMEABLE">
+                <xs:annotation>
+                    <xs:documentation>Rigid Gas Permeable (RGP) Contact Lenses. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_MADE_TO_ORDER">
+                <xs:annotation>
+                    <xs:documentation>Made to order soft contact lenses. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_SPECTACLES_FRAMES">
+                <xs:annotation>
+                    <xs:documentation>Spectacle frames. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_SPECTACLES_LENSES">
+                <xs:annotation>
+                    <xs:documentation>Spectacle lenses. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_READY_MADE_SPECTACLES">
+                <xs:annotation>
+                    <xs:documentation>Ready-made reading spectacles. Applicable for the following Applicable Legislations : MDR, MDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MDD_ORTHOPEDIC">
+                <xs:annotation>
+                    <xs:documentation>Orthopedic. Applicable for the following Applicable Legislations : MDR, MDD, AIMDD</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_SOFTWARE">
+                <xs:annotation>
+                    <xs:documentation>SOFTWARE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="AIMDD_ORTHOPEDIC">
+                <xs:annotation>
+                    <xs:documentation>ORTHOPEDIC</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+			<xs:enumeration value="MDR_MADE_TO_ORDER_RIGID_GAS_PERMEABLE">
+				<xs:annotation>
+					<xs:documentation>Made to order Rigid Gas Permeable (RGP) contact lenses. Applicable for the following Applicable Legislations : MDR</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="IVDRApplicablePropertiesType">
+        <xs:sequence>
+            <xs:element name="property" type="basicudi:IVDRApplicablePropertyType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="DeviceSystemProcedurePackTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DEVICE"/>
+            <xs:enumeration value="PROCEDURE_PACK"/>
+            <xs:enumeration value="SYSTEM"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="SystemProcedurePackTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PROCEDURE_PACK"/>
+            <xs:enumeration value="SYSTEM"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="IVDRApplicablePropertyType">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:complexType name="MDRApplicablePropertiesType">
+        <xs:sequence>
+            <xs:element name="property" type="basicudi:MDRApplicablePropertyType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="DeviceBasicUDIType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="basicudi:BasicUDIType">
+                <xs:sequence>
+                    <xs:element name="animalTissuesCells" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-18# - Tissues and cells - Presence of animal tissues or Cells, or their derivates. Property defines if the Device has presence of animal tissues or cells or their derivates.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ARActorCode" type="commonbasic:stringSRNType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-15# - Authorised Representative. The SRN of the Authorised Representative associated with the Basic UDI-DI. For Manufacturers which are not established in the Union (NonEU Manufacturers) providing the Authorised Representative for the Basic UDI-DI is required.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="humanTissuesCells" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-23# - Tissues and cells - presence of human tissues or cells, or their derivates. Property defines if the Device has presence of human tissues or cells or their derivates.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="MFActorCode" type="commonbasic:stringSRNType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-10# - Manufacturer SRN. SRN of the Manufacturer that registers the Device.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ARComments" type="comment:CommentsType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-41# - Comment. Comments made by the Authorised Representative related to the Device.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="clinicalInvestigationLinks" type="links:ClinicalInvestigationLinksType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="deviceCertificateLinks" type="links:DeviceCertificateLinksType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Element will contain the information provided by the Manufacturer regarding the identification details for the Certificates covering the Device.
+                                For Regulation Devices - Device Certificate Information is required to be provided for Devices requiring Notified Body validation  ** (BR-UDID-109 , BR-UDID-110)
+                                For Legacy Devices - Providing the Certificate Information for Devices having Applicable Legislation MDD (MDD, Risk Class I and measuring function= false) or IVDD (IVD General) is optional
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="PRBasicUDIType">
+        <xs:complexContent>
+            <xs:extension base="basicudi:BasicUDIType">
+                <xs:sequence>
+                    <xs:element name="medicinalPurpose" type="lsn:LanguageSpecificTextsType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-260# - Medical Purpose of the Device. Description of the Medical Purpose of the System or Procedure Pack. Field is applicable for System and Procedure Packs and refers to the Indication of the specific medical purpose of the System or Procedure Pack Producer.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="PRActorCode" type="commonbasic:stringSRNType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-44# - System or Procedure Pack Producer SRN. SRN of the System or Procedure Pack Producers that registers the System or Procedure Pack.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="type" type="basicudi:SystemProcedurePackTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-261# - Type of System or Procedure Pack. Type of the System or Procedure Pack.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="BasicUDIType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="e:Entity">
+                <xs:sequence>
+                    <xs:element name="riskClass" type="risk:RiskClassEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-16# - Risk Class. Risk Class of the Device associated with the Basic UDI-DI. Device Risk Class is dependent directly on the Applicable Legislation of the Device.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:choice minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Represents the choice of accepted payload configurations by EUDAMED services.</xs:documentation>
+                        </xs:annotation>
+                        <xs:element name="model" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1">
+                            <xs:annotation>
+                                <xs:documentation>#FLD-UDID-20# - Device Model.
+                                    Information allowing the identification of the device - Device Model.
+                                    At least one of the Device identification details (Device Model or the Device Name) have to be provided for a Basic UDI-DI.
+                                    It Must be provided in case only the information about the Device/System or Procedure Pack Model is available(applicable)
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="modelName" type="commondi:ModelNameGroup" minOccurs="1" maxOccurs="1">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    It must be provided in case the information about the Device/ System or Procedure Pack Name is available (applicable) or when both the Device/ System or Procedure Pack Model and Name are available (applicable)
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:choice>
+                    <xs:element name="identifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="certificateLinks" type="links:CertificateLinksType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Element will contain the details of the actual Certificates linked with the Device in EUDAMED.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="lastUpdated" type="xs:dateTime" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Indicates the date when this entity or the enclosed Clinical Investigation was updated.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="IVDRBasicUDIType">
+        <xs:annotation>
+            <xs:documentation>Class contains the properties of a Device Model (BASIC UDI DI) specific to a device that has IVDR or IVDD as Applicable legislation.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="basicudi:DeviceBasicUDIType">
+                <xs:sequence>
+                    <xs:element name="specialDevice" type="basicudi:IVDRSpecialDeviceTypeEnum" minOccurs="0" maxOccurs="1"/>
+                    <xs:group ref="commondi:IVDApplicablePropertiesGroup" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MDRBasicUDIType">
+        <xs:annotation>
+            <xs:documentation>Class contains the Properties of a Device Model (BASIC UDI DI) specific to a device that has MDR, MDD or AIMDD as Applicable legislation.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="basicudi:DeviceBasicUDIType">
+                <xs:sequence>
+                    <xs:element name="humanProductCheck" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-155# - Presence of a substance which , if used separately, may be considered to be a medicinal product derived from human blood or plasma. Defines if the Device containes substances which may be considered medicinal product derived from human blood or plasma.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="IIb_implantable_exceptions" type="xs:boolean" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-265# - Property defines if the registered Device is sutures, staples, dental fillings, dental braces, tooth crowns, screws, wedges, plates wires, pins, clips and connectors. Property is applicable only for Devices having Risk Class II b and having the property implantable marked.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="medicinalProductCheck" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-158# - Presence of substance which, if used separately, may be considered to be a medicinal product. Defines if the Device containes substances which may be considered medicinal product.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="specialDevice" type="basicudi:MDRSpecialDeviceTypeEnum" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-13# - Special Device Type. Property defines if the Device is a Special Device Type anf if so , the type of Special device Type. In case the Device is a Standard Device having the option System or Procedure Pack (which is a Device in itself) or a System or Procedure Pack - field is not supplied.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="type" type="basicudi:DeviceSystemProcedurePackTypeEnum" minOccurs="1" maxOccurs="1"/>
+                    <xs:group ref="commondi:MDApplicablePropertiesGroup" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="MDRApplicablePropertyType">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="IVDRSpecialDeviceTypeEnum">
+        <xs:annotation>
+            <xs:documentation>
+                - Software
+                - Standard soft contact lenses
+                - Rigid Gas Permeable (RGP) &amp; Made-to-Order Soft Contact Lenses
+                - Orthopaedic
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="IVDR_SOFTWARE">
+                <xs:annotation>
+                    <xs:documentation>SOFTWARE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="IVDD_SOFTWARE">
+                <xs:annotation>
+                    <xs:documentation>SOFTWARE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="OCMIVDSpecialDeviceTypeEnum">
+        <xs:annotation>
+            <xs:documentation>
+                - Software
+                - Standard soft contact lenses
+                - Rigid Gas Permeable (RGP) &amp; Made-to-Order Soft Contact Lenses
+                - Orthopaedic
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="IVDD_SOFTWARE">
+                <xs:annotation>
+                    <xs:documentation>SOFTWARE</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

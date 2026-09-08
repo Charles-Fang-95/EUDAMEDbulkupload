@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:comment="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="LanguageSpecificNameType.xsd"/>
+	<xs:complexType name="CommentsType">
+		<xs:sequence>
+			<xs:element name="comment" type="comment:CommentType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CommentType">
+		<xs:sequence>
+			<xs:element name="date" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="ownerActorCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="text" type="lsn:LanguageSpecificTextType" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

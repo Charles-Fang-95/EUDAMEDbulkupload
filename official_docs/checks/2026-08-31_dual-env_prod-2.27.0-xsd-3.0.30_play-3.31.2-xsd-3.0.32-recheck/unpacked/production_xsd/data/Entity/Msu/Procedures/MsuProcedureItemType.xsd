@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Procedure/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:proc="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Procedure/v1"
+           xmlns:addInfo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/AdditionalInfo/v1"
+           xmlns:mea="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/v1"
+           xmlns:coa="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/CorrectiveAction/v1"
+           xmlns:eo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/MSUEconomicOperatorType/v1"
+           xmlns:pd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/ProcedureDevice/v1"
+           xmlns:vd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1" schemaLocation="../VersionDataType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/v1" schemaLocation="MsuMeasureItemType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/CorrectiveAction/v1" schemaLocation="MsuCorrectiveActionItemType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/AdditionalInfo/v1" schemaLocation="MsuAdditionalInfoItemType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/MSUEconomicOperatorType/v1" schemaLocation="../MSUEconomicOperatorType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/ProcedureDevice/v1" schemaLocation="MsuProcedureDeviceType.xsd"/>
+    <xs:simpleType name="ProcedureTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MDRUNR"/>
+            <xs:enumeration value="MDRONC"/>
+            <xs:enumeration value="MDRPHP"/>
+            <xs:enumeration value="IVDRUNR"/>
+            <xs:enumeration value="IVDRONC"/>
+            <xs:enumeration value="IVDRPHP"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ProcedureStatusEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OPEN"/>
+            <xs:enumeration value="CLOSED"/>
+            <xs:enumeration value="OPEN_WITH_MEASURES"/>
+            <xs:enumeration value="OPEN_WITH_OBJECTIONS"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ProcedureTriggerTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MSU"/>
+            <xs:enumeration value="VIG"/>
+            <xs:enumeration value="FSCA"/>
+            <xs:enumeration value="SAE"/>
+            <xs:enumeration value="PROACTIVE_MS"/>
+            <xs:enumeration value="COMPLAINT"/>
+            <xs:enumeration value="CA_COOPERATION"/>
+            <xs:enumeration value="INFO_NB"/>
+            <xs:enumeration value="COM_DECISION"/>
+            <xs:enumeration value="OTHER"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="NbItemType">
+        <xs:sequence>
+            <xs:element name="actorCode" minOccurs="1" maxOccurs="1" type="xs:string"/>
+            <xs:element name="name" minOccurs="1" maxOccurs="1" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="NotifiedBodiesType">
+        <xs:sequence>
+            <xs:element name="notifiedBody" minOccurs="0" maxOccurs="unbounded" type="proc:NbItemType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TriggerLinkType">
+        <xs:sequence>
+            <xs:element name="code" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="TriggerLinksType">
+        <xs:sequence>
+            <xs:element name="triggerLink" minOccurs="0" maxOccurs="unbounded" type="proc:TriggerLinkType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ProcedureTriggerType">
+        <xs:sequence>
+            <xs:element name="procedureTriggerTypeEnum" type="proc:ProcedureTriggerTypeEnum" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="triggerTypeOtherDescription" minOccurs="0" maxOccurs="1" type="xs:string"/>
+            <xs:element name="localCATriggerReferences" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="triggerLinks" type="proc:TriggerLinksType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="documents" type="doct:OptionalDocumentsType" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MsuProcedureTriggersType">
+        <xs:sequence>
+            <xs:element name="procedureTriggerType" type="proc:ProcedureTriggerType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MsuProcedureItemType">
+        <xs:complexContent>
+            <xs:extension base="vd:VersionDataType">
+                <xs:sequence>
+                    <xs:element name="procedureIdentifier" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="initiatingCa" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="procedureType" type="proc:ProcedureTypeEnum" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="localCAProcedureReference" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="procedureTriggers" type="proc:MsuProcedureTriggersType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="msuEconomicOperators" type="eo:MsuEconomicOperatorsType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="procedureDevices" type="pd:ProcedureDevicesType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="notifiedBodies" type="proc:NotifiedBodiesType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="comments" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="procedureStatus" type="proc:ProcedureStatusEnum" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="measures" type="mea:MsuMeasuresType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="correctiveActions" type="coa:MsuCorrectiveActionsType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="additionalInfos" type="addInfo:MsuAdditionalInfosType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

@@ -3,14 +3,17 @@ import Foundation
 import WebKit
 
 private let appName = "EUDAMED Local Beta"
-private let serverURL = URL(string: "http://127.0.0.1:8765")!
+private let serverPort = Int.random(in: 20000...50000)
+private let serverURL = URL(string: "http://127.0.0.1:\(serverPort)")!
 
-final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate {
     private var window: NSWindow!
     private var webView: WKWebView!
     private var serverProcess: Process?
     private var ownsServer = false
     private var outputPipe: Pipe?
+    private let outputLock = NSLock()
+    private var serverOutput = Data()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
@@ -35,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
 
         webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = self
+        webView.uiDelegate = self
 
         window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 1200, height: 780),
@@ -52,11 +56,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
 
     private func startOrAttachToServer() {
         DispatchQueue.global(qos: .userInitiated).async {
-            if self.isServerReachable() {
-                self.loadApp()
-                return
-            }
-
             do {
                 try self.startBundledServer()
             } catch {
@@ -76,7 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
                 Thread.sleep(forTimeInterval: 0.25)
             }
 
-            self.showError("本地服务启动超时", detail: "请确认本机已安装 python3，并且端口 8765 未被其他程序占用。")
+            self.showError("本地服务启动超时", detail: "请确认本机已安装 python3，并且本地服务端口未被其他程序占用。")
         }
     }
 
@@ -94,10 +93,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = ["python3", "run_local_beta.py", "--no-reload"]
+        process.arguments = ["python3", "run_local_beta.py", "--no-reload", "--port", String(serverPort)]
         process.currentDirectoryURL = projectRoot
         process.environment = [
             "PYTHONUNBUFFERED": "1",
+            "EUDAMED_NO_BROWSER": "1",
             "EUDAMED_DATA_DIR": dataRoot.path,
             "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         ]
@@ -106,6 +106,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         process.standardOutput = pipe
         process.standardError = pipe
         outputPipe = pipe
+        pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
+            let data = handle.availableData
+            guard let self = self, !data.isEmpty else { return }
+            self.outputLock.lock()
+            self.serverOutput.append(data)
+            if self.serverOutput.count > 65536 {
+                self.serverOutput = Data(self.serverOutput.suffix(65536))
+            }
+            self.outputLock.unlock()
+        }
 
         try process.run()
         serverProcess = process
@@ -113,6 +123,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     }
 
     private func applicationSupportDataDirectory() throws -> URL {
+        if let override = ProcessInfo.processInfo.environment["EUDAMED_DATA_DIR"], !override.isEmpty {
+            let directory = URL(fileURLWithPath: override, isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            return directory
+        }
         let base = try FileManager.default.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,
@@ -193,15 +208,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     }
 
     private func recentServerOutput() -> String {
-        guard let pipe = outputPipe else {
-            return "没有捕获到服务输出。"
-        }
-        let data = pipe.fileHandleForReading.availableData
-        guard !data.isEmpty else {
-            return "服务没有输出更多错误信息。"
-        }
-        return String(data: data, encoding: .utf8) ?? "服务输出无法解码。"
+        outputLock.lock()
+        defer { outputLock.unlock() }
+        return String(data: serverOutput, encoding: .utf8) ?? "服务输出无法解码。"
     }
+
+    func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = parameters.allowsMultipleSelection
+        panel.beginSheetModal(for: window) { result in
+            completionHandler(result == .OK ? panel.urls : nil)
+        }
+    }
+
+    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse,
+                 decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        let disposition = (navigationResponse.response as? HTTPURLResponse)?
+            .value(forHTTPHeaderField: "Content-Disposition") ?? ""
+        decisionHandler(disposition.lowercased().contains("attachment") || !navigationResponse.canShowMIMEType ? .download : .allow)
+    }
+
+    func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+        download.delegate = self
+    }
+
+    func download(_ download: WKDownload, decideDestinationUsing response: URLResponse,
+                  suggestedFilename: String, completionHandler: @escaping (URL?) -> Void) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = URL(fileURLWithPath: suggestedFilename).lastPathComponent
+        panel.beginSheetModal(for: window) { result in
+            completionHandler(result == .OK ? panel.url : nil)
+        }
+    }
+
+    func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
+        let alert = NSAlert()
+        alert.messageText = "下载失败"
+        alert.informativeText = error.localizedDescription
+        alert.beginSheetModal(for: window)
+    }
+
 }
 
 struct AppError: LocalizedError {

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/Relationship/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:actorrel="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Actor/Relationship/v1" xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" xmlns:dt="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" xmlns:comment="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Comment/v1" elementFormDefault="qualified">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1" schemaLocation="../Common/DocumentType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Decision/v1" schemaLocation="../Common/DecisionType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../Entity.xsd"/>
+	<xs:complexType name="IMnonEUMFLinkedRelationshipType">
+		<xs:sequence>
+			<xs:element name="actorCode" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="endDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="startDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MandateIdentifierType">
+		<xs:sequence>
+			<xs:element name="code" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-MAN-001# - Mandate Id. The unique mandate identification reference.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MandateARConfirmationDecisionType">
+		<xs:annotation>
+			<xs:documentation>#FLD-MAN-007# -AR confirmation assessment. Mandate request assessment by the authorised representative.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="dt:DecisionType">
+				<xs:sequence/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="MandateEarlyTerminationDecisionType">
+		<xs:annotation>
+			<xs:documentation>#FLD-MAN-006# - Early termination assessment. Termination assessment information.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="dt:DecisionType">
+				<xs:sequence>
+					<xs:element name="terminationDate" type="xs:date" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-011# - Terminate date. The termination date of the mandate.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="MandatesType">
+		<xs:sequence>
+			<xs:element name="mandate" type="actorrel:MandateType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="LinkedRelationshipsType">
+		<xs:annotation>
+			<xs:documentation>Describes any sort of relationship that may exist between two Actor instances</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="linkedRelationship" type="actorrel:IMnonEUMFLinkedRelationshipType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MandateType">
+		<xs:complexContent>
+			<xs:extension base="e:Entity">
+				<xs:sequence>
+					<xs:element name="actorCode" type="commonbasic:stringXSType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-009# - Manufacturer. The Non-EU manufacturer part of the mandate
+#FLD-MAN-010# - Authorised Representative. The authorised representative part of the mandate.
+
+IMPORTANT!! - In case of modeling the mandates of a NON EU manufacturer, the field should hold the authorised representative reference. In case of modeling the mandates of an authorised representative, the field should contain the SRN number of a NON EU manufacturer.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="document" type="doct:DocumentType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-005# - Upload annex. Document attachment provided by the manufacturer containing mandate information.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="endDate" type="xs:date" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-002# - The mandate period end date. After this date the mandate is considered expired.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="identifier" type="actorrel:MandateIdentifierType" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-001# - A unique mandate code given by the handling system to allow unique reference to a specific mandate</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="isVigilanceDelegatedToAR" type="xs:boolean" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-004# - Is vigilance delegated to AR. With this option the Non-EU manufacturer delegates the management of vigilance data for his devices to the authorised representative.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="startDate" type="xs:date" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-003# - Mandate from. The mandate period start date.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="earlyTerminationDecision" type="actorrel:MandateEarlyTerminationDecisionType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-006# - Early termination assessment. Termination assessment information.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="aRConfirmationDecision" type="actorrel:MandateARConfirmationDecisionType" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>#FLD-MAN-007# -AR confirmation assessment. Mandate request assessment by the authorised representative.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

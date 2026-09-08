@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:measure="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/v1"
+           xmlns:doct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+           xmlns:vd="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1"
+           xmlns:objct="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Objection/v1"
+           xmlns:precondition="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Precondition/v1"
+           xmlns:measureType="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/MeasureType/v1"
+           elementFormDefault="qualified">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/Document/v1"
+               schemaLocation="../../Common/DocumentType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Msu/VersionDataType/v1" schemaLocation="../VersionDataType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Objection/v1" schemaLocation="MsuObjectionItemType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/Precondition/v1"
+               schemaLocation="MsuPreconditionItemType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MsuProcedures/Measure/MeasureType/v1"
+               schemaLocation="MsuMeasureTypeItemType.xsd"/>
+    <xs:simpleType name="MeasureStatusEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="TAKEN"/>
+            <xs:enumeration value="JUSTIFIED"/>
+            <xs:enumeration value="WITHDRAWN"/>
+            <xs:enumeration value="UNJUSTIFIED"/>
+            <xs:enumeration value="CLOSED"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="MsuMeasureItemType">
+        <xs:complexContent>
+            <xs:extension base="vd:VersionDataType">
+                <xs:sequence>
+                    <xs:element name="procedureIdentifier" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="identifier" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="localCaMeasureRef" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="justification" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="entryDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="argumentEO" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="remarks" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="statusDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="objectionDeadline" type="xs:date" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="caContact" minOccurs="1" maxOccurs="1">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="firstName" minOccurs="1" maxOccurs="1" type="xs:string"/>
+                                <xs:element name="lastName" minOccurs="1" maxOccurs="1" type="xs:string"/>
+                                <xs:element name="telephone" minOccurs="1" maxOccurs="1" type="xs:string"/>
+                                <xs:element name="email" minOccurs="1" maxOccurs="1" type="xs:string"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="initiatingCa" minOccurs="1" type="xs:string" maxOccurs="1"/>
+                    <xs:element name="justificationDocuments" type="doct:OptionalDocumentsType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="measureStatus" minOccurs="1" maxOccurs="1" type="measure:MeasureStatusEnum"/>
+                    <xs:element name="measureTypes" minOccurs="1" maxOccurs="1"
+                                type="measureType:MsuMeasureTypesItemType"/>
+                    <xs:element name="preconditions" minOccurs="1" maxOccurs="1"
+                                type="precondition:MsuPreconditionsItemType"/>
+                    <xs:element name="initiatingCaOther" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="objections" minOccurs="0" maxOccurs="1" type="objct:MsuObjectionsItemType"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MsuMeasuresType">
+        <xs:sequence>
+            <xs:element name="measureItemType" type="measure:MsuMeasureItemType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

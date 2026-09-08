@@ -1,0 +1,1287 @@
+             -
+             -
+             =   Europe.an
+                 Commission
+
+
+
+
+      EUDAMED Services Definition
+    DTX for Economic Operators
+
+                 Production v 2.27.0
+                       2026
+
+
+
+
+I
+DTX for Economic Operators - Services Definitions - 2.27.0
+Version history and Change log
+
+
+
+
+ Changes                                                                                                             Release Version
+
+ No changes from 3.25.0                                                                                             PG 3.27.0, PROD 2.27.0
+
+ DEVICE.GET: MFs, PRs should be able to download submitted, registered, discarded - but only own devices             PG 3.25.0
+
+
+
+      M2M Data Exchange available services for accessing MDR EUDAMED data
+      1. Introduction
+           o 1.1 Supported services operation
+           o 1.2 Data exchange generic service overview
+           o 1.3 Request/ Response entities
+           o 1.4 Common elements
+      2. Device service
+           o 2.1 Service definition
+      3. BasicUDI service
+           o 3.1 Service definition
+      4. UDI-DI service
+           o 4.1 Service definition
+      5. SSCP service
+           o 5.1 SSCP Service definition
+      6. Marketlnfo service
+           o 6.1 Marketlnfo Service definition
+      7. Container Package service
+           o 7.1 Container Package Service definition
+      8. Product original manufacturer service
+           o 8.1 Product original manufacturer service definition
+      9. Download registered MSU procedure service
+           o 9.1. Service definition
+
+
+M2M Data Exchange available services for accessing MOR EUDAMED data
+1. Introduction
+1.1 Supported services operation
+The services exposed by EUDAMED DTX are built around well known http standard commands:
+      GET - The GET method requests transfer of a current selected representation for the target resource. GET is the primary mechanism of information retrieval and the focus of almost all performance optimisations. Hence, when people speak
+      of retrieving some identifiable information via HTTP, they are generally referring to making a GET request.
+      POST - The POST method requests that the target resource process the representation enclosed in the request according to the resource's own specific semantics.
+      PUT - The PUT method requests that the state of the target resource be created or replaced with the state defined by the representation endosed in the request message payload. A successful PUT of a given representation would suggest
+      that a subsequent GET on that same target resource will result in an equivalent representation being sent in the response. However, there is no guarantee that such a state change will be observable, since the target resource might be
+      acted upon by other user agents in parallel or might be subject to dynamic processing by the origin server, before any subsequent GET is received. Thus, a PUT request always contains a full resource. This is necessary because, a
+      necessa,y quality of PUT requests is idempotence - the quality of producing the same result even if the same request is made multiple times.
+      PATCH- The PATCH method requests that a set of changes described in the request entity be applied to the resource identified by the Request. With PATCH, however, the enclosed entity contains a set of instructions describing how a
+      resource currently residing on the origin server should be modified to produce a new version. The PATCH method affects the resource identified by the Request-URI, and it also may have side effects on other resources; i.e., new resources
+      may be created, or existing ones modified, by the application of a PATCH. To ensure an idempotent behaviour, dients using this kind of patch application SHOULD use a conditional request such that the request will fail if the resource has
+      been updated since the dient last accessed the resource.
+
+1.2 Data exchange generic service overview
+The service definition must contain the information about types of messages (from the data exchange messaging patterns) compatible, available operations at service level (each operation will represent a specific functionality), means to query/
+filter (criteria) the request, security rules that may apply depending on the actor that perform it and finally the information available as response, eventually number of provided entities, pagination and versioning capabilities.
+In EUDAMED DTX, most of the entities exchanged (through the exposed services) are related (i.e. have dependencies between them). To model this, a concept of link has been introduced. In this way, a service is able to isolate the information
+related to the main entity and only to reference the other related entities (if those entities are covered by additional services).
+
+
+Table 1 briefly describes a template to define the service and available operations.
+Table 1. Service definition and main operations.
+
+              Data Entity Exchanged                     Service Type             Operation                                              Description                                             Communication Patterns Supported
+
+ Main: [Entity]
+ Related: [Entities directly related to the main one]                     Download {GET)            This operation is invoked to request information using a criteria mechanism.                Pull
+
+
+                                                        [Entity]Service   Upload/Create (POST)
+                                                                          Update (PUT I PATCH)      This operation is invoked to upload/ update I patch information to EUDAMED.                 Push
+
+
+
+
+1.3 Request/ Response entities
+Request and response for each type of operation are described in Table 2.
+Table 2. Request/Response of the service operations.
+
+ Operation                        Request (Parameters and/or Payload)                                                  Response (Payload or Acknowledgement)
+
+ Download         service/Message.xsd (PullRequest:: PullRequestType)                          service/Message.xsd (PullResponse:: PullResponseType)
+                                                                                               PAYLOAD (payload):
+                  PARAMETERS (criteriaPayload):
+                                                                                               A list of [Entity]
+                  Query Entity:
+                                                                                               A list of [Entities directly related (linked) to the main one] (optional), i.e. Entity Related
+                  Criteria details:
+                                                                                       I                                                                                       I
+                                                                                       I                                Ye...ondtheXSDrnoiJE4
+                                                                                                                                                                               I
+
+                                                                                       I                                sd,,:,,,,.~tl>e~
+                                                                                                                        er.ube5.-e,.afld..t~.
+                                                                                                                                                                               I
+                                                                                       I                                                                                       I
+
+
+                                                 -{= m:converwt ionlD ij               I                                           ---~  ~-~-- ------·-                        I
+                                                                                                                                    Allc,ws mui:,pleres;ponse                  [
+                                                                                       I
+                                                       A&ows mulaoie A!5pc,nse
+                                                       ~ll:lbl!serl!A~
+                                                       roa~request~.                   I                                             =::~~~                                    I
+
+                                                        m:correlationlD                I                                            = m:correlationlD                          I
+                                                       ec,.,,,;,b,- me ,EqUMt to the   I                                               ~ thi!,~ to t!ll!
+                                                                                                                                       ~al"d!OW
+                                                                                                                                                                               I
+
+                                                       E~~~l!MSIDe                     I
+                                                                                                                                    .xknowiedgr!-~lthil:Srhe
+                                                                                                                                       WiDfl.Yfr.at,                           I
+                                                   = m:creationDatelime
+                                                                                       Ij                                           = m:creationDateTime
+                                                                                                                                                                               I
+                                                                                                                                                                               I
+
+                                                       !:!;~~a::!=!: I                                                                 ~te::w:::::; I
+           PullRequest -
+                                                       ; m:messagelD                   I       PullResponse -                       = m:m essagelD                             I
+
+                                                       toenti,es~~                     I                                               ldemhsmqM!#y.1
+                                                                                                                                       ~;,,:!J-oi,Je;<!'lof
+                                                                                                                                                                               I
+                                                       n-.es~atmele .. ~d                                                              EUDAMEO. I t ~ ~
+                                                       EUOAMED, !t "\a$tne
+                                                       UU!Ofo,ma.;:.                   I                                               UUIDfum-.at.                            I
+
+                                                                                       I                                                                                       I
+                                                                                                                                                                               I
+                                                                                       I
+
+                                                                                       I                                                                                       I
+
+                                                                                       I                                                                                       I
+
+                                                                                       I                                                                                       I
+                                                 - ~= m:pageNumber            ij
+                                                                                       I                                                                                       I
+                                                       Fm~s~page
+                                                       rr..mbesO.                      I                                                                                       I
+                               -~=8- - ~~ m:~~S~e ~                                    I                                                                                       I
+
+                                                       if IXesen!, ~ shoold            I                                                                                       I
+                                                       be,:ir-!MllObui:not
+                                                       ~~than300                       I                                                                                       I
+                                                                                                                                 -~-:fm~eSize              n                   I
+                             - - -              .r ,;;,~;,,~-,~,;~.;.-.i·$ _:                                                          lfpre;erY-~s¼,ooid
+                                                                                                                                       beg!'l!!:BtnanOMrm
+                                                                                                                                       !rtitl!!"than300
+                                                                                                                                                                               I
+                                                                                                                                                                               I
+                                                                                                                                                                               I
+                                                                                                                                    =m:responseCode                            I
+                                                                                                                __________ J
+
+
+
+                                                                                                                                   I
+                                                                                                                ~                                     e i~j3-----
+                                                                                                                                   1
+
+                                                                                                                                   I
+
+Upload   service/Message.xsd (Push:: PushType)                                               service/Message.xsd (Acknowledgement::AcknowledgementType)
+
+         PAYLOAD (payload::CoreEntityPayloadType):                                           ACKNOWLEDGEMENT (includes payload::CoreEntityPayloadType):
+
+         Entity:
+
+         Entity Related:
+
+
+                                                                                                                                Ver.;,onoftheXSD model
+                    ,      --------- 7                                                                                          schema a!)illllSt the anent
+                        m:PushType                                                                                              enbbe:.i!J!!valdated.
+
+
+
+                                                                                                                                           -{~              :-~!!?~
+                             I version U                                                                                                        Allow.i~r1'51)Df15e
+                                                                                                                                                rne:.sai;iestobesentasreply
+                                                                                                                                                toasing,lerequestmessal!ll.
+                             V~ofti-eJCSOmodel
+                             scherr.. ~thtar<!lll
+                             en!JOl!§.an!Yilk!.ated,                                                                                         "'m:correlationlD
+                                                                                                                                                CorrebleslhereQUl!Sttothe
+                                       -t m_:con_:versation~I?J                                                                                 responsei!fldtothe
+                                                                                                                                                ac}.nQwledgments.lthi!Sthe
+                                                                                                                                                lMOfonnat
+                                           Albws~-espons,e
+                                           ~1Dbesen:,1i5reply
+                                           to.asr,gll!reo,es:~.                                Acknowl@dgement -                             "'m:creationDateTime
+
+                                          = m:correlationlD                                                         I                           Thellateandtlmewhenthrs
+                                                                                                                                                messageobjectW.JSUeill!!d
+
+                                           C-ora.teithe~todli:
+                                           ~.mdwthe                                                                 I                        "'m:mes.sa elD
+                                           ilWO>'Jledgment.. !1h.t.tfll!
+                                           UUlD~t.                                                                  I                           Identifiesunil(Ul!lya!111!SS.f!Je
+                                                                                                                                                atlheleliel IMEWAMED. It
+
+                                                                                                                    I                           t.aslheUUlOfonnaL
+
+
+                                           -nec!.a!eu.dtlfT',e,wl\er11Ni
+                                           messageob;ec:Y<asas2d
+                                                                                                                    I
+                                                                                                                    I
+                                           JOOl'.t/e;v~a
+                                                                                                                    I
+                                           ~iltthelevelof
+                                           EUDAMEO, It ha,; the                                                     I       -- -:_m.,espo""'En- _lE
+                                           UUJDfomwt.                                                               L ________ _
+
+
+
+
+                    L _ _ _ _ _ _ _ _ _ __,1
+
+
+
+
+                                                                 ilepre9"'..nTSU'ECOO<!!of
+                                                                 aaepte<l;,ayload
+                                                                 ro~=wnshy
+                                                                 EUDA~ ED ser..,+:es.
+1.4 Common elements
+recipient:
+
+
+
+
+                                  I       . ----------,
+                                  I"5<r<KeType                                               I
+                                  : El,-:::~,.~~-;                                           :
+                                  I                              I
+                                  I ~--~                         I
+                                  I  ~--:=s:serviceAccessToken , ]
+
+                                          -·""'~~
+
+                                                    __           I
+                                                    t.,.,.,.,loga'1.9:0!:0S9!!"'"~""'"
+                                         r.cm.~~~c.,,m.
+                                                                 I
+                                                    ~~.s:oSOl.."IE>!C!.a"<T
+
+                                                    ,
+                                         !"~~~:-~l'le I
+                                                                 I
+                                                                                             I
+                                                                                             I
+                                                    -.-.,,,m,,~,a
+                                                    ~ . . , t'l! :.9'>'ia
+                                                                                             I
+                                                    (l:!'nloo:z,~
+                                                                                             I
+                                                    : ......=}!d~~                           I
+                                                                                             I
+                                  I                =: : : :' :: :tion                        ]
+
+                                  I                :::?:!~                      ~l           I
+
+                                  I_ - -     -=~ct:-: _J
+sender:
+
+             i   m:EndpointType                                                                   I
+             I                    ~ NodeType -            -        -        -        7            I
+             I                    I
+                                  I
+                                                 s:nodeAdo.COde
+                                                                  I
+                                                                                         1
+                                                                                         1
+                                                                                                  I
+
+             I                                   Cont.altheEU(w,E{)crrl!
+
+                                                :i;:'iJ"-;.: I    I
+             I                    I              perfoonscheaillaf~In
+
+
+
+             I                    I
+                                    - - =::..    ~!~ I
+                                                       . .._. I
+                                                                  I
+                                                                  I
+             I                    :          '-:•s:nodelD_•   I   [
+             I                                                I
+                                                 Iderd) lhe~(«mrl
+
+             I                    I              =~~              I
+                                  ~,---=---- - _- _- _-__} _ ~ I
+             I                      I s:SenriceType
+I m:sender $-f0                                                 [ [
+
+                                    [     G a~ributes           II
+                                    I :,..serviceVersion _
+                                           lnasednuti-.iore:!
+                                                                I[
+                                      I    ~-:~m                                                 11
+                                      I L___ _                   II
+                                      I    ;·::.~ ~~~cess_!~~- 1 [ I
+                                                   '     Beilrar5el1ft)'i1uthenticaticn
+                                           : ::",:.=:s~!D I I
+                                                         ~:~die [ [
+                                                         = )·1 1 . i s =                         II
+                                                         :=:...._. . .                           11
+
+                                                        ='s:servicelD                            11
+                                                         lclermi!stl.'&!IVD!d
+                                                         ~nlheseM:I!!                            11
+                                                         defuiitig.,~.
+                                                                             n.. ...             11
+                                                         lftJJli!IDdth&Si!MCE.D: s
+                                                         t.nlp!a:W)A.'IIDe/B.
+                                                                                                 11
+                                                        ;s:serviceOperation                      I[
+                                      I                  =t:i~,UJ.                               II
+                                      I      4e:.r"""" 1 1
+                                      _ _ _ _ _ _ _ _ _, I
+response Entities:
+
+
+
+
+2. Device service
+2.1 Service definition
+                                   Info                                          Parameters                                                                            Payload
+
+ Service Name                                   Query Entity:                                                                     Entity:
+  • DeviceService
+                                                [DIDownloadServiceCriteriaType::"]                                                    [IVDRDevice:: *]
+ Service ID                                                                                                                           [MDRDevice:: *]
+                                                                                                                                      [IVDEUDevice:: *]
+  • DEVICE                                                                                                                            [MDEUDevice:: "I
+                                                Criteria details:
+ Message Type                                                                                                                         [PRDevice:: *]
+                                                MFActorCode----+ Device.BasicUDl::MFCode/PRCode (When the Actor
+  • Pull                                        calling the service is a MF or PR- the filter is required to be provided and to
+                                                have the SRN of the Actor initiating the request. A MF/PR can only                Entity Related:
+ Operation
+                                                download their own Devices)
+  • Download                                                                                                                      [Certificate::Certificateldentifier]-> BasicUDl.certificatelinks.certificate
+                                                (Only full SRN is taken in consideration, no wildcards)
+ Operation Type                                                                                                                   [Clinicallnvestigation::clinicallnvestigationld] ->
+                                                ARActorCode----+ Device.BasicUDl::ARCode (When the Actor calling the              BasicUDl.dinicallnvestigationlinks.dinicallnvestigationld
+  • GET                                         service is an AR - the filter is required to be provided and to have the SRN
+                                                of the Actor initiating the request. An AR can only download the Devices to
+ Functional requirement                         which they are associated)
+                                                                                                                                  Versioning:
+  • FS-UDID-008.03                              (Only full SRN is taken in consideration, no wildcards)
+                                                                                                                                  default latest version will be returned for the Basic UDI-DI, UDI-DI and
+ Actors                                         CAActorCode--+ (Responsible CA. Exact match, no wildcards allowed.)               associated entities
+    NB (M2M NB Profile)                         NBActorCode [only when Actor calling the service is a CA]--+ (NAN DO
+    CA (M2M CA Profile)                         ID assigned to Notified Body. Exact match, no wildcards allowed.)
+    MF, Non EU MF (M2M MF Profile)                                                                                                Pagination:
+    PR (M2M PR Profile)                         BasicUDIDICode--+ Device.BasicUDl::identifier.DICode
+    AR (M2M AR Profile)                                                                                                           max 300 items per response
+                                                BasicUDIVersionDate --+ Device.BasicUDl::entity.versionDate (returns all
+                                                Basic UDI-Dls which have been updated after the mentioned date - together
+                                                with the UDI-Dls linked to them (latest version)).
+                                                UDIDICode--+ UDIDIData::identifier.DICode
+                                                UDIDIVerslonDate--+ Device.UDIDIData::entity.versionDate (returns all
+                                                UDI-Dls which have been updated after the mentioned date - together with
+                                                the last version of Basic UDI-DI version linked to them.)
+                                                RiskClass--+Device.BasicUDl::riskClass (Only in combination with
+                                                MFActorCode or ARActorCode )
+                                                Country --+Device.UDIDIData.Marketlnfos::Marketlnfo.Country (returns all
+                                                UDI-Dls which are placed on the market in the selected Country)
+
+                                                Applicablelegislation--+ Device Applicable Legislation;
+                                                State--+ Device {BasicUDIDIType UDIDIType}.state (MFs and PRs can
+                                                download submitted, registered, discarded devices for only own devices.
+                                                CAs can download submitted, registered and discarded devices. NBs can
+                                                download submitted and registered devices) - can apply the state filter to
+                                                SUBMITTED or DISCARDED
+
+
+                                                Applied Default Criteria:
+                                                Device {BasicUDIDIType UDIDIType}.state ="REGISTERED/ SUBMITTED
+                                                / DISCARDED"
+
+
+                                                General Criteria rules:
+                                                At least one search criteria provided
+
+                                                WAND" condition between provided criteria
+                                                only one value for a given criteria (exact match)
+
+
+
+ Service Name                                   Criteria:                                                                         Entity:
+  • DeviceService                               N/A                                                                                   [IVDRDevice:: *]
+ Service ID                                                                                                                           [MDRDevice:: *]
+                                                Default Security Validation:                                                          [IVDEUDevice:: "I
+  • DEVICE                                                                                                                            [MDEUDevice:: "I
+                                                DeviceBasicUDIType.MFActorCode == Push::NodeType.nodeActorCode                        [PRDevice:: 1
+ Message Type
+                                                PRBasicUDIType.PRActorCode == Push::NodeType.nodeActorCode
+  • Push                                                                                                                          Entity Related:
+ Operation                                                                                                                        IVDRDevice - [1 .. 11 IVDRBasicUDI + [1 .. 11 IVDRUDIDIData
+  • Upload New 8-UDls and UDIDls                                                                                                  MDRDevice--+ [1 .. 1] MDRBasicUDI + [1 .. 1] MDRUDIDIData
+ Operation Type                                                                                                                   IVDEUDevice--+ [1 .. 1] IVDEUDI + [1 .. 1] IVDEUData
+  • POST                                                                                                                          MDEUDevice--+ [1 .. 1] MDEUDI + [1 .. 1] MDEUData
+ Functional requirement                                                                                                           PRDevice--+ [1 .. 1] PRBasicUDI + [1 .. 1] PRUDIDIData
+  • FS-UDID-008.01 (System or Procedure Pack)                                                                                     [Certificate::Certificateldentifier]->
+  • FS-UDID-008.02 (Device)                                                                                                       BasicUDIType.certificatelinks.certificatelink
+ Actors                                                                                                                           [Clinicallnvestigation::clinicallnvestigationld] ->
+    MF (M2M MF Profile)                                                                                                           DeviceBasicUDIType.deviceData.clinicallnvestigationlinks.clinicallnvestiglink
+  • PR (M2M PR Profile)
+                                                                                                                                  Varslonlng:
+                                                                                                                                  Implicit a new incremented version will be created
+                                 Info                                      Parameters                                                                        Payload
+
+                                                                                                                            Pagination:
+                                                                                                                            N/A
+
+
+
+
+3. BasicUDI service
+3.1 Service definition
+                                    Info                                         Parameters                                                                  Payload
+
+ Service Name                                   Criteria: N/A                                                                      Entity:
+
+  • BasicUDIService                                                                                                                [IVDRBasicUDI:: ']
+ Service ID                                     Default Validation:                                                                [MDRBasicUDI:: 1
+  • Basic_UDI                                   DeviceBasicUDI.MFActorCode == Push::NodeType.nodeActorCode                         [IVDEUDI:: ']
+ Message Type                                   PRBasicUDI.PRActorCode == Push::NodeType.nodeActorCode                             [MDEUDI:: ']
+  • Push                                        DeviceBasicUDl.identifier must be already registered in EUDAMED                    [PRBasicUDI:: j
+
+ Operation
+  • Update                                      Version validation will be performed by the following pseudo code:
+ Operation Type                                 If the BasicUD/Type. version == 0 then                                             Entity Related: N/A
+
+  • PATCH                                       EUDAMED will increment with 1 the Basic UDI-DI version without validation
+                                                against the current version in EUDAMED.
+ Functional requirement                                                                                                            Versioning: new incremented version will be created
+                                                else if the BasicUD/Type.version > 1 then
+  • FS-UDID-008.01 (System or Procedure Pack)
+  • FS-UDID-008.02 (Device)                     Eudamed will verify if the version provided in the payload is the next
+                                                incremented version stored currently in Eudamed, otherwise an error will be        Pagination: NIA
+ Actors                                         returned
+    MF, NonEU MF (M2M MF Profile)               BasicUD/Type.version ==Current Eudamed Version +1
+  • PR (M2M PR Profile)
+
+
+
+                                                Updatable fields for Basic UDI/ EUDAMED DI are mentioned in the Data
+                                                Dictionary;
+                                                Consistency validations between values of the property stored in EUDAMED
+                                                and the ones supplied in the new version are perfonned for the following fields:
+                                                   Is it a System which is a Device in itself, Procedure pack which is a
+                                                   Device in itself (MDRBasicUDIType.type)
+                                                   Is it a Kit (IVDApplicablePropertiesGroup. KIT)
+                                                   Special Device Type
+                                                   (MDRBasicUDIType/lVDRBasicUDIType.specialDevice)
+                                                   Risk Class (BasicUDIType.riskClass)
+                                                   Active Device (MDRApplicablePropertiesGroup.active)
+                                                   Device Intended to administer and/or Remove medicinal product
+                                                   (MDApplicablePropertiesGroup.administeringMedicine)
+                                                   Implantable (MDApplicablePropertiesGroup.implantable)
+                                                   Is it Device a suture, staple, dental filling, dental brace(... )?
+                                                   (MDRBasicUDIType.llb_implantable_exceptions)
+                                                   Measuring Function (MDApplicablePropertiesGroup.measuringFunction)
+                                                   Reusable Surgical Instruments (MDApplicablePropertiesGroup.reusable)
+                                                   Companion Diagnostic (IVDApplicablePropertiesGroup.
+                                                   companionDiagnostics)
+                                                   Near Patient Testing (IVDApplicableProperliesGroup. nearPatientTesting)
+                                                   Patient Self Testing (IVDApplicablePropertiesGroup. selfTesting)
+                                                   Reagent (IVDApplicablePropertiesGroup. reagent)
+                                                   Professional Testing (IVDApplicablePropertiesGroup. professionalTesting)
+                                                   Instrument (IVDApplicablePropertiesGroup. instrument)
+                                                   Tissues and cells - presence of human tissues or cells, or their derivates
+                                                   (DeviceBasicUDIType.humanTissuesCells)
+                                                   Tissues and cells - Presence of animal tissues or Cells, or their derivates
+                                                   (DeviceBasicUDIType.animalTissuesCells)
+                                                   Tissues and cells - Presence of cells or substances of microbial origin
+                                                   (IVDRBasicUDIType.microbialSubstances)
+                                                   Presence of a substance which , if used separately, may be considered to
+                                                   be a medicinal product derived from human blood or plasma
+                                                   (MedicalHumanProductSubstanceType.type)
+                                                   Presence of substance which, if used separately, may be considered to be
+                                                   a medicinal product (MedicalHumanProductSubstanceType.type)
+
+
+
+
+4. UDI-DI service
+4.1 Service definition
+                                    Info                                           Parameters                                                                 Payload
+
+ Service Name                                   Criteria: N/A                                                                        Entity:
+  • UDIDIService                                                                                                                     PVDRUDIDIData::"]
+ Service ID                                     Default Validation Criteria:                                                         [MDRUDIDIData::']
+
+  • UDI_DI                                      DeviceBasicUDIType.MFActorCode == Push::NodeType.nodeActorCode                       [PRUDIDIData::']
+
+ Message Type                                   PRBasicUDIType.PRActorCode == Push::NodeType.nodeActorCode
+  • Push                                                                                                                             Entity Related: N/A
+ Operation
+  • Upload                                                                                                                          Versioning: Implicit a new incremented version will be
+                                                                                                                                    created
+ Operation Type
+  • POST
+                                                                                                                                     Pagination: N/A
+ Functional requirement
+  • FS-UDID-008.01 (System or Procedure Pack)
+  • FS-UDID-008.02 (Device)
+ Actors
+  • MF, NonEU MF (M2M MF Profile)
+  • PR (M2M PR Profile)
+
+ Service Name                                   Criteria: N/A                                                                        Entity:
+  • UDIDIService                                                                                                                     PVDRUDIDIData:: ']
+
+ Service ID                                     Default Validation Criteria:                                                         [MDRUDIDIData:: ']
+  • UDI_DI                                      UDIDIDataType.basicUDlldentifier (DeviceBasicUDl).MFActorCode ==                     PVDEUData:: ']
+                                                Push::NodeType.nodeActorCode
+ Message Type                                                                                                                        [MDEUData:: "]
+                                                UDIDIDataType.basicUDlldentifier (PRBasicUDl).PRActorCode ==
+  • Push                                        Push::NodeType.nodeActorCode                                                         [PRUDIDIData:: "]
+
+ Operation                                      UDIDDIDataType.identifier and BasicUDIType.identifier must be already
+  • Upload                                      registered in EUDAMED
+
+ Operation Type                                                                                                                      Entity Related: N/A
+                                                Version validation will be performed by the following pseudo code:
+  • PATCH                                                                         If the UDID/DataType.version == 0 then
+ Functional requirement                                                           EUDAMED will increment with 1 the Basic UDI-DI version without validation          Versioning: new incremented version will be created
+                                                                                  against the current version in EUDAMED.
+  • FS-UDID-008.01 (System or Procedure Pack)
+  • FS-UDID-008.02 (Device)                                                       else if the UDID/DataType.version > 1 then
+                                                                                                                                                                     Pagination: N/A
+ Actors                                                                           Eudamed will verify if the version provided in the payload is the next
+                                                                                  incremented version stored currently in Eudamed, otherwise an error will be
+    MF, NonEU MF (M2M MF Profile)                                                 returned
+  • PR (M2M PR Profile)
+                                                                                  UDID/DataType.version ==Current Eudamed Version +1
+
+
+                                                                                  Updatable fields for UDI-DI/ EUDAMED ID are mentioned in the Data Dictionary;
+
+                                                                                  Consistency validations between values of the property stored in EUDAMED
+                                                                                  and the ones supplied in the new version are perfonned for the following fields:
+                                                                                      Quantity of Device
+                                                                                      Type of UDI-PI
+                                                                                      Containing latex
+                                                                                      Labelled as single use
+                                                                                      Maximum number of reuses
+                                                                                      Device labelled sterile
+                                                                                      Need for sterilisation before use
+                                                                                      Reprocessesed single use device
+                                                                                      Intended purpose other than medical (Annex XVI)
+                                                                                      New Device
+
+
+
+
+4.1.1 Entity structure overview
+
+
+
+
+      MDEUData [1-1]: MDEUDataTY.P.§!:                        IVDEUData [1-1]: IVDEUDataTY.~
+       MDEUDI [ 1- 1/: MDEU □ ITY.P.2                           IVDEUDI [1- 1]: IVDEU □ ITY.P.2
+
+
+
+
+     MDRBasicUDI [1-1]: MDRBasicUDffY.P.2         IVDRBasicUDI [1-1]: !VDRBasicUDffY.P.2           PRBasicUDI [1-1]: PRBasicUDIJVlll!:
+    MDRUDIDIData [1-1]: MDRUDIDIDataTY.~        IVDRUDIDIData [1-1]: IVDRUDIDIDataTY.P.§!:        PRUDIDIData [1-1]: PRUDIDIDataTY.~
+
+
+
+
+4.1.2 Basic UDI-DI/ EUDAMED DI entity structure overview
+             Entl!Y.         I                                                                                                                           Certificate1dentifierLinkTY.P.:e           I
+
+          state [0-11: StateEnum                                                                                                                                   certificateNumber [1-1]
+                version [0-1]                                                                                                                                 certificateRevisionNumber (0-1]
+             versionDate [0-1]                                                                                                                                        NBActorCode [0-1]
+
+                                                        I                                                I
+
+                                                                                                                                                                                 i
+                                                                       ~Y.R.e.
+                                                                             DICode [1-1]
+                                                            issuingEntityCode [1-1]: ~g£!!!Lty.IY.~
+                                                                                                                       I
+                                                                                                                                                             CertificateljnkTyQe                    I
+                                                                                                                                                                       certificate [1-1]
+            relatedBasicUDI [0-1]                                                                                                                     certificateType [1-1]: CertificateTypeEnum
+      riskClass [1-1]: RiskClassEnum
+                 (-)model [1-1]
+             (-) modelName [1-1]
+                 identifier (1-1]
+             certificatelinks [0-1]
+                                          LJ            I Certificate! inksTY.12.e. I
+                                                    l ~ _c_e_rt;_,c_a1_eL_;n_,_11_-•_1_ ~I
+                                                                                                                                                                       expiryDate [0-1]
+                                                                                                                                                                       issueDate [1-1]
+                                                                                                                                                                   startValidityDate [1-1]
+                                                                                                                                                     certificateStatus [1-1]: CertifiqateStatusEnum
+                                                                                                                                                                      decisionDate [0-1]
+                                                                                                                                                               startingApplicabilityDate [0-1 ]
+
+                                                        I                            I
+
+
+                                                                                                                                                                                            !
+                                                             Mode1NameGrouP.:
+
+                                                                       model [0-1]
+                                                        I              name [1-1]
+                                                                                              I              I       ~P_.              I                                     I        Li.o1                 ~
+                                                                                                                                date(0-11
+                                                                                                                          ownerActorCode [1-1]
+                                                                                                                                                    I                        I       version [0-1]
+
+          PeviceBasiclJDITY.P~     I                    l~ s e ol                                                text [1-1]: .bfil!.91@92.§:~~
+
+             animalTissuesCells [1-1]       L_____r---1 comment [1-         00]
+
+                ARActorCode [0-1]
+             humanTissuesCells [1-1]
+                MFActorCode [1-1]
+                ARComments [0-1]
+          clinic~llnvesti~ationl1nks [0-1) ~
+                                            CY              C!irnca11nvesilgationlinksTY.Q0
+
+                                                                  chrncallnvestigationlmk [1-
+                                                                                              I
+                                                                                                  00 ]
+                                                                                                                                             ~9fili2rlLiil.!sIY.~
+                                                                                                                                               clinicallnvestigationReference [1-1]
+                                                                                                                                    nonEUApplicableCountries [0-1]: NQNEUCountryEnumType
+                                                                                                                                                                                            I
+
+
+            dev1ceCert1f1catel inks (0-1]                                                                        I
+                                 i, .,   J 1,           I    Dev1ceCert1ficatelmksTY.Qe       I                                                DeviceCertificatelinkTY.Qe                   I
+                                                    I              deviceCertificatelink [1- 00 ]                                                          certificateNumber [0-1]
+                                                                                                                                                               expiryDate [0-1]
+                                                                                                                                                              NBActorCode [1-1]
+                                                                                                                                                      certificateRevisionNumber [0-1]
+                                                                                                                                           certificateType [1-1]: GenericCertificateTY.P.eEnum
+
+
+
+
+                                                                                  MDRBasicUDIJY.~                                                    I
+                                                                                                                                                         IVDRBasicUDITY.P.e                     I
+                                                                                        humanProductCheck [1-1]
+                                                                                   llb implantable exceptions [0-1]                            specialDevice [0-1]: n m . R § ~'i~
+                                                                                      ITiedicinalProductCheck [1-1]
+                                                                         specialDevice [0-1]: .MQ.fil!;RecialDeviceT'i~                                 IVDApplicablePmpertiesGroup [1-1]
+                                                                        type [1-1] : DeviceSystemProcedurePackTypeEnum
+                                                                                                                                                           companionDiagnostics [1-1]
+                                                                                                                                                                  instrument [1-1]
+                                                                                  MDApplicablePmpertiesGroup [1-1]                                                     kit [1-1]
+ I            PRBasicUDITY.P.e                  I                                             active[1-1]                                                   micmbialSubstances [1-1]
+
+     medicinalPurpose [1-1]: Y!.Il~P-ecificTextT~
+                    PRActorCode [1-1]
+                                                            I                       administeringMedicine [1-1]
+                                                                                          implantable [1-1]
+                                                                                     measuringFunction [1-1]
+                                                                                                                                                             nearPatientTesting [1-1]
+                                                                                                                                                             professionalTesting [1-1]
+                                                                                                                                                                    reagent (1 -1]
+       type [1-1]: SystemProcedurePackTypeEnum                                              reusable [1-1]                                                       selfTesting [1 -1]
+
+
+
+
+                                                                   I
+                                                                                                     i
+                                                                                         MDEUDITyo.!::                      I                            I
+                                                                                                                                                                         i
+                                                                                                                                                                    IVDEUDITyJ:!:e                      I
+                                                                         applicablelegislation [1-1]: M Q Q A P . : ~ 9 ~
+                                                                                                                                                         I
+
+
+
+4.1.3 UDI-DI/ EUDAMED ID entity structure overview
+I             f..ofilY.              I                                                  J.ill!Q.!Iy_~                I                              I      ~Y.~                              I
+        state [1-1] : ~                              L...                        identi fier [:;:t?[l~~fti:lierIY~
+                                                                                                                                               -         code [1-11 : C2!il:ii~SJatu12l;m11D
+               version [0-1)
+             versionDate [0-1 ]
+                                                     I""
+                                                                                                                                 1
+                                                                                                                                                    I               date (0-1]
+
+
+
+                                                                                                         't
+                                         I
+                  UDIDIDataJyRe                                  I
+                 additional □ escription [0-1]                                                                           I        PIElementEnumTy_[!e               I
+           basicUDlldentifier [1-1]: DlldentifierTyp_!!:
+                      MDNCodes [1-1]
+                  productionldentifier [D-1]                                       _____Jl                                              List of e!Element!;;num
+                                                                                                                                                                                     I
+                          referenceNumber [1-1]
+         secondaryldentifier [0-1] : DlldentifierType                                                                                                                                                  I      StorageHand1ingCondilionTrne                   I
+                                sterile[1-1]
+                                                                                                                     ~   I StorageHandlingCondilionsTy_f2E!_ I
+                         sterilization [1-1]                                                                                                                                         I                        comments [0-1]: .Y!.!!gi.mg~~~
+                        tradeNames [0-1]                                                                                 I                   condition [1- 00 ]
+                                                                                                                                                                                                       I       storageHandlingConditionValue [1-11: .w.um
+                           website [0-1]
+                storageHandlingConditions (0-1]
+
+
+
+
+      ..
+                          packages [0-1]
+                      criticalWamings [D-1]
+                        substatuses [0-1]
+
+                            ,:1,
+                                                                                   7                                 7
+                                                                                                                         I     PackageUDlsTy[!e : Enti!Y.
+
+                                                                                                                                             package [1- 00]
+                                                                                                                                                                    I
+
+                                                                                                                                                                                     I
+                                                                                                                                                                                                       I       E'l!<!<ll9<lilillYR!> : !.illlillIYR!>
+                                                                                                                                                                                                                          child [1-1]: DlldentifierTY.rul.
+                                                                                                                                                                                                                              numberOfltems [1-1)
+                                                                                                                                                                                                                                                             I
+
+
+
+
+                                                                                                                         I        Crilica!WarningsTyRe              I                                  I              CrtticalWarningTY.lll!.                I
+                                                                                                                     -1                      warning [1-""]
+                                                                                                                                                                                     I           -            comments [0-1]: bfil!9lli!9.fil2RtionalTextsT:,:lll!,
+                                                                                                                                                                                                                warningValue [1-1]: ~g.E..o.Y.m
+
+
+
+
+                                                                                                                                                                                                                     !IDIC!!SuQfilatuliiTY.Rf!.              I
+                                                                                                                         I            ~Y.Rf!.                       I                                                code [1-1]: DeviceSubstatusEnum
+                                                                                                                                                                                                                     documents [0-1]: DocumentsT:,:lll!,
+                                                                                                                         I                  substatus [1-""]
+                                                                                                                                                                                     I                                         endDate [0-1]
+                                                                                                                                                                                                           recalledPrecisions[0-1]: bfil!gJ:mgg§[!ecificTextsT:,:lll!,
+                                                                                                                                                                                                                  recallScope [0-1]: RecalledScoP.eEnum
+                                                                                                                                                                                                                               startDate [1-1]
+
+
+
+
+                                                                                                                                                                                                       I                   PartyTy[!e                        I
+                                                                                                                     I ProductpesignerActorTy)& : ~Y. I                                                    geographicAddress [0-1] : GeoarapbjcAddressJvpe
+
+
+                                                                                                       rl
+                                                                                                                                                                                                             contactsDetails [0-1): ElectronicContactsTy[!e
+                                                                                                                                      - stringSRNType [0-1]
+                                                                                                                             - ProductDesignerOrganisationType [1-1]
+                                                                                                                                                                                                                                         ?
+                                                                                                                                                                                                       I    ~gilfilQ[g~                                      I
+
+                          QeviceLJDIOIDataiyp..§.                 I
+                                                                                                                                                                                                 i         organizationName [1-1]: bfil!gJ:mggQP.:lionalTextTyo_g
+
+
+                              numberOfReuses (1-1]
+                               relatedUDILink [0-1]
+                                                                                                                                                                                                                         Market1nfoTy[!e                     I
+                                 marketlnfos [0-1]                                                                                I Market1nfosTyoe : S!!fil.Y.             I                                     country [1-11 : ElJCouobvWithS:PecialErn1m
+                               deviceMarking [0-1J                                                                                                                                       I                                        endDate [0-1]
+                                baseQuantity [0-1]
+                            productDesignerActor [0-1 )
+                                                                                                                     ~                             marketlnfo [1-1]
+                                                                                                                                                                                                                      originalPlacedOnTheMarket [1-1]
+                                                                                                                                                                                                                                  startDate [0-1]
+
+                                   .. ' ..
+                                                                 i
+                                                            I ~Y.P.e ~
+                                                                                                                                  I    PeviceRelatedl inkTYRft.             I
+                                                                                                                                        dildentifier [1 -1] : DlldentifierTyRfl.
+                                                                                                                                      type [1-1] : DeviceRelatedTY.P.:eEnum 1
+                                                                                                                                                                                                 ...
+                                                                                                                                                                                                       I                       Link
+
+                                                                                                                                                                                                                                   version [0-1]
+                                                                                                                                                                                                                                                             I
+
+                                                                                               ]
+                                                                                                                                                                                                       I              DeviceMarkingTyP.:e                    I
+
+                                                            I     IVPB!JC!IOl □ ataTY.12.!l.       I
+                                                                                                                                                                                                 -                                   one of:
+                                                                                                                                                                                                                       - directMarkingDI : Dl!dentifierJw_e
+                                                                                                                                                                                                                     - unitOfUseldentifier : ~ Y . 1 2 §
+                                                 7                         newDevice [1-1]
+
+
+
+                                                                                                                                  I Anne1!.~lt:lgnMeQi1,a!DeviceIY.~R8. I
+                                     MDRUDIDIDalaTY.P.:B
+
+                                    annexXVINonMedicalDeviceTypes [0-1]
+                                                                                       I
+                                                                                                                ___n                        nmdType [1-""]: NonMedicalQeviceEnum
+
+                                                  latex:[1-1]
+                                             reprocessed [1-11                                                                    I SubstancesTyRe I                                                                 I           SubslanceTyRe                   I
+                                              substances [0-1]
+                                                                                                                -------=i                                               I
+                                                                                                                                                                                                                                                             .
+                                                                                                                                                                                                                     I names [0-1]: b..fill:guaggQRtionalTextsT:,:[2e
+                                             clinicalSizes [0-1]                                                                          substance [1- 00]
+
+
+
+                                                                            i                                                                                                                                               i                            '
+
+I PRUDIDIDataTy[!e
+                                             I
+                                                            I MDEUDataTyt:1e 11
+
+                                                                                               ~
+                                                                                                          I
+                                                                                                                                  I Clin/calSizesTy[!e I
+                                                                                                                               - 1 clinicalSize [1-        00]
+
+                                                                                                                                                                        I
+                                                                                                                                                                                                                                          T
+                                                                                                                                        ~
+                                                                                                                                                                                                                                    EndocrineSubstanceTv.P.e l
+
+                                                                                                                                                                                                                                                  CASCode [0-1 I
+           B..ao.Q~Y.128.
+                                                                                               I                     ClinicalSizeTy[!e                     I                                                                       I               ECCode [0-1]
+                    maximum[1-1)
+                    minimum [1-1]
+        valueUnit [1-1]: qinica!SizeUnitEnum
+                                                                                                              clinicalSizeType (1-1]: ~            Y.ReEnum
+                                                                                                       clinicalSizeDescription [0-1): bfil!gJ:mgg§RecificTextsTY.P..2
+                                                                                                                                                                                 I                            I MedicalHu manProductSubstanceTY.R~ I
+     measureUnitDescription [0-1]: bfil!Q.SP.ecTexts                                                                                                                                                                                     INN [0-1]
+                                                                                                                                                           .o,
+                                                                                                                                                                                                              I
+                                                                                           ~
+                                                                                                                                                                                                                  type [1 -1] : Medica!HumanSubstanceTY.P.SEnum
+
+
+
+                                                      I
+
+
+                                                      I
+                                                                       ~alueCJini1,alSizeTY.Rft.
+
+                                                                                     val,e [1-1]
+                                                                      valueUnit [1-1]: ClinicalSizeUni)Enum
+                                                                measureUnit□ escription [0-1]: bfil!g§pecjTexts
+                                                                                                                 I
+                                                                                                                                 II      I TextC!inicalSizeT'{.P.e I
+                                                                                                                                                        text[1-1]
+                                                                                                                                                                                   I                   Y
+                                                                                                                                                                                                              I      QMRSubliitan!.f!TY.Rft.
+
+                                                                                                                                                                                                                              CASCode [0-1]
+                                                                                                                                                                                                                               ECCode [0-1]
+                                                                                                                                                                                                                                                     I
+
+                                                                                                                                                                                                                  type [1-1J: QMBS:Yt!!fils!n~ful!i!:Enym
+                                                                                                                                                                                                                                                                 I
+
+5. SSCP service
+5.1 SSCP Service definition
+                  Info                                                            Parameters                                                                                    Payload
+
+ Service Name                                    Criteria Entity:                                                                        Entity:
+    • SSCPDownloadService                        [SSCPDownloadServiceCriteriaType::"']                                                   [SSCPType::1
+ Service ID
+                                                 Criteria details:                                                                       Entity Related:
+    • SSCP
+                                                 lssueDate (Start) -                                                                     [SSCPDocumentType: :"]
+ Message Type
+                                                 SSCPType.issueDate
+    • Pull
+                                                 lssueDate (End)--+ SSCPType.issueDate
+ Operations                         SSCPReferenceNumber--+                                  Versioning:
+                                    SSCPType.SSCPReferenceNumber
+  • Download                                                                                Latest SSCP version will be returned if no
+                                    SSCPRevisionNumber--+                                   SSCPRevisionNumber is provided.
+ Operation Type                     SSCPType.SSCPRevisionNumber
+  • GET                              Basic UDI-DI --+ SSCPType.basicUDI                     Pagination:
+                                    Certificate ID--+ SSCPType.certificatelD                max 300 items per page, multiple pull request I response
+ Actors
+                                                                                            correlated messages / size of message
+                                     MFActorCode--+ SSCPType.MFActorCode
+    M2M CA Profile
+    M2M NB Profile                   NBActorCode--+ SSCPType.NBActorCode
+    M2M MF Profile
+    M2M AR Profile
+                                     Default Applied Security Criteria:
+                                     MFActorCode is not available for the MF.
+
+                                    General Criteria rules:
+                                    At least one search criteria provided (except
+                                    SSCPRevisionNumber, in this case
+                                    SSCPReferenceNumber must be provided)
+                                    "AND" condition between provided criteria
+
+                                    only one value for a given criteria (exact match)
+
+
+
+
+5.1.1 SSCP service structure overview
+
+
+
+
+                                                                                                                             DocumentTy~
+                                                                                                                                     content [0-1]
+                                                                                                                                   languages 10-1)
+                                                                                                                                mimeType [1-1]: ~
+                                                                                                                                      name [0-1]
+                                                                                                                                       size{0-1]
+                                                                                                                                       URI [1 -1]
+       basicUDI [1-"']: DlldentifierTY.~                                                                                          upl oad □ ate (0-1 ]
+              NBActorCode [1-1]
+          SSCPReferenceNumber 11-1]
+               issueDate [1-1]
+                  documents [1-1]
+          SSCPRevisionNumber [1-1]
+              validatBd [0-1]
+    sscpUpload [1-1]: SSCPUoloadEnum                              SSCPDocumentsTy~                                             masterDocument [1-1]
+             certificatelD [0-oo]                                                                                            dateReceivedFromMF [0-1]
+            MFActorCode [0-1]                                              documentl1-00]                                         discarded [0-1]
+
+
+
+
+6. Marketlnfo service
+6.1 Marketlnfo Service definition
+
+           Info                                               Parameters                                                                Payload
+
+ Service Name                  Criteria: NIA                                                               Entity:
+  • Update of Market                                                                                       [DTXMarketlnfo::"]
+    information
+                               Default Validation Criteria:
+ Service ID                                                                                                Entity Related:
+                               UDIDIDataType.basicUDlldentifier (DeviceBasicUDl).MFActorCode
+  • MARKET_INFO                == Push::NodeType.nodeActorCode                                             [DlldentifierType::"]
+ Message Type                  UDIDDIDataType.identifier must be already registered in EUDAMED             [MarketlnfosType::"]
+  • Push                       Version validation will be peliormed by the following pseudo code:          [deviceCriterionType::"]
+ Operations                    If the UDIDIData Type. version == a then
+                                                                                                          Versioning:
+  • Upload                     EUDAMED will increment with 1 the market information version
+                               without validation against the cun-ent version in EUDAMED.                  New incremented version will be created
+ Operation Type
+                               else if the UDIDIData Type. version > 1 then
+  • PUT                                                                                                    Pagination:
+                               Eudamed will verify if the version provided in the payload is the next
+                               incremented version stored currently in Eudamed, otherwise an error         N/A
+ Actors                        will be returned
+  • M2M MF Profile             UDIDIDataType.version ==Current Eudamed Version +1
+                               else if the UDIDIDataType.version == 1 then UDID/DataType.version
+                               will be assigned to Eudamed version
+
+
+                               Updatable fields for the Marketlnfo are mentioned in the Data
+                               Dictionary;
+
+                               Consistency validations between values of the property stored in
+                               EUDAMED and the ones supplied in the new version are perfomied
+                               for the following fields:
+
+                                    Country
+                                     o validated against ENUM_MDR_COUNTRY
+                                     o There cannot be two (2) identical countries provided (ERR-
+                                        BR-DTX-UDID-098.01-01: A Country can be specified only
+                                        once in a Market infonnation for a UDI-DI)
+                                     o When country value is not within the ENUM the system will
+                                        throw: ERR-BR-DTX-U Dl-100 : Not a EU country - The
+                                        country code provided is not an EU country.
+                                    originalPlacedOnTheMarket
+                                     o There must be no 2 siblings that have their value set to True.
+                                        Only one marketlnfo entity shall have
+                                        originalPlacedOnTheMarket set to True. Otheiwise the system
+                                        will throw the following error:
+                                       ERR-BR-DTX-UDID-096.01-01: Only one country can be set
+                                        as a member state where the device is to or has been first
+                                        placed on the EU market
+                                     o The country for which the flag originalPlacedOnTheMarket ==
+                                       true must be the same country as the current stored value of
+                                       the device in EUDAMED. Otheiwise the system will throw:
+                                       BR-DTX-UDl-101 : The country where the device has been
+                                       first placed on the EU market cannot be changed during
+                                       Marketlnfo updates. Please use the UDI-DI update service in
+                                       order to update the first country where the device has been
+                                        placed on the EU market.
+                                    StartDate and EndDate
+                                     o Date format will be validated against the XSD Schema.
+
+
+
+6.1.1 Market lnfonnation service structure overview
+                                                      state [1-1]: Statefnum
+                                                            version [0-1]
+                                                         version □ a te [0- 1]
+
+
+
+
+              DTXMarketlnfoTyp_g
+
+                                                                                                                                                            arketlnfo . _g
+                  u □ l □ lldentifier [1-1]
+                    marketlnfos [1-1]                                            MarketlnfoSTY.P....@. : Enti!Y.                                   country[1-1]: ~ ~ ~
+                  deviceCriterion [0-1]                                                                                                                          end □ ate [0-1]
+                                                                                            marketlnfo [1- 00]
+                                                                                                                                                       originalPlacedOnTheMarket [1-1]
+                                                                                                                                                                 start□ate [0-1 ]
+
+
+
+
+7. Container Package service
+7.1 Container Package Service definition
+
+           Info                                                Parameters                                                                             Payload
+
+ Service Name                  Criteria: N/A                                                                                Entity:
+    Update of                                                                                                               [DTXPackageUDl ::1
+    Container
+    Package                     Default Validation Criteria:
+                                                                                                                            Entity Related:
+ Service ID                    UDIDIDataType.basicUDlldentifier (DeviceBasicUDl).MFActorCode
+                               == Push::NodeType.nodeActorCode                                                              N/A
+  • PACKAGE_UDI
+                                UDIDIDataType.basicUDlldentifier (PRBasicUDl).PRActorCode ==
+ Message Type                   Push::NodeType.nodeActorCode                                                               Versioning:
+  • Push                        UDIDDIDataType.identifier must be already registered in EUDAMED                             New incremented version will be created
+ Operations                    Version validation will be performed by the following pseudo code:
+                                                                                                                            Pagination:
+  • Upload                     If the UDIDIDataType. version == a then
+                                                                                                                            N/A
+ Operation Type                EUDAMED will increment with 1 the container package version
+                               without validation against the current version in EUDAMED.
+  • PUT
+                               else if the UDIDIData Type. version > 1 then
+
+ Actors                        Eudamed will verify if the version provided in the payload is the next
+                               incremented version stored currently in Eudamed, otherwise an error
+  • M2M MF Profile             will be returned
+
+                                UDIDIDataType.version ==Current Eudamed Version +1
+                               else if the UDID/DataType.version == 1 then UDID/DataType.version
+                               will be assigned to Eudamed version
+
+
+                                Updatable fields for the Container Package are mentioned in the Data
+                                Dictionary;
+
+                               Consistency validations between values of the property stored in
+                               EUDAMED and the ones supplied in the new version are performed
+                               for the following fields:
+                                     The last child element in the XML payload (top/down order) will be
+                                     the root UDI-DI of the container package structure. It will indicate
+                                     the link between a container package to another and thus creates
+                                     the hierarchy of the packages.
+                                     status is validated against ENUM_UDID_ContainedltemStatus
+                                     numberOfltems is a positive integer and is validated against the
+                                     XSD Schema
+
+
+
+
+7.1.1 Container Package service structure overview
+
+
+
+
+                                         En1!tY.                                            llillifilY.P-f.
+                                   state [1-1]: StateEnum                            identi fier {1 -1 ] : QlldentifierTY,~
+                                         version [0-1]                                            status [1 -1]
+                                      version □ate [0-1]
+
+
+
+
+  DTXPackageU □ !Type
+
+
+
+           packages [0-1]                                                                                                                    PackageUDITY.~ : UDIDITY.~
+
+                                                                                                                                                      child [1-1] : ~ Y . R i ! .
+                                                                                 package [1- 00]
+                                                                                                                                                          numberOfltems [1-1]
+
+
+
+
+8. Product original manufacturer service
+8.1 Product original manufacturer service definition
+          Info                                              Parameters                                                                      Payload
+
+ Service Name                Criteria: NIA                                                                         Entity:
+    Update of                                                                                                      [DTXProductDesigner::"]
+    Product original
+    manufacturer             Default Validation Criteria:
+                                                                                                                   Entity Related:
+ Service ID                  UDIDIDataType.basicUDlldentifier
+                             (DeviceBasicUDl).MFActorCode ==                                                       [DlldentifierType:"]
+ Message Type                 Push::NodeType.nodeActorCode
+                                                                                                                   [ProductDesignerActorType::j
+  • Push                     UDIDDl □ ataType.identifier must be already registered in
+                             EUDAMED                                                                               [ProductDesignerOrganisationType::*]
+ Operations
+                             Version validation will be performed by the following pseudo                          [PartyType::1
+  • Upload                   code:                                                                                 [UDIDDIType::1
+ Operation Type              If the UDIDIDataType.version == 0 then                                                [Entity::•]
+  • PUT                      EUDAMED will increment with 1 the container package version
+                             without validation against the current version in EUDAMED.                            Varsioning:
+ Actors                      else if the UDIDIDataType.version > 1 then                                            New incremented version will be created
+  • M2M MF Profile            Eudamed will verify if the version provided in the payload is the                        Pagination:
+                              next incremented version stored currently in Eudamed,
+                              otherwise an error will be returned                                                      N/A
+
+                              UDIDfDataType.version ==Current Eudamed Version +1
+                              else if the UDIDIDataType.version == 1 then
+                              UDIDfDataType.version will be assigned to Eudamed version
+
+
+                              Updatable fields for the product original manufacturer are
+                              mentioned in the Data Dictionary;
+                                 UDIDDIDateType.identifiermjst be registsred in Eudamed
+                                 otherwise the system will respond with BR-DTX-UDl-099 :
+                                 No device found - No UDI-DI/EUDAMED ID has been found
+                                 for the given issuing agency.
+                                 UDIDIDataType.state must be in Registered state otherwise
+                                 the system will respond with ERR-BR-DTX-UDl-106.05-01:
+                                 Product original manufacturer information can be updated
+                                 for an existing UDI-DI/EUDAMED ID being in state
+                                 Registered only.
+                                 ProductDesignerOrganisationType must be registered in
+                                 Eudamed otherwise the system will respond with ERR-BR­
+                                 DTX-UDID-629.05-01: No product original manufacturer
+                                 entity found linked to this device.
+                                 ProductDesignerorganisationType.organizationName must
+                                 be unique. otherwise the system will respond with ERR-BR­
+                                 DTX-UDID-629.05-04: Cannot uniquely identify the entity to
+                                 update.
+
+
+
+8.1.1 Product original manufacturer service structure overview
+
+
+
+
+                                                                                 uo,om:~                                             f.fil:!Y.b:®
+            state [1-1): StateEnum                                    identifier [1-1]: Q1IdentifierTY.®                geographicAddress (0-1]: Geogrn_r:2hicAddressTy®
+                  version [0-1]                                                   status (1-1]                            contactsDetails [0-1] : ElectronicContactsTyo_g
+               versionDate [0-1 J
+
+
+
+
+                                                                                      ProductQesignerActorTyp_g_: �Y.
+                                                                                                                                                      �g�g�Y.®
+                          Wrapper?                              �                                   - stringSRNType [0-1]
+                                                                                           - ProductDesignerOrganisationType [1-1]                   organizationName [1-1] :!Jmg.Y§g��Y.�
+   .____                                 _I
+
+
+
+
+9. Download registered MSU procedure service
+9.1. Service definition
+                   Info                                          Parameters                                                   Payload
+
+ Service Name                         Criteria Entity:                                                     Entity:
+  • MSU procedure                     [MSUProcedureSearchCriteriaType::*]                                  [MsuProcedureDataType::j
+    download
+ Message Type                         Criteria detalls:                                                    Entity Related:
+  • Pull                              FilterltemType - msuFilterltemTypeEnum                               [MsuProcedureltemType::*]
+                                      [1:1]
+ Operations                                                                                                [MsuCorrectiveActionType::*]
+                                      ltemldentifier-+ string [0:1]
+                                      ltemStatus - msultemStatusEnum [0:1]
+  • Download                                                                                               [MsuMeasureltemType::*]
+ Operation Type                       CAA.ctorCode - stringXSType [0:1]                                    [MsuObjectionltemType::*]
+                                      LocalCaReference--+ string [0:1]
+  • GET                               EOSRN--+ stringSRNType [0:1]                                         [MsuAdditionallnfoltemType::j
+                                      EONAME--+ string [0:1]
+ Actors                               State--+ registeredOrDiscardedState [0:1]                            Pagination:
+                                      LastUpdateDateFrom--+ dateTime [1:1]
+       M2M EC Profile                 includeHistoricVersions--+ yesNoT [0:1]                              max 300 items per page, multiple pull request /
+       M2M CA Profile                                                                                      response correlated messages I size of
+       M2M NB Profile                 ProcedureType--+ ProcedureTypeEnum [0:1]                             message
+                                      ProcedureTrlggerType--+
+                                      ProcedureTriggerTypeEnum [0:1]
+                                      AffectedCountry--+ CountryEnum [0:1]
+
+
+
+                                      General Criteria rules:
+                                      At least one search criteria provided
+                                      "AND" condition between provided criteria
+                                      only one value for a given criteria (exact
+                                      match)
+
+
+
+
+9.1.1 Request entity structure overview
+
+                                     fill,ememT~ : m"-lfilt,,=mTyi>efnum [1:l]
+                                     ttemldentll"'""1inll [O, l)
+                                     ttemStotu1om..,ltemStotu<Enum[O,l)
+                                     CAAc?<>rCo~:.nlnvXSTYJlelOl ]
+                                     Lo< olCoRefuen,e , 51Jinvl0:11
+                                     EOSRN: Wi"',lSI\NlypelO.l]
+                                     EONAME.Sl? lng(O. l )
+                                     5tote,ql«eredO<Dis<ar~<15tote (O· l l
+                                     L.astllpdateoatef ,om,daoteTlme [l:ll
+                                     lnch1de1<blo~cve,slono, yes,;,:,T [O,I)
+
+
+
+
+ l'!\OC:!o,proce<lure•
+ ~~ io~~~=~~•ABJ:!atinv CA
+ M\!OT:Mca"-l,eSbyother CA
+
+ ~~~,"',;,;:!~~:: 11n10
+
+
+
+
+9.1.2 Response entity structure overview
+         • ~=~~"1
+                •"_
+   ~                ,:;,•:,"
+               ·-
+• -..::;:;--          ,.       __
+                      ~~ ......
+
+
+                                    •---
+                                =-=•~-:::,:·,!,.. .. .,
+

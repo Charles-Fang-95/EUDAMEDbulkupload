@@ -1,0 +1,1489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1"
+           xmlns:e="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1"
+           xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1"
+           xmlns:marketinfo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1"
+           xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1"
+           xmlns:links="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1"
+           xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1"
+           xmlns:party="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1"
+           xmlns:address="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1"
+           elementFormDefault="qualified" version="1.0">
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1" schemaLocation="../../Party/Party.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../../Common/LanguageSpecificNameType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" schemaLocation="../../Links/LinkType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../../Common/CommonBasicType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1" schemaLocation="../../MarketInfo/MarketInfoType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../CommonDeviceType.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/v1" schemaLocation="../../Entity.xsd"/>
+    <xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Party/Address/v1" schemaLocation="../../Party/AddressType.xsd"/>
+    <xs:complexType name="SubstancesType">
+        <xs:sequence>
+            <xs:element name="substance" type="udidi:SubstanceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="AnnexXVINonMedicalDeviceTypesType">
+        <xs:sequence>
+            <xs:element name="nmdType" type="udidi:NonMedicalDeviceEnum" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ProductDesignerOrganisationType">
+        <xs:complexContent>
+            <xs:extension base="party:PartyType">
+                <xs:sequence>
+                    <xs:element name="organizationName" type="lsn:LanguageOptionalTextType" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ProductDesignerActorType">
+        <xs:complexContent>
+            <xs:extension base="e:Entity">
+                <xs:sequence>
+                    <xs:choice minOccurs="1" maxOccurs="1">
+                        <xs:element name="productDesignerActorCode" type="commonbasic:stringSRNType" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="productDesignerOrganisation" type="udidi:ProductDesignerOrganisationType" minOccurs="1" maxOccurs="1"/>
+                    </xs:choice>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="DeviceUDIDIDataType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="udidi:UDIDIDataType">
+                <xs:sequence>
+                    <xs:element name="numberOfReuses" type="commonbasic:integer-1ToMax" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-157# - Maximum number of reuses. Property defines the Maximum Number of reuses applicable for the Device.
+                                Use 1 value when the maximum number of reuses is not defined (Maximum number of reuses are not applicable), 0 if the Device is considered Single-use device and
+                                a positive number when the Device has a limited number of reuses (provided number being the number of reuses applicable).
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="relatedUDILink" type="links:DeviceRelatedLinkType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="marketInfos" type="marketinfo:MarketInfosType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="deviceMarking" type="udidi:DeviceMarkingType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Element contains the information regarding the Direct Marking DI or Unit of Use DI referencing the Device.
+                                Attribute can be provided for Regulation Devices (from the first registration or later in the update of the UDI) and must not be provided for Legacy Devices.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="baseQuantity" type="commonbasic:positiveInteger" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-151# - Quantity of Device. The base quantity in which the Device is provided.
+                                Attribute is required for Regulation Devices and must not be provided for Legacy Devices.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="productDesignerActor" type="udidi:ProductDesignerActorType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="StringsType">
+        <xs:list itemType="xs:string"/>
+    </xs:simpleType>
+    <xs:complexType name="DeviceMarkingType">
+        <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="1">
+                <xs:element name="directMarkingDI" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>#FLD-UDID-138# - Direct Marking UDI-DI.
+                            Direct Marking UDI-DI - is the DI with which the Device (UDI-DI) is marked directly. Field is mandatory when the Device is directly marked (Direct Marking = YES).
+                            The value of the field is a DI - either the current UDI-DI (of the current device) or a different UDI-DI.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="unitOfUseIdentifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>
+                            #FLD-UDID-135# - Unit of Use DI. Reference to the Unit of Use DI applicable for the current UDI-DI (Device Identifier).
+                            A virtual identifier assigned to an individual medical device when a Unique Device Identifier (UDI) is not labeled on the individual device at the level of its unit of use.
+                            Its purpose is to associate the use of a device to/on a patient when a base package contains more than one device.
+                            Field is mandatory when the value of the field Direct marking is false and Quantity of Device is more than 1.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:choice>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MedicalHumanProductSubstanceType">
+        <xs:complexContent>
+            <xs:extension base="udidi:SubstanceType">
+                <xs:sequence>
+                    <xs:element name="INN" type="commonbasic:stringLType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-204# - INN. Field stores the INN value for the substance provided.
+                                INN can be provided only for CMR or Endocrine-disrupting substances which, if used separately, may be considered to be a medicinal product or substances which, if used separately,
+                                may be considered to be a medicinal product derived from human blood or human plasma.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="type" type="commondi:MedicalHumanSubstanceTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-196# - Labeled for presence of substances being CMR of category 1A or 1B / Labeled for presence of substances having endocrine-disrupting properties/ Presence of a substance which,
+                                if used separately, may be considered to be a medicinal product/ Presence of a substance which, if used separately, may be considered to be a medicinal product derived from human blood or human plasma.
+                                When registering a new Device containing in its composition substances (substances being CMR of category 1A or 1B / substances having endocrine-disrupting properties/ substances which, if used separately,
+                                may be considered to be a medicinal product/ substances which, if used separately, may be considered to be a medicinal product derived from human blood or human plasma),
+                                Manufacturer will have to submit the details of those substances.
+                                Field stores the details regarding the type of Substance registered (CMR Substance / Endocrine substance/ Substance
+                                which can be considered a Medicinal Product or Substance which may be considered a medicinal product derived from human blood or plasma).
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="IVDRUDIDIsType">
+        <xs:sequence>
+            <xs:element name="UDIDI" type="udidi:IVDRUDIDIDataType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MDRUDIDIsType">
+        <xs:sequence>
+            <xs:element name="UDIDI" type="udidi:MDRUDIDIDataType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="EndocrineSubstanceType">
+        <xs:complexContent>
+            <xs:extension base="udidi:SubstanceType">
+                <xs:sequence minOccurs="0">
+                    <xs:element name="CASCode" type="commonbasic:stringCASType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-202# - CAS. Field stores the CAS Code (CAS#) associated to the CMR or Endocrine disrupting substance.
+                                CAS# can be provided only for CMR or Endocrine-disrupting substances.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ECCode" type="commonbasic:stringECCODEType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-203# - EC#. Field Stores the EC Code (EC#)associated to the CMR or Endocrine disrupting substance.
+                                EC# can be provided only for CMR or Endocrine-disrupting substances.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="PRUDIDIDataType">
+        <xs:complexContent>
+            <xs:extension base="udidi:UDIDIDataType">
+                <xs:sequence/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="UDIDIDataType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>UDI DI data (alias Product or Device) entity stores information and characteristics of the UDI DI.
+                It is a generalization of the UDIDIType Class (it inherits the attributes of the UDIDIType class).
+                The UDI DI also has an association relationship with the ContainedItem in order to keep the relation between the UDI DI and the Package DI
+                It is connected to the BASIC UDI DI class (containing the information`s and characteristics of the Device Model BASIC UDI DI ) - a Basic UDI DI can have several UDI DI`s.
+                Contains references to Clinical Size Class (for storing details about Device Clinical Sizes), CMR Substance Class (for storing information`s related to CMR Substances),
+                Organization (for storing information`s related to original Manufacturer), MarketInfoLink (Information about Countries were the Device is Made Available on the Market).
+                UDI DI is versioned - contains versionData
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="udidi:UDIDIType">
+                <xs:sequence>
+                    <xs:element name="additionalDescription" type="lsn:LanguageSpecificTextsType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-175# - Additional product Description.
+                                Additional Product Description. Additional Product Description is required for System or Procedure Packs or for Standard Devices being marked as System or Procedure Packs (as a Device in themselves).
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="basicUDIIdentifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-145# - Basic UDI-DI Identifier. Reference to the Basic UDI-DI to which the Device is associated.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="MDNCodes" type="udidi:StringsType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-149# - Nomenclature code.
+                                The Device Nomenclature Code(s) associated with the UDI-DI. The corresponding EMDN Code(s) will be provided/returned in the field. Several EMDN codes can be provided for a Device.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="productionIdentifier" type="udidi:PIElementEnumType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-148# - Type of UDI-PI.
+                                Reference to the Types of UDI-PI (production Identifiers) applicable to the current Device (UDI-DI).
+                                Defines the way the production is controlled. Attribute is required for Regulation Devices and System or Procedure Packs and must not be provided for Legacy Devices.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="referenceNumber" type="commonbasic:stringSType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-163# - Reference / Catalogue Number. Property stores the Reference or Catalogue Number of the Device.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="secondaryIdentifier" type="commondi:DIIdentifierType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-136# - Secondary UDI - DI value. Secondary UDI DI Code - reference to the Secondary UDI-DI registered for the current UDI-DI . Additional DI associated to this UDI-DI.
+                                Only one Secondary UDI-DI (Additional UDI-DI) can be associated to a UDI-DI.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="sterile" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-169# - Device labeled sterile. Property defines if the UDI-DI is labeled as Sterile or not.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="sterilization" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-170# - Need for sterilisation before use. Property defines if the UDI-DI needs to be sterilised before use or not.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="tradeNames" type="lsn:LanguageSpecificTextsType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-176# - Trade name.
+                                Device Trade Name assigned to the UDI-DI. Trade names can be provided if applicable for the device. Several Trade- Names can be provided for the Device in the same language or in different languages.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="website" type="commonbasic:stringSType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-174# - URL for additional information. Manufacturer website where additional information about the device (UDI-DI) are available.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="storageHandlingConditions" type="commondi:StorageHandlingConditionsType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="packages" type="udidi:PackageUDIsType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Element will contain the details of the Packages structure for the current Device(UDI-DI).
+                                Information about Package structure must not be provided for Legacy Devices.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="criticalWarnings" type="commondi:CriticalWarningsType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="substatuses" type="commondi:SubstatusesType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="UDIDIType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>UDIDI Class stores the Identification information attributes for the UDI DI and Package Level DI and the Status of the UDI DI and of the Container Package Information.
+                It creates and manages the relationship between the UDI DI and the different structures of Container packaging Information.
+                Classes attributes are contained in the UDI DI class (through the generalization relationship).
+                The self reference is used to express (to define) the Package structure - each new Package element added will reference it`s parent (the previous Package element added).
+                In the case of the first package structure element, the element referenced will be the UDI DI.
+                UDIDI entity is versiond independently from the UDI DI - contains versionData
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="e:Entity">
+                <xs:sequence>
+                    <xs:element name="identifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="status" type="commondi:UDIDIStatusType" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="lastUpdated" type="xs:dateTime" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Indicates the date when this entity or any of the following entities within this structure was updated:
+                            MarketInfo, Container Packages, Product Designer.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MDRUDIDIDataType">
+        <xs:complexContent>
+            <xs:extension base="udidi:DeviceUDIDIDataType">
+                <xs:sequence>
+                    <xs:element name="annexXVINonMedicalDeviceTypes" type="udidi:AnnexXVINonMedicalDeviceTypesType" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-147# - Intended purpose other than medical (Annex XVI).
+                                Field stores the values regarding the Intended purpose of the Device, other the medical, as they are described in the Annex XVI of MDR Regulation.
+                                Field can be provided for Regulation Devices (if applicable) and must not be provided for Legacy Devices.
+                                Not available for a Master UDI-DI
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="annexXVIApplicable" type="xs:boolean" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #BR-DTX-UDID-730: Master UDI-DI properties applicability.
+                                Available only for a Master UDI-DI
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="latex" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-156# - Containing latex. Property defines if the Device contains latex into it`s composition.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="reprocessed" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-164# - Reprocessed single use device. Property defines if the Device is a Reprocessed single use device or not.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="substances" type="udidi:SubstancesType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="clinicalSizes" type="commondi:ClinicalSizesType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="IVDRUDIDIDataType">
+        <xs:complexContent>
+            <xs:extension base="udidi:DeviceUDIDIDataType">
+                <xs:sequence>
+                    <xs:element name="newDevice" type="xs:boolean" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-159# - New Device.
+                                Defines if the Device can be considered a New Device or not.
+                                A device shall be considered to be new if:
+                                (a) there has been no such device continuously available on the Union market during the previous three years for the relevant analyte or other parameter
+                                (b) the procedure involves analytical technology not continuously used in connection with a given analyte or other parameter on the Union market during the previous three years.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="PIElementEnumType">
+        <xs:list itemType="udidi:PIElementEnum"/>
+    </xs:simpleType>
+    <xs:complexType name="PackageUDIType">
+        <xs:complexContent>
+            <xs:extension base="udidi:UDIDIType">
+                <xs:sequence>
+                    <xs:element name="child" type="commondi:DIIdentifierType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-124# - Container Packaging Structure is a hierarchical (descending list) structure defining how the Device is packaged together for shipping and selling reasons.
+                                The basic (the lower) element of the Packaging Structure is the UDI-DI. The field stores a link to next child element in the Package Structure.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="numberOfItems" type="xs:positiveInteger" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>#FLD-UDID-121# - Quantity per package. Number of Items in the Package Structure.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="SubstanceType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>
+                Class that references the Substances registered in the Device.
+                Substances can be declared either by entering the Name in several Languages or by declaring the INN (International Nonproprietary Name) Code
+                If declaring the substance using free text - language will be provided. Same Substance can be mentioned in several Languages
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="names" type="lsn:LanguageOptionalTextsType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        #FLD-UDID-201# - Name of Substance.
+                        Field stores the Name of Substance (applicable for all types of substances - CMR, Endocrine, Medicinal product, Medicinal product derived from human blood or human).
+                        In case INN information is provided (for substances being Medicinal product, Medicinal product derived from human blood or human), the field is no longer required - must not be provided.
+                        In case CASCode or ECCode are provided (for substances being CMR or Endocrine substances), Name of substance can be provided only once - having the Language ANY
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CMRSubstanceType">
+        <xs:complexContent>
+            <xs:extension base="udidi:SubstanceType">
+                <xs:sequence minOccurs="0">
+                    <xs:element name="CASCode" type="commonbasic:stringCASType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-202# - CAS. Field stores the CAS Code (CAS#) associated to the CMR or Endocrine disrupting substance.
+                                CAS# can be provided only for CMR or Endocrine-disrupting substances.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ECCode" type="commonbasic:stringECCODEType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-203# - EC#. Field Stores the EC Code (EC#)associated to the CMR or Endocrine disrupting substance.
+                                EC# can be provided only for CMR or Endocrine-disrupting substances.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="type" type="udidi:CMRSubstanceTypeEnum" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                #FLD-UDID-200# - Category of CMR
+                                Field stores the Type of CMR Substance (1A or 1B). It is only applicable when the Substance registered is a CMR Substance
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="PackageUDIsType">
+        <xs:complexContent>
+            <xs:extension base="e:Entity">
+                <xs:sequence>
+                    <xs:element name="package" type="udidi:PackageUDIType" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="DTXPackageUDIType">
+        <xs:sequence>
+            <xs:element name="udiIdentifier" type="commondi:DIIdentifierType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="packages" type="udidi:PackageUDIsType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="IssuingEntityTypeEnum">
+        <xs:annotation>
+            <xs:documentation>
+                Issuing entities of the UDI Codes.
+                The issuing Entities of the UDI Codes will be established by the European Commission through implementing acts
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="EUDAMED"/>
+            <xs:enumeration value="GS1"/>
+            <xs:enumeration value="IFA"/>
+            <xs:enumeration value="HIBCC"/>
+            <xs:enumeration value="ICCBBA"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="NonMedicalDeviceEnum">
+        <xs:annotation>
+            <xs:documentation>
+                The Enumeration describes the list of devices with other scope intended than the medical one.
+                In the case of devices listed in Annex XVI of the Medical Device Regulation, specification as to whether the intended purpose of the device is other than a medical purpose.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="BRAIN_ELECTROSTIMULATION">
+                <xs:annotation>
+                    <xs:documentation>
+                        BrainElectrostimulation - Annex XVI - Mentions purpose of Device other than medical - Brain electrostimulation
+                        [MDR legislation : Annex VI, Part A, Section 2 ; IVDR Legislation : Annex VI, Part A, Section 2 ]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CONTACT_LENSES">
+                <xs:annotation>
+                    <xs:documentation>
+                        Contact Lenses- Annex XVI - Mentions purpose of Device other than medical - Contact Lenses
+                        [MDR legislation : Annex VI, Part A, Section 2 ; IVDR Legislation : Annex VI, Part A, Section 2 ]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="EMR">
+                <xs:annotation>
+                    <xs:documentation>
+                        EMR- High intensity electromagnetic radiation - Annex XVI - Mentions purpose of Device other than medical (High intensity electromagnetic radiation)
+                        [MDR legislation : Annex VI, Part A, Section 2 ; IVDR Legislation : Annex VI, Part A, Section 2 ]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="FILLING_BY_INJECTION">
+                <xs:annotation>
+                    <xs:documentation>FillingByInjection- Filling By Injection - Annex XVI - Mentions purpose of Device other than medical -Filling By Injection
+                        Annex XVI (3). Substances, combinations of substances, or items intended to be used for facial or other dermal or mucous membrane filling by subcutaneous, submucous or intradermal injection
+                        or other introduction, excluding those for tattooing
+                        [MDR legislation : Annex VI, Part A, Section 2 ; IVDR Legislation : Annex VI, Part A, Section 2 ]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="PRODUCT_IN_BODY">
+                <xs:annotation>
+                    <xs:documentation>ProductInBody - Products intended to be totally or partially introduced into the human body - Annex XVI - Mentions purpose of Device other than medical
+
+                        [MDR legislation : Annex VI, Part A, Section 2 ; IVDR Legislation : Annex VI, Part A, Section 2 ]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="EQUIPMENT_FOR_ADIPOSE_TISSUE">
+                <xs:annotation>
+                    <xs:documentation>Equipment4AdiposeTissue - Equipment for Adipose Tissue Annex XVI - Mentions purpose of Device other than medical - Equipment for Adipose Tissue
+
+                        [MDR legislation : Annex VI, Part A, Section 2 ; IVDR Legislation : Annex VI, Part A, Section 2 ]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="DeviceSubstatusEnum">
+        <xs:annotation>
+            <xs:documentation>Enumeration presents the Statuses applicable for the Devices and for the Packages</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="RECALLED">
+                <xs:annotation>
+                    <xs:documentation>RECALLED</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="FIELD_SAFETY_CORRECTIVE_ACTION_INITIATED">
+                <xs:annotation>
+                    <xs:documentation>FIELD SAFETY CORRECTIVE ACTION INITIATED</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ClinicalSizeUnitEnum">
+        <xs:annotation>
+            <xs:documentation>Enumeration presenting the Measure units in which the Clinical Size of a Device can be expressed.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MU01">
+                <xs:annotation>
+                    <xs:documentation>%</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU02">
+                <xs:annotation>
+                    <xs:documentation>/litre (/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU03">
+                <xs:annotation>
+                    <xs:documentation>/millilitre (/mL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU04">
+                <xs:annotation>
+                    <xs:documentation>/millimole (/mmol)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU138">
+                <xs:annotation>
+                    <xs:documentation>Active</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU168">
+                <xs:annotation>
+                    <xs:documentation>Adult</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU107">
+                <xs:annotation>
+                    <xs:documentation>ampere (A)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU140">
+                <xs:annotation>
+                    <xs:documentation>Angled</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU87">
+                <xs:annotation>
+                    <xs:documentation>atomic mass unit: u</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU89">
+                <xs:annotation>
+                    <xs:documentation>atomic mass unit: u per 12h</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU88">
+                <xs:annotation>
+                    <xs:documentation>atomic mass unit: u per 1h</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU90">
+                <xs:annotation>
+                    <xs:documentation>atomic mass unit: u per 2h</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU91">
+                <xs:annotation>
+                    <xs:documentation>atomic mass unit: u per d</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU92">
+                <xs:annotation>
+                    <xs:documentation>atomic mass unit: u per g</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU93">
+                <xs:annotation>
+                    <xs:documentation>atomic mass unit: u per kg</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU94">
+                <xs:annotation>
+                    <xs:documentation>atomic mass unit: u per mL</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU126">
+                <xs:annotation>
+                    <xs:documentation>bar (bar)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU122">
+                <xs:annotation>
+                    <xs:documentation>becquerel (Bq)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU133">
+                <xs:annotation>
+                    <xs:documentation>bel (B)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU154">
+                <xs:annotation>
+                    <xs:documentation>Belt</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU109">
+                <xs:annotation>
+                    <xs:documentation>candela (cd)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU09">
+                <xs:annotation>
+                    <xs:documentation>centilitre (cL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU10">
+                <xs:annotation>
+                    <xs:documentation>centimetre (cm)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU11">
+                <xs:annotation>
+                    <xs:documentation>centimetre per second (cm/s)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU167">
+                <xs:annotation>
+                    <xs:documentation>Child</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU158">
+                <xs:annotation>
+                    <xs:documentation>Concave</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU151">
+                <xs:annotation>
+                    <xs:documentation>Contour</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU156">
+                <xs:annotation>
+                    <xs:documentation>Convex</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU157">
+                <xs:annotation>
+                    <xs:documentation>Convex light</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU113">
+                <xs:annotation>
+                    <xs:documentation>coulomb (C)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU12">
+                <xs:annotation>
+                    <xs:documentation>cubic centimetre (cu cm or cm3)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU13">
+                <xs:annotation>
+                    <xs:documentation>cubic millimetre (cu mm or mm3)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU14">
+                <xs:annotation>
+                    <xs:documentation>cup</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU175">
+                <xs:annotation>
+                    <xs:documentation>Curved</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU131">
+                <xs:annotation>
+                    <xs:documentation>dalton (Da)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU15">
+                <xs:annotation>
+                    <xs:documentation>day (d)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU134">
+                <xs:annotation>
+                    <xs:documentation>decibel (dB)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU16">
+                <xs:annotation>
+                    <xs:documentation>decilitre (dL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU17">
+                <xs:annotation>
+                    <xs:documentation>decimetre (dm)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU105">
+                <xs:annotation>
+                    <xs:documentation>degree (°)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU18">
+                <xs:annotation>
+                    <xs:documentation>degree Celsius (°C)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU104">
+                <xs:annotation>
+                    <xs:documentation>dioptre (D)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU127">
+                <xs:annotation>
+                    <xs:documentation>electronvolt (eV)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU164">
+                <xs:annotation>
+                    <xs:documentation>Extra large (XL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU160">
+                <xs:annotation>
+                    <xs:documentation>Extra small (XS)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU117">
+                <xs:annotation>
+                    <xs:documentation>farad (F)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU21">
+                <xs:annotation>
+                    <xs:documentation>femtolitre (fL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU20">
+                <xs:annotation>
+                    <xs:documentation>femtometre (fm)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU22">
+                <xs:annotation>
+                    <xs:documentation>femtomole/litre (fmol/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU159">
+                <xs:annotation>
+                    <xs:documentation>Flat</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU23">
+                <xs:annotation>
+                    <xs:documentation>foot (ft)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU170">
+                <xs:annotation>
+                    <xs:documentation>French (F)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU24">
+                <xs:annotation>
+                    <xs:documentation>gram (g)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU25">
+                <xs:annotation>
+                    <xs:documentation>gram per litre (g/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU123">
+                <xs:annotation>
+                    <xs:documentation>gray (Gy)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU129">
+                <xs:annotation>
+                    <xs:documentation>hectare (ha)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU150">
+                <xs:annotation>
+                    <xs:documentation>Heel</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU120">
+                <xs:annotation>
+                    <xs:documentation>henry (H)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU27">
+                <xs:annotation>
+                    <xs:documentation>hertz (Hz)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU26">
+                <xs:annotation>
+                    <xs:documentation>hour (h)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU28">
+                <xs:annotation>
+                    <xs:documentation>inch (in)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU166">
+                <xs:annotation>
+                    <xs:documentation>Infant</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU05">
+                <xs:annotation>
+                    <xs:documentation>international unit [IU]</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU06">
+                <xs:annotation>
+                    <xs:documentation>international unit per day [IU]/day ([IU]/d)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU07">
+                <xs:annotation>
+                    <xs:documentation>international unit per litre [IU]/litre [IU]/L</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU08">
+                <xs:annotation>
+                    <xs:documentation>international unit per millilitre [IU]/millilitre [IU]/mL</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU112">
+                <xs:annotation>
+                    <xs:documentation>joule (J)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU141">
+                <xs:annotation>
+                    <xs:documentation>J-tip</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU125">
+                <xs:annotation>
+                    <xs:documentation>katal (kat)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU108">
+                <xs:annotation>
+                    <xs:documentation>kelvin (K)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU29">
+                <xs:annotation>
+                    <xs:documentation>kilogram (kg)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU30">
+                <xs:annotation>
+                    <xs:documentation>kilolitre (KL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU31">
+                <xs:annotation>
+                    <xs:documentation>kilometre (km)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU32">
+                <xs:annotation>
+                    <xs:documentation>kilopascal (kPa)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU33">
+                <xs:annotation>
+                    <xs:documentation>kiloU per litre (kU/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU163">
+                <xs:annotation>
+                    <xs:documentation>Large (L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU172">
+                <xs:annotation>
+                    <xs:documentation>left</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU34">
+                <xs:annotation>
+                    <xs:documentation>litre (L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU106">
+                <xs:annotation>
+                    <xs:documentation>lumen (lm)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU121">
+                <xs:annotation>
+                    <xs:documentation>lux (lx)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU162">
+                <xs:annotation>
+                    <xs:documentation>Medium (M)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU36">
+                <xs:annotation>
+                    <xs:documentation>metre (m)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU95">
+                <xs:annotation>
+                    <xs:documentation>micro[iU] per millilitre (µ[iU]/mL or µ[iU]/ml)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU40">
+                <xs:annotation>
+                    <xs:documentation>microgram (µg)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU96">
+                <xs:annotation>
+                    <xs:documentation>microgram per day (µg/d)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU135">
+                <xs:annotation>
+                    <xs:documentation>microgram per decilitre µg/dL</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU97">
+                <xs:annotation>
+                    <xs:documentation>microgram per litre (µg/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU98">
+                <xs:annotation>
+                    <xs:documentation>microgram per millilitre (µg/mL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU41">
+                <xs:annotation>
+                    <xs:documentation>microgram per minute (µg/min)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU42">
+                <xs:annotation>
+                    <xs:documentation>microlitre (µL or µl)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU43">
+                <xs:annotation>
+                    <xs:documentation>micrometre (µm)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU99">
+                <xs:annotation>
+                    <xs:documentation>micrometre per second (µm/s)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU44">
+                <xs:annotation>
+                    <xs:documentation>micromole (µmol)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU100">
+                <xs:annotation>
+                    <xs:documentation>micromole per gram (µmol/g)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU45">
+                <xs:annotation>
+                    <xs:documentation>micromole per litre (µmol/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU19">
+                <xs:annotation>
+                    <xs:documentation>micromoles per minute (=1 μmol/min)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU35">
+                <xs:annotation>
+                    <xs:documentation>milli international unit per litre (m[iU]/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU46">
+                <xs:annotation>
+                    <xs:documentation>millibar (mbar)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU47">
+                <xs:annotation>
+                    <xs:documentation>milliequivalent (mEq)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU37">
+                <xs:annotation>
+                    <xs:documentation>milligram (mg)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU136">
+                <xs:annotation>
+                    <xs:documentation>milligram per decilitre (mg/dL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU38">
+                <xs:annotation>
+                    <xs:documentation>milligram per litre (mg/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU39">
+                <xs:annotation>
+                    <xs:documentation>milligram per millilitre (mg/mL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU48">
+                <xs:annotation>
+                    <xs:documentation>millilitre (mL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU56">
+                <xs:annotation>
+                    <xs:documentation>millilitre per day (mL/d)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU57">
+                <xs:annotation>
+                    <xs:documentation>millilitre per minute (mL or ml/min)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU49">
+                <xs:annotation>
+                    <xs:documentation>millilitre per second (mL/s)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU50">
+                <xs:annotation>
+                    <xs:documentation>millimetre (mm)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU51">
+                <xs:annotation>
+                    <xs:documentation>millimetre of mercury (mm Hg)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU58">
+                <xs:annotation>
+                    <xs:documentation>millimetre per hour (mm/h)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU52">
+                <xs:annotation>
+                    <xs:documentation>millimole (mmol)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU59">
+                <xs:annotation>
+                    <xs:documentation>millimole per gram (mmol/g)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU60">
+                <xs:annotation>
+                    <xs:documentation>millimole per kilogram (mmol/kg)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU61">
+                <xs:annotation>
+                    <xs:documentation>millimole per kilogram[H2O] (mmol/kg[H2O])</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU53">
+                <xs:annotation>
+                    <xs:documentation>millimoles per litre (mmol/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU54">
+                <xs:annotation>
+                    <xs:documentation>millisecond (ms)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU147">
+                <xs:annotation>
+                    <xs:documentation>Mini</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU55">
+                <xs:annotation>
+                    <xs:documentation>minute (min)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU62">
+                <xs:annotation>
+                    <xs:documentation>mole (mol)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU63">
+                <xs:annotation>
+                    <xs:documentation>month</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU149">
+                <xs:annotation>
+                    <xs:documentation>Multishape</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU64">
+                <xs:annotation>
+                    <xs:documentation>nanogram (ng)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU67">
+                <xs:annotation>
+                    <xs:documentation>nanogram per litre (ng/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU68">
+                <xs:annotation>
+                    <xs:documentation>nanogram per millilitre (ng/mL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU65">
+                <xs:annotation>
+                    <xs:documentation>nanolitre (nL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU66">
+                <xs:annotation>
+                    <xs:documentation>nanometre (nm)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU69">
+                <xs:annotation>
+                    <xs:documentation>nanomole per day (nmol/d)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU70">
+                <xs:annotation>
+                    <xs:documentation>nanomole per gram (nmol/g)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU71">
+                <xs:annotation>
+                    <xs:documentation>nanomole per hour per millilitre (nmol/h/mL or nmol/h/ml)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU72">
+                <xs:annotation>
+                    <xs:documentation>nanomole per litre (nmol/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU165">
+                <xs:annotation>
+                    <xs:documentation>Neonate</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU132">
+                <xs:annotation>
+                    <xs:documentation>neper (Np)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU110">
+                <xs:annotation>
+                    <xs:documentation>newton (N)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU115">
+                <xs:annotation>
+                    <xs:documentation>ohm (Ω)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU111">
+                <xs:annotation>
+                    <xs:documentation>pascal (Pa)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU137">
+                <xs:annotation>
+                    <xs:documentation>Passive</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU169">
+                <xs:annotation>
+                    <xs:documentation>pH (pH)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU73">
+                <xs:annotation>
+                    <xs:documentation>picogram (pg)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU74">
+                <xs:annotation>
+                    <xs:documentation>picogram per millilitre (pg/mL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU75">
+                <xs:annotation>
+                    <xs:documentation>picolitre (pL)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU76">
+                <xs:annotation>
+                    <xs:documentation>picometre (pm)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU77">
+                <xs:annotation>
+                    <xs:documentation>picomole per gram (pmol/g)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU78">
+                <xs:annotation>
+                    <xs:documentation>picomole per hour per milligram (pmol/h/mg)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU79">
+                <xs:annotation>
+                    <xs:documentation>picomole per hour per millilitre (pmol/h/mL or pmol/h/ml)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU80">
+                <xs:annotation>
+                    <xs:documentation>picomole per litre (pmol/L)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU153">
+                <xs:annotation>
+                    <xs:documentation>Rectangular</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU173">
+                <xs:annotation>
+                    <xs:documentation>right</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU148">
+                <xs:annotation>
+                    <xs:documentation>Sacral</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU81">
+                <xs:annotation>
+                    <xs:documentation>second (s)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU116">
+                <xs:annotation>
+                    <xs:documentation>siemens (S)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU124">
+                <xs:annotation>
+                    <xs:documentation>sievert (Sv)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU161">
+                <xs:annotation>
+                    <xs:documentation>Small (S)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU144">
+                <xs:annotation>
+                    <xs:documentation>Soft angled</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU142">
+                <xs:annotation>
+                    <xs:documentation>Soft straight</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU152">
+                <xs:annotation>
+                    <xs:documentation>Square</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU82">
+                <xs:annotation>
+                    <xs:documentation>square centimetre (sq cm or cm2)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU83">
+                <xs:annotation>
+                    <xs:documentation>square foot (sq ft)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU84">
+                <xs:annotation>
+                    <xs:documentation>square inch (sq in)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU85">
+                <xs:annotation>
+                    <xs:documentation>square metre (sq m or m2)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU86">
+                <xs:annotation>
+                    <xs:documentation>square millimetre (sq mm or mm2)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU176">
+                <xs:annotation>
+                    <xs:documentation>Standard</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU145">
+                <xs:annotation>
+                    <xs:documentation>Stiff angled</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU146">
+                <xs:annotation>
+                    <xs:documentation>Stiff J-tip</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU143">
+                <xs:annotation>
+                    <xs:documentation>Stiff straight</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU139">
+                <xs:annotation>
+                    <xs:documentation>Straight</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU119">
+                <xs:annotation>
+                    <xs:documentation>tesla (T)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU130">
+                <xs:annotation>
+                    <xs:documentation>tonne (metric ton)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU128">
+                <xs:annotation>
+                    <xs:documentation>unified atomic mass unit (u)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU114">
+                <xs:annotation>
+                    <xs:documentation>volt (V)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU103">
+                <xs:annotation>
+                    <xs:documentation>watt (W)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU118">
+                <xs:annotation>
+                    <xs:documentation>weber (Wb)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU101">
+                <xs:annotation>
+                    <xs:documentation>week</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU102">
+                <xs:annotation>
+                    <xs:documentation>year</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MU999">
+                <xs:annotation>
+                    <xs:documentation>OTHER</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="PIElementEnum">
+        <xs:annotation>
+            <xs:documentation>Enumeration contains the types of Production Identification can be used to specify the way the production is controlled for a device
+                The manner in which production of the device is controlled (expiry date or manufacturing date, lot number, serial number)
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="BATCH_NUMBER">
+                <xs:annotation>
+                    <xs:documentation>BatchNumber - Property mentioning the way the production of the device is controlled (expiry date or manufacturing date, lot number, serial number);
+                        [MDR legislation : Annex VI, Part B (3); IVDR Legislation : Annex VI, Part B (3)]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SOFTWARE_IDENTIFICATION"/>
+            <xs:enumeration value="SERIALISATION_NUMBER">
+                <xs:annotation>
+                    <xs:documentation>SerializationNumber- Property mentioning the way the production of the device is controlled (expiry date or manufacturing date, lot number, serial number);
+                        [MDR legislation : Annex VI, Part B (3); IVDR Legislation : Annex VI, Part B (3)]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="EXPIRATION_DATE">
+                <xs:annotation>
+                    <xs:documentation>ExpirationDate- Property mentioning the way the production of the device is controlled (expiry date or manufacturing date, lot number, serial number);
+                        [MDR legislation : Annex VI, Part B (3); IVDR Legislation : Annex VI, Part B (3)]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="MANUFACTURING_DATE">
+                <xs:annotation>
+                    <xs:documentation>ManufacturingDate- Property mentioning the way the production of the device is controlled (expiry date or manufacturing date, lot number, serial number);
+                        [MDR legislation : Annex VI, Part B (3); IVDR Legislation : Annex VI, Part B (3)]
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="CMRSubstanceTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CMR_1A"/>
+            <xs:enumeration value="CMR_1B"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="DeviceStatusEnum">
+        <xs:annotation>
+            <xs:documentation>Enumeration presents the Statuses applicable for the Devices and for the Packages.
+
+                Only 'On the Market' and 'No longer available on the market' Status is Applicable for Packages
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="NOT_INTENDED_FOR_EU_MARKET"/>
+            <xs:enumeration value="ON_THE_MARKET">
+                <xs:annotation>
+                    <xs:documentation>ON THE MARKET</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NO_LONGER_PLACED_ON_THE_MARKET">
+                <xs:annotation>
+                    <xs:documentation>NO LONGER ON THE MARKET</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

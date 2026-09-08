@@ -139,6 +139,8 @@ def _infer_service_type(root: ET.Element) -> str:
         return f"UDI_DI.{operation or 'POST'}"
     if service in {"BASIC_UDI", "BASICUDI"}:
         return f"Basic_UDI.{operation or 'PATCH'}"
+    if service == "PRODUCT_DESIGNER":
+        return f"PRODUCT_DESIGNER.{operation or 'PUT'}"
     if service in {"MARKET_INFO", "MKTINFO"}:
         return f"MARKET_INFO.{operation or 'PATCH'}"
     if service in {"PACKAGE_UDI", "CONTAINER_PACKAGE"}:

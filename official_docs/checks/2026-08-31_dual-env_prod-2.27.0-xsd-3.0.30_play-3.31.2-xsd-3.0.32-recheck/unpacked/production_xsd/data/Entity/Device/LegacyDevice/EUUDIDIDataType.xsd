@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/tools/eudamed/dtx/xslt/index.xsl"?>
+<xs:schema targetNamespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDIData/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:eudididata="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/LegacyDevice/EUDIData/v1" xmlns:commondi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" xmlns:marketinfo="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1" xmlns:lsn="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" xmlns:udidi="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" xmlns:commonbasic="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" xmlns:links="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" xmlns:party="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1" elementFormDefault="qualified" version="1.0">
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Party/v1" schemaLocation="../../Party/Party.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Links/v1" schemaLocation="../../Links/LinkType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/CommonBasic/v1" schemaLocation="../../Common/CommonBasicType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/UDIDI/v1" schemaLocation="../RegulationDevice/UDIDIType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Common/LanguageSpecific/v1" schemaLocation="../../Common/LanguageSpecificNameType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/MktInfo/MarketInfo/v1" schemaLocation="../../MarketInfo/MarketInfoType.xsd"/>
+	<xs:import namespace="https://ec.europa.eu/tools/eudamed/dtx/datamodel/Entity/Device/CommonDevice/v1" schemaLocation="../CommonDeviceType.xsd"/>
+	<xs:complexType name="IVDEUDataType">
+		<xs:complexContent>
+			<xs:extension base="udidi:DeviceUDIDIDataType">
+				<xs:sequence/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="EUIssuingEntityTypeEnum">
+		<xs:annotation>
+			<xs:documentation>Issuing entities of the UDI Codes. 
+
+The issuing Entities of the UDI Codes will be established by the European Commission through implementing acts</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="EUDAMED"/>
+			<xs:enumeration value="GS1"/>
+			<xs:enumeration value="HIBCC"/>
+			<xs:enumeration value="ICCBBA"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="EUSubstancesType">
+		<xs:sequence>
+			<xs:element name="substance" type="eudididata:EUSubstanceType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MDEUDataType">
+		<xs:complexContent>
+			<xs:extension base="udidi:MDRUDIDIDataType">
+				<xs:sequence/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="DTXPackageUDIType">
+		<xs:sequence>
+			<xs:element name="udiIdentifier" type="xs:string" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="EUSubstanceType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>Class that references the Substances registered in the Device.
+
+Substances can be declared either by entering the Name in several Languages or by declaring the INN (International Nonproprietary Name) Code 
+
+If declaring the substance using free text - language will be provided. Same Substance can be mentioned in several Languages</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="INN" type="xs:string" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="name" type="lsn:LanguageSpecificTextType" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>#FLD-UDID-201# - Name of Substance. Field stores the Name of Substance (applicable for all types of substances - CMR, Endocrine , Medicinal product, Medicinal product derived from human blood or human). In case of CMR Substances or Medicinal product and Medicinal product derived from human blood or human plasma , if the #CAS or #EC or INN is provided, field is no longer required.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="type" type="commondi:MedicalHumanSubstanceTypeEnum" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>
