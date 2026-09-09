@@ -24,11 +24,11 @@
    ```bash
    python3 -m compileall local_beta
    ```
-5. 在 Windows 机器上重新构建 Windows 包，生成 `dist/EUDAMED_Local_Beta_Windows.zip`。
+5. 如需本地预检，可分别构建 Windows 和 Mac 包；正式 Release workflow 会在 Windows 与 Apple Silicon Mac runner 上重新构建。
 
 ## 3. GitHub Actions 自动发布
 
-当前仓库使用 `.github/workflows/release.yml` 自动构建 Windows ZIP，并发布到 GitHub Release 和 Gitee Release。
+当前仓库使用 `.github/workflows/release.yml` 自动构建 Windows ZIP 和 Apple Silicon Mac ZIP，并发布到 GitHub Release 和 Gitee Release。Mac job 先完成构建、版本、架构、签名和 ZIP 完整性校验；Mac 构建失败时不会继续创建不完整 Release。
 
 首次使用前需要在 GitHub 仓库配置 secret：
 
@@ -45,7 +45,7 @@
 2. 选择 `Release` workflow。
 3. 点击 `Run workflow`。
 4. `version` 填不带 `v` 的版本号，例如 `0.7.1`。该版本必须与 `local_beta/constants.py` 的 `TOOL_VERSION` 和 `CHANGELOG.md` 顶部章节一致。
-5. workflow 会生成 `dist/EUDAMED_Local_Beta_Windows.zip`，并把它、`EUDAMED_Template_v2.12.xlsx` 和 `EUDAMED_Template_v2.12_EN.xlsx` 上传到 GitHub Release。
+5. workflow 会生成 `EUDAMED_Local_Beta_Windows.zip` 和 `EUDAMED_Local_Beta_Mac_arm64.zip`，并把它们、`SHA256SUMS-<version>.txt`、`EUDAMED_Template_v2.13.xlsx` 和 `EUDAMED_Template_v2.13_EN.xlsx` 上传到 GitHub Release。
 6. 同一 workflow 会调用 Gitee API 创建/更新同 tag 的 Gitee Release，并尽力上传同名附件；Gitee 镜像失败不会阻断 GitHub 主发布。
 
 Gitee Release 附件限制：普通项目单个附件不能超过 100M，仓库总附件容量普通项目不能超过 1G。GitHub runner 到 Gitee 上传 50MB 以上附件可能因跨境网络超时；如 Gitee ZIP 上传失败，GitHub Release 仍有效，Gitee 可手动补传或改用 OSS/COS/网盘等备用下载源。
@@ -55,13 +55,14 @@ Gitee Release 附件限制：普通项目单个附件不能超过 100M，仓库�
 1. 打开仓库页面，进入 `Releases`。
 2. 点击 `Draft a new release`。
 3. 创建 tag，例如 `v0.7.0`。tag 需要和 `TOOL_VERSION` 对齐。
-4. Release title 写当前版本，例如 `v0.9.8 - 公开测试版`。
+4. Release title 写当前版本，例如 `v1.0.0 - 公开测试版`。
 5. Release notes 粘贴 `CHANGELOG.md` 中对应版本的内容。
 6. 上传二进制附件，例如：
    - `EUDAMED_Local_Beta_Windows.zip`
-   - `EUDAMED_Local_Beta_macOS.zip`（如有）
-   - `EUDAMED_Template_v2.12.xlsx`（中文模板，方便用户单独下载）
-   - `EUDAMED_Template_v2.12_EN.xlsx`（英文模板，方便海外用户单独下载）
+   - `EUDAMED_Local_Beta_Mac_arm64.zip`
+   - `SHA256SUMS-<version>.txt`
+   - `EUDAMED_Template_v2.13.xlsx`（中文模板，方便用户单独下载）
+   - `EUDAMED_Template_v2.13_EN.xlsx`（英文模板，方便海外用户单独下载）
 7. 公开测试阶段可勾选 `Set as a pre-release`；稳定后取消。
 8. 发布后确认 Release 页面能看到附件下载链接。
 
@@ -73,6 +74,12 @@ https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest/download/EU
 ```
 
 如果每次 Windows 包都叫 `EUDAMED_Local_Beta_Windows.zip`，这个直链不会随版本号变化，适合发给非技术用户。
+
+Apple Silicon Mac 固定下载地址：
+
+```text
+https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest/download/EUDAMED_Local_Beta_Mac_arm64.zip
+```
 
 ## 5. 配置工具内“检查更新”
 
@@ -94,7 +101,7 @@ GITEE_RELEASES_PAGE_URL = "https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/r
 
 检查更新时优先访问 GitHub；如果 GitHub API 因网络、限流或不可达失败，会尝试读取 Gitee 最新 Release，并在帮助页标明来源。
 
-如果 Release 上传了多个附件，帮助页会列出全部附件，并优先高亮当前系统更可能需要的安装包。Windows 用户通常应下载 `EUDAMED_Local_Beta_Windows.zip`。
+如果 Release 上传了多个附件，帮助页会列出全部附件，并优先高亮当前系统更可能需要的安装包。Windows 用户下载 `EUDAMED_Local_Beta_Windows.zip`；Apple 芯片 Mac 用户下载 `EUDAMED_Local_Beta_Mac_arm64.zip`。
 
 如果仓库还没有任何 GitHub Release，帮助页会显示“仓库尚未发布版本”。这不是断网；需要先创建 tag + Release + 上传 ZIP，检查更新才会变成可用。
 

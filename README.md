@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **0.9.8 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **0.9.8 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **1.0.0 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **1.0.0 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -28,9 +28,11 @@
 
 ### 方式 A：下载现成包（推荐，非技术用户）
 
-到 GitHub Releases 页面下载最新 ZIP（含 Windows 包），解压后运行；如果 GitHub 访问慢或失败，可使用 Gitee 国内镜像：
+到 GitHub Releases 页面下载对应系统的最新 ZIP；如果 GitHub 访问慢或失败，可使用 Gitee 国内镜像：
 
 - GitHub 最新版本：<https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest>
+- Windows 最新包：<https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest/download/EUDAMED_Local_Beta_Windows.zip>
+- Apple 芯片 Mac 最新包：<https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest/download/EUDAMED_Local_Beta_Mac_arm64.zip>
 - Gitee 国内镜像：<https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases>
 
 Windows 用户建议按这个顺序操作：
@@ -40,6 +42,13 @@ Windows 用户建议按这个顺序操作：
 3. 右键 ZIP → 全部解压 / Extract All，不要直接在压缩包里运行。
 4. 进入解压后的文件夹，双击启动程序。
 5. 浏览器会打开本地地址 `http://127.0.0.1:8765`；如果没有自动打开，请手动复制这个地址到浏览器。
+
+Apple 芯片 Mac 用户：
+
+1. 在 `Assets` 中下载 `EUDAMED_Local_Beta_Mac_arm64.zip`。
+2. 解压后打开 `EUDAMED Local Beta.app`；需要 macOS 13 或更高版本，并预先安装 Python 3.10 或更高版本。
+3. 当前 Mac 包使用本地签名、未经 Apple 公证。首次启动如被 Gatekeeper 拦截，请按住 Control 点击应用，选择“打开”并确认。
+4. Mac 用户数据保存在 `~/Library/Application Support/EUDAMED Local Beta/local_beta_data`，替换应用不会删除该目录。
 
 > 注：需要作者先发布 Release，上面的下载链接才会有内容。如果页面是空的，说明还没发布正式包，请先用方式 B，或联系作者。
 
@@ -62,8 +71,8 @@ http://127.0.0.1:8765
 ## 如何更新
 
 1. 在工具的「帮助」页点 **检查更新**——它会优先读取 GitHub Releases；如果 GitHub API 访问失败，会尝试读取 Gitee 镜像 Release。
-2. 下载新 ZIP，**覆盖**到原目录（或直接运行新版 exe）。
-3. 你的数据（`local_beta_data/` 里的数据库和导出文件）**不会被覆盖**，会保留。也可以用环境变量 `EUDAMED_DATA_DIR` 把数据目录指到别处。
+2. 下载对应系统的新 ZIP；Windows 完整解压到新目录，Mac 替换旧 `.app`。
+3. 用户数据与程序包分开保存，升级不会自动删除。也可以用环境变量 `EUDAMED_DATA_DIR` 指定其他数据目录。
 
 > 工具版本和官方 XSD 版本是**绑定**的：EUDAMED 升级 XSD 时必须整包更新工具，不能只替换 XSD 文件，否则生成的 XML 会不合规。
 
@@ -119,7 +128,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **0.9.8 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **1.0.0 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -155,9 +164,11 @@ Built for company **Regulatory Affairs (RA)** staff — no programming needed. T
 
 ### Option A: Download a ready package (recommended for non-technical users)
 
-Download the latest ZIP (with the Windows package) from GitHub Releases and unzip. If GitHub is slow or unavailable, use the Gitee mirror:
+Download the latest ZIP for your operating system from GitHub Releases. If GitHub is slow or unavailable, use the Gitee mirror:
 
 - GitHub latest release: <https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest>
+- Latest Windows package: <https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest/download/EUDAMED_Local_Beta_Windows.zip>
+- Latest Apple Silicon Mac package: <https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/latest/download/EUDAMED_Local_Beta_Mac_arm64.zip>
 - Gitee mirror: <https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases>
 
 Recommended Windows steps:
@@ -167,6 +178,13 @@ Recommended Windows steps:
 3. Right-click the ZIP and choose Extract All; do not run it from inside the compressed folder.
 4. Open the extracted folder and double-click the launcher.
 5. The browser should open `http://127.0.0.1:8765`; if it does not, copy this address into your browser manually.
+
+Apple Silicon Mac steps:
+
+1. Under `Assets`, download `EUDAMED_Local_Beta_Mac_arm64.zip`.
+2. Extract it and open `EUDAMED Local Beta.app`. macOS 13+ and Python 3.10+ are required.
+3. The current Mac package is ad-hoc signed and not Apple-notarized. If Gatekeeper blocks the first launch, Control-click the app, choose **Open**, and confirm.
+4. Mac user data is stored under `~/Library/Application Support/EUDAMED Local Beta/local_beta_data`; replacing the app does not remove it.
 
 > Note: the author must publish a Release first for these links to contain anything. If the page is empty, no official package has been published yet — use Option B or contact the author.
 
@@ -189,8 +207,8 @@ http://127.0.0.1:8765
 ## Update
 
 1. On the tool's **Help** page, click **Check for updates** — it reads GitHub Releases first; if the GitHub API is unavailable, it tries the Gitee mirror release.
-2. Download the new ZIP and **overwrite** the old folder (or run the new exe).
-3. Your data (the database and exports under `local_beta_data/`) is **kept, not overwritten**. You can also point the data folder elsewhere with the `EUDAMED_DATA_DIR` environment variable.
+2. Download the new ZIP for your operating system; fully extract the Windows package or replace the old Mac `.app`.
+3. User data is stored separately from the application package and is kept during upgrades. You can also point the data folder elsewhere with `EUDAMED_DATA_DIR`.
 
 > The tool version and the official XSD version are **coupled**: when EUDAMED upgrades the XSD, update the whole tool package — do not just swap the XSD files, or the generated XML will be non-compliant.
 
@@ -246,7 +264,7 @@ Helpers:
 
 ## Version history
 
-Current **0.9.8 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **1.0.0 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 
@@ -257,7 +275,7 @@ Current **0.9.8 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHA
 
 > Maintainer / project-structure / release docs: [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) and [`docs/GITHUB_RELEASE_PROCESS.md`](docs/GITHUB_RELEASE_PROCESS.md).
 
-### macOS 0.9.9 与 Original manufacturer
+### macOS 1.0.0 与 Original manufacturer
 
 运行 `./script/build_and_run.sh --build-only` 生成 `dist/EUDAMED Local Beta.app` 和本机架构 Mac ZIP。Mac 需要 Python 3.10+，用户数据继续保存在 `~/Library/Application Support/EUDAMED Local Beta/local_beta_data`。此构建为本地签名、未公证版本。
 

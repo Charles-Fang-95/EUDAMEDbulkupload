@@ -2,6 +2,13 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 1.0.0 - 2026-09-09
+
+- 工具版本号升级到 `1.0.0`；模板继续使用 v2.13，Production XSD 基线继续使用 3.0.30。
+- 修复上一版发布附件不完整：Release workflow 现在先在 GitHub `macos-15` Apple Silicon runner 构建并校验 `EUDAMED_Local_Beta_Mac_arm64.zip`，再与 Windows ZIP、中英文模板及 SHA-256 文件一起发布到 GitHub/Gitee Release；Mac 构建失败时不再创建仅含 Windows 包的不完整 Release。
+- 修正 README 顶部和中英文版本历史仍显示 0.9.8 的问题，并补充 Mac 下载、系统要求、数据目录及未经 Apple 公证的首次启动说明。
+- GitHub Actions 工作流升级到原生 Node.js 24 的官方 action 版本，移除强制以 Node 24 运行旧 Node 20 action 的过渡变量，避免 Windows Release 和官方文档检查出现 Node.js 20 弃用警告。
+
 ## 0.9.9 - 2026-09-08
 
 - 修正 Market Information 和 Container Package 两个更新 service：按 Production 2.27.0 官方定义使用 `MARKET_INFO.PUT` / `PACKAGE_UDI.PUT`，XML recipient operation 由错误的 `PATCH` 改为 `PUT`；旧 `.PATCH` 本地链接仍自动兼容并规范化为 `.PUT`。
