@@ -54,7 +54,8 @@ copy_item "$ROOT_DIR/EUDAMED_TOOL_v2/lib" "$RESOURCE_ROOT/EUDAMED_TOOL_v2/lib"
 copy_item "$ROOT_DIR/EUDAMED_TOOL_v2/validator.py" "$RESOURCE_ROOT/EUDAMED_TOOL_v2/validator.py"
 copy_item "$ROOT_DIR/official_docs/unpacked/xsd_production" "$RESOURCE_ROOT/official_docs/unpacked/xsd_production"
 TOOL_VERSION="$(cd "$ROOT_DIR" && python3 -c 'from local_beta.constants import TOOL_VERSION; print(TOOL_VERSION)')"
-for template in $(cd "$ROOT_DIR" && python3 -c 'from local_beta.constants import TEMPLATE_FILENAME, TEMPLATE_EN_FILENAME; print(TEMPLATE_FILENAME, TEMPLATE_EN_FILENAME)'); do
+read -r TEMPLATE_FILENAME TEMPLATE_EN_FILENAME < <(cd "$ROOT_DIR" && python3 -c 'from local_beta.constants import TEMPLATE_FILENAME, TEMPLATE_EN_FILENAME; print(TEMPLATE_FILENAME, TEMPLATE_EN_FILENAME)')
+for template in "$TEMPLATE_FILENAME" "$TEMPLATE_EN_FILENAME"; do
   test -f "$ROOT_DIR/$template" || { echo "Missing template: $template" >&2; exit 1; }
   copy_item "$ROOT_DIR/$template" "$RESOURCE_ROOT/$template"
 done
@@ -107,7 +108,12 @@ cat >"$INFO_PLIST" <<PLIST
 PLIST
 
 /usr/bin/codesign --force --deep --sign - "$APP_BUNDLE"
-/usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$DIST_DIR/EUDAMED_Local_Beta_Mac_$(uname -m).zip"
+ZIP_NAME="EUDAMED_Local_Beta_Mac_$(uname -m).zip"
+/usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$DIST_DIR/$ZIP_NAME"
+(
+  cd "$ROOT_DIR"
+  /usr/bin/shasum -a 256 "dist/$ZIP_NAME" "$TEMPLATE_FILENAME" "$TEMPLATE_EN_FILENAME"
+) | /usr/bin/sed 's#  dist/#  #' >"$DIST_DIR/SHA256SUMS-$TOOL_VERSION.txt"
 
 open_app() {
   /usr/bin/open -n "$APP_BUNDLE"

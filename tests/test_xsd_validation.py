@@ -176,7 +176,7 @@ class XSDValidationBase(unittest.TestCase):
 
 
 class ServiceProfileMatrix(XSDValidationBase):
-    """6 service × 5 个结构正确的 profile，全程 XSD 校验。"""
+    """7 service × 5 个结构正确的 profile，全程 XSD 校验。"""
 
     def test_device_post(self):
         for p in WORKING_PROFILES:
@@ -202,18 +202,49 @@ class ServiceProfileMatrix(XSDValidationBase):
                 _, uid = self._seed(p, version="1")
                 self._assert_valid("UDI_DI.PATCH", [uid], f"UDI_DI.PATCH/{p}")
 
-    def test_market_info_patch(self):
+    def test_market_info_put(self):
         for p in WORKING_PROFILES:
             with self.subTest(profile=p):
                 _, uid = self._seed(p)
-                self._assert_valid("MARKET_INFO.PATCH", [uid], f"MARKET_INFO.PATCH/{p}")
+                self._assert_valid("MARKET_INFO.PUT", [uid], f"MARKET_INFO.PUT/{p}")
 
-    def test_package_udi_patch(self):
+    def test_package_udi_put(self):
         pkg = [{"Package UDI-DI Code": "16942495390017", "Package Issuing Entity": "GS1", "Quantity per Package": "10"}]
         for p in WORKING_PROFILES:
             with self.subTest(profile=p):
                 _, uid = self._seed(p, package_rows=pkg)
-                self._assert_valid("PACKAGE_UDI.PATCH", [uid], f"PACKAGE_UDI.PATCH/{p}")
+                self._assert_valid("PACKAGE_UDI.PUT", [uid], f"PACKAGE_UDI.PUT/{p}")
+
+    def test_market_and_package_updates_use_official_put_operation_and_accept_old_aliases(self):
+        _, market_uid = self._seed("MDR")
+        _, package_uid = self._seed(
+            "MDR",
+            package_rows=[{
+                "Package UDI-DI Code": "16942495390017",
+                "Package Issuing Entity": "GS1",
+                "Quantity per Package": "10",
+            }],
+        )
+        for requested, uid, expected_service in (
+            ("MARKET_INFO.PUT", market_uid, "MARKET_INFO"),
+            ("MARKET_INFO.PATCH", market_uid, "MARKET_INFO"),
+            ("PACKAGE_UDI.PUT", package_uid, "PACKAGE_UDI"),
+            ("PACKAGE_UDI.PATCH", package_uid, "PACKAGE_UDI"),
+        ):
+            with self.subTest(requested=requested):
+                result = self.exporter.export(requested, [uid])
+                self.assertFalse(result.get("errors"), result.get("errors"))
+                self.assertEqual(result["service_type"], requested.replace(".PATCH", ".PUT"))
+                root = ET.fromstring(Path(result["file_path"]).read_bytes())
+                recipient = root.xpath("./*[local-name()='recipient']")[0]
+                self.assertEqual(
+                    recipient.xpath("string(./*[local-name()='service']/*[local-name()='serviceID'])"),
+                    expected_service,
+                )
+                self.assertEqual(
+                    recipient.xpath("string(./*[local-name()='service']/*[local-name()='serviceOperation'])"),
+                    "PUT",
+                )
 
 
 class LegacyEudamedDIIdentifiers(XSDValidationBase):
@@ -375,7 +406,7 @@ class FieldVariants(XSDValidationBase):
         ]
         _, uid = self._seed("MDR", market_rows=market)
         self._assert_valid("DEVICE.POST", [uid], "Market(multi-country)")
-        self._assert_valid("MARKET_INFO.PATCH", [uid], "MARKET_INFO.PATCH(multi-country)")
+        self._assert_valid("MARKET_INFO.PUT", [uid], "MARKET_INFO.PUT(multi-country)")
 
     def test_number_of_reuses_variants(self):
         for single, maxr in [("TRUE", ""), ("FALSE", ""), ("FALSE", "5")]:
@@ -534,6 +565,21 @@ class SystemProcedurePackProfile(XSDValidationBase):
     def test_pr_udi_patch_is_valid(self):
         _, uid = self._seed("PR", version="1")
         self._assert_valid("UDI_DI.PATCH", [uid], "UDI_DI.PATCH/PR")
+
+    def test_pr_basic_patch_is_valid(self):
+        basic_id, _ = self._seed("PR", version="1")
+        self._assert_valid("Basic_UDI.PATCH", [basic_id], "Basic_UDI.PATCH/PR")
+
+    def test_pr_package_put_is_valid(self):
+        _, uid = self._seed(
+            "PR",
+            package_rows=[{
+                "Package UDI-DI Code": "16942495390017",
+                "Package Issuing Entity": "GS1",
+                "Quantity per Package": "10",
+            }],
+        )
+        self._assert_valid("PACKAGE_UDI.PUT", [uid], "PACKAGE_UDI.PUT/PR")
 
 
 if __name__ == "__main__":

@@ -607,10 +607,22 @@ class WorkbookImporter:
                 basic_payload["Local Record ID"] = local_record_id
                 udi_payload["Local Record ID"] = local_record_id
 
-            if ws.title in ENTRY_SHEETS:
+            if ws.title in IMPORT_ENTRY_SHEETS:
                 legislation = str(basic_payload.get("Applicable Legislation") or "").strip().upper()
-                allowed = set(ENTRY_SHEETS[ws.title].get("legislations") or [])
-                if legislation and legislation not in allowed:
+                allowed = set(IMPORT_ENTRY_SHEETS[ws.title].get("legislations") or [])
+                if not legislation:
+                    import_meta["normalization_blocked"] = True
+                    identifier_errors.append(self._identifier_error(
+                        ws.title,
+                        row_idx,
+                        "Applicable Legislation",
+                        "",
+                        "ENTRY_SHEET_LEGISLATION_MISSING",
+                        f"{ws.title} 第 {row_idx} 行缺少 Applicable Legislation；该主表行未入库。",
+                        "请明确选择 MDR、MDD、AIMDD、IVDR 或 IVDD，并把整行放入对应法规主表。",
+                    ))
+                    continue
+                if legislation not in allowed:
                     import_meta["normalization_blocked"] = True
                     identifier_errors.append(self._identifier_error(
                         ws.title,
@@ -655,7 +667,7 @@ class WorkbookImporter:
                     local_record_id,
                     "LEGACY_IDENTIFIER_INVALID",
                     str(exc),
-                    "迁移到 v2.12，确认 Legacy 路径并修正输入；工具不会猜测或静默覆盖标识。",
+                    f"迁移到当前 {TEMPLATE_VERSION}，确认 Legacy 路径并修正输入；工具不会猜测或静默覆盖标识。",
                 ))
                 continue
 
@@ -886,7 +898,7 @@ class WorkbookImporter:
                     "field": "Template Layout",
                     "value": "MDR_MDD / IVDR_IVDD",
                     "warning_type": "TEMPLATE_LAYOUT_MIGRATION",
-                    "message": "检测到拆表前的 v2.12 混合主表；本次仍兼容导入，规范化副本会按法规迁移到四个主表。",
+                    "message": "检测到拆表前的历史混合主表；本次仍兼容导入，规范化副本会按法规迁移到四个主表。",
                     "suggestion": "后续请使用包含 MDR、MDD_AIMDD、IVDR、IVDD 的当前 v2.13 模板。",
                 }
             )

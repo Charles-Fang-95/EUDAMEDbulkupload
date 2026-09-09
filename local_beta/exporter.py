@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from xml.dom import minidom
 
-from .constants import BULK_UPLOAD_ENTITY_LIMIT, EXPORT_DIR
+from .constants import BULK_UPLOAD_ENTITY_LIMIT, EXPORT_DIR, canonical_service_type
 from .template_schema import ENUM_SOURCES
 from .legacy_identifiers import LegacyIdentifierError, resolve_legacy_identifiers
 from .xsd_version import get_tool_xsd_version
@@ -185,6 +185,7 @@ class BetaXMLExporter:
         self.repository = repository
 
     def export(self, service_type: str, record_ids: list[int]) -> dict:
+        service_type = canonical_service_type(service_type)
         validation = self.validate(service_type, record_ids)
         if validation["errors"]:
             return validation
@@ -219,15 +220,15 @@ class BetaXMLExporter:
 
     def _build_batch_root(self, batch: dict):
         records = batch["records"]
-        service_type = batch["service_type"]
+        service_type = canonical_service_type(batch["service_type"])
         if service_type == "Basic_UDI.PATCH":
             return self._build_basic_patch(records)
         if service_type == "PRODUCT_DESIGNER.PUT":
             return self._build_product_designer_put(records)
-        if service_type == "MARKET_INFO.PATCH":
-            return self._build_market_info_patch(records)
-        if service_type == "PACKAGE_UDI.PATCH":
-            return self._build_package_udi_patch(records)
+        if service_type == "MARKET_INFO.PUT":
+            return self._build_market_info_put(records)
+        if service_type == "PACKAGE_UDI.PUT":
+            return self._build_package_udi_put(records)
         if service_type == "UDI_DI.PATCH":
             return self._build_udi_patch(records)
         if service_type == "UDI_DI.POST":
@@ -328,13 +329,14 @@ class BetaXMLExporter:
 """
 
     def validate(self, service_type: str, record_ids: list[int]) -> dict:
+        service_type = canonical_service_type(service_type)
         errors = []
         warnings = []
         if not record_ids:
             errors.append("请至少选择一条记录。")
 
         selected_records = []
-        if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "MARKET_INFO.PATCH", "PACKAGE_UDI.PATCH", "PRODUCT_DESIGNER.PUT"}:
+        if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "MARKET_INFO.PUT", "PACKAGE_UDI.PUT", "PRODUCT_DESIGNER.PUT"}:
             udis = self.repository.get_udis_by_ids(record_ids)
             selected_records = udis
             if len(udis) != len(record_ids):
@@ -386,13 +388,13 @@ class BetaXMLExporter:
                             self._warn_blank_basic_booleans(warnings, basic["basic_code"], basic["payload"])
                 if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "PRODUCT_DESIGNER.PUT"}:
                     self._validate_product_designer(errors, item, required=service_type == "PRODUCT_DESIGNER.PUT")
-                if service_type == "MARKET_INFO.PATCH":
+                if service_type == "MARKET_INFO.PUT":
                     self._validate_market_rows(errors, item, require_rows=True)
-                if service_type == "PACKAGE_UDI.PATCH":
+                if service_type == "PACKAGE_UDI.PUT":
                     if not payload.get("Device Status"):
                         errors.append(f"UDI-DI {item['udi_code']} 缺少 Device Status，无法生成 Package UDI status。")
                     if not item.get("package_rows"):
-                        errors.append(f"UDI-DI {item['udi_code']} 没有 Package Info，无法生成 PACKAGE_UDI.PATCH。")
+                        errors.append(f"UDI-DI {item['udi_code']} 没有 Package Info，无法生成 PACKAGE_UDI.PUT。")
                     else:
                         self._validate_package_rows(errors, item)
                 if service_type == "DEVICE.POST":
@@ -757,6 +759,7 @@ class BetaXMLExporter:
         )
 
     def plan_export_batches(self, service_type: str, records: list[dict]) -> list[dict]:
+        service_type = canonical_service_type(service_type)
         if service_type == "DEVICE.POST":
             return self._plan_device_post_batches(records)
         return self._plan_simple_batches(service_type, records)
@@ -780,8 +783,8 @@ class BetaXMLExporter:
     def _payload_entity(self, service_type: str) -> str:
         return {
             "Basic_UDI.PATCH": "device:BasicUDI",
-            "MARKET_INFO.PATCH": "mktinfo:DTXMarketInfo",
-            "PACKAGE_UDI.PATCH": "device:DTXPackageUDI",
+            "MARKET_INFO.PUT": "mktinfo:DTXMarketInfo",
+            "PACKAGE_UDI.PUT": "device:DTXPackageUDI",
             "PRODUCT_DESIGNER.PUT": "pd:DTXProductDesigner",
         }.get(service_type, "device:UDIDIData")
 
@@ -936,7 +939,7 @@ class BetaXMLExporter:
         rows = item.get("market_rows") or []
         udi_code = item.get("udi_code") or item.get("payload", {}).get("UDI-DI Code", "")
         if require_rows and not rows:
-            errors.append(f"UDI-DI {udi_code} 没有 Market Info，无法生成 MARKET_INFO.PATCH。")
+            errors.append(f"UDI-DI {udi_code} 没有 Market Info，无法生成 MARKET_INFO.PUT。")
             return
         if not rows:
             return
@@ -1193,24 +1196,24 @@ class BetaXMLExporter:
             sender_service_id="REPLY_SERVICE", sender_operation="GET",
         )
 
-    def _build_market_info_patch(self, udis: list[dict]):
+    def _build_market_info_put(self, udis: list[dict]):
         payload_nodes = [self._build_market_info_node(item) for item in udis]
         sender_code = self._sender_code_from_udi_rows(udis)
         return self._build_push_message(
             recipient_service_id="MARKET_INFO",
-            recipient_operation="PATCH",
+            recipient_operation="PUT",
             payload_nodes=payload_nodes,
             sender_code=sender_code,
             sender_service_id="REPLY_SERVICE",
             sender_operation="GET",
         )
 
-    def _build_package_udi_patch(self, udis: list[dict]):
+    def _build_package_udi_put(self, udis: list[dict]):
         payload_nodes = [self._build_package_udi_node(item) for item in udis]
         sender_code = self._sender_code_from_udi_rows(udis)
         return self._build_push_message(
             recipient_service_id="PACKAGE_UDI",
-            recipient_operation="PATCH",
+            recipient_operation="PUT",
             payload_nodes=payload_nodes,
             sender_code=sender_code,
             sender_service_id="REPLY_SERVICE",

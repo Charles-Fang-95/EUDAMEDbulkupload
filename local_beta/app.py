@@ -25,6 +25,7 @@ from .constants import (
     TOOL_VERSION,
     UDI_FIELDS,
     UPLOAD_DIR,
+    canonical_service_type,
 )
 from .exporter import BetaXMLExporter
 from .importer import WorkbookImporter, parse_json_array
@@ -297,7 +298,7 @@ class App:
                 return self.not_found(request, t("未找到 UDI-DI","UDI-DI not found"))
             return self.handle_udi_update(request, record_id)
         if request.command == "GET" and path == "/export":
-            service_type = query.get("service_type", [""])[0]
+            service_type = canonical_service_type(query.get("service_type", [""])[0])
             selection_mode = query.get("selection_mode", ["selected"])[0]
             filters = self._filters_from_query(query)
             pagination = self._pagination_from_query(query)
@@ -478,7 +479,7 @@ class App:
 
     def handle_export(self, request: BaseHTTPRequestHandler):
         form = self.read_form(request)
-        service_type = form.get("service_type", [""])[0]
+        service_type = canonical_service_type(form.get("service_type", [""])[0])
         selection_mode = form.get("selection_mode", ["selected"])[0]
         filters = self._filters_from_form(form)
         pagination = self._pagination_from_form(form)

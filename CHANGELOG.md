@@ -4,6 +4,10 @@
 
 ## 0.9.9 - 2026-09-08
 
+- 修正 Market Information 和 Container Package 两个更新 service：按 Production 2.27.0 官方定义使用 `MARKET_INFO.PUT` / `PACKAGE_UDI.PUT`，XML recipient operation 由错误的 `PATCH` 改为 `PUT`；旧 `.PATCH` 本地链接仍自动兼容并规范化为 `.PUT`。
+- 修正 Market Information 页面说明：`MARKET_INFO.PUT` 不能修改首次投放成员国；该标记必须与 EUDAMED 当前值一致，如需修改应使用 `UDI_DI.PATCH`。首页和导出页移除已为空的“暂未开放”区域。
+- Mac 启动器禁止在已签名 `.app` 内生成 Python `__pycache__`，避免首次运行后应用包资源变化导致签名校验失效；Mac 构建同步刷新 SHA-256 校验文件。
+- 旧版混合主表迁移遇到空白或无法识别的 Applicable Legislation 时，不再允许该行直接写入产品库；迁移报告会明确提示并保留待修正行，避免把法规不明的 IVDD/IVDR 或 MDD/MDR 数据误当成目标表法规。
 - 新增 Original manufacturer：支持注册/UDI 更新 XML 中携带制造商 SRN 或组织名称、国家、邮编、城市、街道、门牌号；新增官方 `PRODUCT_DESIGNER.PUT` 独立更新服务及响应识别。按官方 `SAMPLE_DTX_UDI_015.01/02.xml` 和生产 XSD 3.0.30 实现。
 - 对 SRN/组织信息冲突、地址不完整、非法 SRN、旧内部 Product Designer ID、空白独立更新和暂不支持的 PR/SPP 路径阻止导出，避免静默丢字段。组织名称语言为 ANY；本版不提供组织联系人字段或删除原始制造商操作。
 - 模板升级 v2.13，中英文主表新增组织地址字段和说明，保留旧模板迁移兼容。

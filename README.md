@@ -14,7 +14,7 @@
 > 下载 Excel 模板 → 填写 → 导入本地工具 → 自动校验 / 管理 → 按官方 service 生成 bulk upload XML → 上传到 EUDAMED。
 
 - 支持 **MDR / IVDR**（Regulation Device）和 **MDD / AIMDD / IVDD**（Legacy Device / EUDI）。
-- 支持 6 类官方 service：`DEVICE.POST`、`UDI_DI.POST`、`Basic_UDI.PATCH`、`UDI_DI.PATCH`、`MARKET_INFO.PATCH`、`PACKAGE_UDI.PATCH`。
+- 支持 7 类官方 UDI/Devices 上传和更新 service：`DEVICE.POST`、`UDI_DI.POST`、`Basic_UDI.PATCH`、`UDI_DI.PATCH`、`MARKET_INFO.PUT`、`PACKAGE_UDI.PUT`、`PRODUCT_DESIGNER.PUT`。
 - 自动处理官方 **300 条/XML** 上限：超出时自动拆成多个 XML，并打包成 ZIP 附带上传顺序清单（manifest）。
 - 数据只存在你自己的电脑上（本地 SQLite）。
 
@@ -141,7 +141,7 @@ This is a **local web tool** that helps medical device companies turn EUDAMED de
 > Download the Excel template → fill it in → import into the tool → automatic validation / management → generate bulk-upload XML per official service → upload to EUDAMED.
 
 - Supports **MDR / IVDR** (Regulation Device) and **MDD / AIMDD / IVDD** (Legacy Device / EUDI).
-- Supports the 6 official services: `DEVICE.POST`, `UDI_DI.POST`, `Basic_UDI.PATCH`, `UDI_DI.PATCH`, `MARKET_INFO.PATCH`, `PACKAGE_UDI.PATCH`.
+- Supports all 7 current UDI/Devices upload and update services: `DEVICE.POST`, `UDI_DI.POST`, `Basic_UDI.PATCH`, `UDI_DI.PATCH`, `MARKET_INFO.PUT`, `PACKAGE_UDI.PUT`, and `PRODUCT_DESIGNER.PUT`.
 - Handles the official **300-entities-per-XML** limit automatically: oversized jobs are split into multiple XML files and packed into a ZIP with an upload-order manifest.
 - Data stays only on your own computer (local SQLite).
 

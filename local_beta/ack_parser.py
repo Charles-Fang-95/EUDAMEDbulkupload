@@ -142,9 +142,9 @@ def _infer_service_type(root: ET.Element) -> str:
     if service == "PRODUCT_DESIGNER":
         return f"PRODUCT_DESIGNER.{operation or 'PUT'}"
     if service in {"MARKET_INFO", "MKTINFO"}:
-        return f"MARKET_INFO.{operation or 'PATCH'}"
+        return "MARKET_INFO.PUT" if operation in {"", "PUT", "PATCH"} else f"MARKET_INFO.{operation}"
     if service in {"PACKAGE_UDI", "CONTAINER_PACKAGE"}:
-        return f"PACKAGE_UDI.{operation or 'PATCH'}"
+        return "PACKAGE_UDI.PUT" if operation in {"", "PUT", "PATCH"} else f"PACKAGE_UDI.{operation}"
     return ""
 
 

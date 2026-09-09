@@ -507,6 +507,60 @@ class LegacyIdentifierImportTests(unittest.TestCase):
         self.assertEqual(stored["payload"]["Legacy Identifier Method"], "existing_eudamed_pair")
         self.assertEqual(stored["trade_name_rows"][0]["Trade Name"], "Existing Legacy pair")
 
+    def test_mixed_v211_blank_legislation_is_not_silently_imported_as_ivdr(self):
+        wb = Workbook()
+        main = wb.active
+        main.title = "IVDR_IVDD"
+        headers = [
+            "Basic - Applicable Legislation*",
+            "Basic - Basic UDI-DI Code",
+            "Basic - Issuing Entity",
+            "Basic - Manufacturer SRN*",
+            "Basic - Risk Class*",
+            "Basic - Device Type*",
+            "Basic - Device Name*",
+            "Basic - EMDN Code*",
+            "UDI - UDI-DI Code*",
+            "UDI - UDI-DI Issuing Entity*",
+            "UDI - Device Status*",
+            "UDI - Reference Number*",
+        ]
+        for column, header in enumerate(headers, start=1):
+            main.cell(1, column, header)
+        values = [
+            "",
+            "BASIC-UNKNOWN",
+            "GS1",
+            "DE-MF-000000001",
+            "Class B",
+            "Regular Device",
+            "Unknown legislation IVD",
+            "W0101",
+            "UDI-UNKNOWN",
+            "GS1",
+            "No longer placed on the EU market",
+            "REF-UNKNOWN",
+        ]
+        for column, value in enumerate(values, start=1):
+            main.cell(4, column, value)
+        how_to = wb.create_sheet("How to Use")
+        how_to.cell(1, 1, "EUDAMED Template v2.11 - How to Use")
+        source = self._save(wb, "v211-blank-legislation.xlsx")
+
+        migration = template_migrator.migrate_workbook(source, self.tmp)
+
+        self.assertTrue(migration["ok"])
+        self.assertTrue(any("避免猜测法规" in warning for warning in migration["warnings"]))
+        migrated_path = self.tmp / migration["output_filename"]
+        imported = self.importer.import_workbook(migrated_path)
+        self.assertEqual(imported["summary"]["basic_count"], 0)
+        self.assertEqual(imported["summary"]["udi_count"], 0)
+        self.assertTrue(any(
+            error.get("error_type") == "ENTRY_SHEET_LEGISLATION_MISSING"
+            for error in imported["validation"]["errors"]
+        ))
+        self.assertEqual(self.repo.list_udis(limit=10), [])
+
     def test_migrator_appends_existing_related_rows_after_inline_details(self):
         wb = Workbook()
         main = wb.active

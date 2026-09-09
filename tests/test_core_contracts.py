@@ -37,6 +37,66 @@ class VersionContractTests(unittest.TestCase):
         ]
         self.assertEqual([str(path) for path in expected if not path.is_file()], [])
 
+    def test_tool_version_matches_top_changelog_release(self):
+        root = Path(__file__).resolve().parents[1]
+        changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
+        match = re.search(r"^## ([0-9]+\.[0-9]+\.[0-9]+)\b", changelog, re.MULTILINE)
+        self.assertIsNotNone(match)
+        self.assertEqual(constants.TOOL_VERSION, match.group(1))
+
+    def test_supported_push_services_match_current_official_udi_matrix(self):
+        self.assertEqual(set(views.SUPPORTED_SERVICES), {
+            "DEVICE.POST",
+            "UDI_DI.POST",
+            "Basic_UDI.PATCH",
+            "UDI_DI.PATCH",
+            "MARKET_INFO.PUT",
+            "PACKAGE_UDI.PUT",
+            "PRODUCT_DESIGNER.PUT",
+        })
+
+    def test_market_info_guidance_preserves_first_placed_member_state(self):
+        service = views.SUPPORTED_SERVICES["MARKET_INFO.PUT"]
+        self.assertIn("不能修改首次投放成员国", service["scope"])
+        self.assertIn("与 EUDAMED 当前保存的首次投放成员国一致", service["requires"])
+        self.assertIn("UDI_DI.PATCH", service["after"])
+        self.assertIn("cannot change the first placed Member State", service["scope_en"])
+        self.assertIn("currently stored in EUDAMED", service["requires_en"])
+        self.assertIn("UDI_DI.PATCH", service["after_en"])
+
+    def test_supported_service_panels_do_not_show_empty_unavailable_section(self):
+        xsd_report = {
+            "status": "ok",
+            "tool_version": constants.SCHEMA_VERSION,
+            "local_xsd_version": constants.SCHEMA_VERSION,
+        }
+        views.set_lang("zh")
+        try:
+            home_html = views.support_status_panel(xsd_report)
+            export_html = views.export_page(
+                "MARKET_INFO.PUT", [], xsd_report=xsd_report,
+            )
+            self.assertNotIn("暂未开放", home_html)
+            self.assertNotIn("暂未开放", export_html)
+        finally:
+            views.set_lang("zh")
+        views.set_lang("en")
+        try:
+            self.assertNotIn("Not available yet", views.support_status_panel(xsd_report))
+            self.assertNotIn(
+                "Not available yet",
+                views.export_page("MARKET_INFO.PUT", [], xsd_report=xsd_report),
+            )
+        finally:
+            views.set_lang("zh")
+
+    def test_mac_launcher_does_not_modify_signed_bundle_with_python_bytecode(self):
+        root = Path(__file__).resolve().parents[1]
+        launcher = (
+            root / "mac_app" / "Sources" / "EUDAMEDLocalBeta" / "main.swift"
+        ).read_text(encoding="utf-8")
+        self.assertIn('"PYTHONDONTWRITEBYTECODE": "1"', launcher)
+
     def test_v212_legacy_columns_and_related_local_keys(self):
         by_field = {item["field"]: item for item in template_schema.MAIN_COLUMNS}
         for field in (

@@ -130,7 +130,7 @@ def _inferred_path(basic: dict, udi: dict) -> bool:
     if basic_code.startswith("B-") and udi_code.startswith("D-") and basic_entity == udi_entity == "EUDAMED":
         return False
     raise LegacyIdentifierError(
-        "旧模板无法判断 Legacy 标识路径：请迁移到 v2.12，选择是否已有 UDI-DI；"
+        "旧模板无法判断 Legacy 标识路径：请迁移到当前模板，选择是否已有 UDI-DI；"
         "如没有 UDI-DI，请填写生成主体或合法的 B-/D- 对。"
     )
 

@@ -94,7 +94,7 @@ def migrate_workbook(source_path: Path, output_dir: Path = EXPORT_DIR) -> dict:
         )
     elif set(source.sheetnames).intersection(LEGACY_ENTRY_SHEETS):
         report["warnings"].append(
-            "检测到拆表前的 v2.12 混合主表；已按 Applicable Legislation 迁移到 MDR、MDD_AIMDD、IVDR、IVDD。"
+            "检测到拆表前的历史混合主表；已按 Applicable Legislation 迁移到 MDR、MDD_AIMDD、IVDR、IVDD。"
         )
 
     if any(sheet in source.sheetnames for sheet in IMPORT_ENTRY_SHEETS):
@@ -133,6 +133,12 @@ def _copy_unified_sheets(source, target, report: dict):
                 continue
             legislation = str(_get_by_alias(row, "Applicable Legislation") or "").strip().upper()
             target_sheet = entry_sheet_for_legislation(legislation, source_sheet)
+            if legislation not in {"MDR", "MDD", "AIMDD", "IVDR", "IVDD"}:
+                report["warnings"].append(
+                    f"{source_sheet} 源第 {int(row.get(SOURCE_ROW_NUMBER) or 0)} 行缺少或包含无法识别的 Applicable Legislation"
+                    f"（{legislation or '空白'}）；为避免猜测法规，数据仅暂存到 {target_sheet} 供人工修正，"
+                    "在补填正确法规并放入对应主表前，导入器会阻止该行入库。"
+                )
             target_headers = _headers(target[target_sheet])
             header_map = _header_map(source_headers, target_headers, extra_aliases=MAIN_HEADER_ALIASES)
             target_row = target_next_rows[target_sheet]
@@ -178,6 +184,12 @@ def _copy_legacy_split_sheets(source, target, report: dict):
         basic = basics.get(parent, {})
         legislation = str(_get_by_alias(basic, "Applicable Legislation") or "").upper()
         target_sheet = entry_sheet_for_legislation(legislation)
+        if legislation not in {"MDR", "MDD", "AIMDD", "IVDR", "IVDD"}:
+            report["warnings"].append(
+                f"旧 UDI-DI 源第 {int(udi.get(SOURCE_ROW_NUMBER) or 0)} 行关联的 Basic 缺少或包含无法识别的 "
+                f"Applicable Legislation（{legislation or '空白'}）；数据仅暂存到 {target_sheet} 供人工修正，"
+                "在补填正确法规并放入对应主表前，导入器会阻止该行入库。"
+            )
         target_headers = _headers(target[target_sheet])
         combined = _legacy_combined_row(basic, udi)
         _migrate_legacy_split_eifu_url(combined, udi, report, target_sheet)
@@ -503,7 +515,7 @@ def _normalize_main_row(ws, target_headers: list[str], row_idx: int, report: dic
             )
         elif not path:
             report["warnings"].append(
-                f"{ws.title} 第 {row_idx} 行无法从旧模板判断 Legacy 标识路径；请在 v2.12 选择 "
+                f"{ws.title} 第 {row_idx} 行无法从旧模板判断 Legacy 标识路径；请在 {TEMPLATE_VERSION} 选择 "
                 "Legacy - Has Assigned UDI-DI?。如没有 UDI-DI，请填写 Local - Record ID 和 EUDAMED DI Input；工具不会猜测主体。"
             )
 

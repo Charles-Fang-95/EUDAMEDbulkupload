@@ -63,10 +63,23 @@ SERVICE_LABELS = {
     "UDI_DI.POST": "Upload of UDI-DI / Master UDI-DI for existing Basic UDI-DI",
     "Basic_UDI.PATCH": "Update Basic UDI",
     "UDI_DI.PATCH": "Update of UDI-DI / Master UDI-DI",
-    "MARKET_INFO.PATCH": "Update Market Information (countries / availability dates)",
+    "MARKET_INFO.PUT": "Update Market Information (countries / availability dates)",
     "PRODUCT_DESIGNER.PUT": "Update product original manufacturer",
-    "PACKAGE_UDI.PATCH": "Update Container Package (packaging structure)",
+    "PACKAGE_UDI.PUT": "Update Container Package (packaging structure)",
+    # Historical local aliases are retained for old export history and bookmarks.
+    "MARKET_INFO.PATCH": "Update Market Information (legacy local alias)",
+    "PACKAGE_UDI.PATCH": "Update Container Package (legacy local alias)",
 }
+
+SERVICE_TYPE_ALIASES = {
+    "MARKET_INFO.PATCH": "MARKET_INFO.PUT",
+    "PACKAGE_UDI.PATCH": "PACKAGE_UDI.PUT",
+}
+
+
+def canonical_service_type(service_type: str) -> str:
+    value = str(service_type or "").strip()
+    return SERVICE_TYPE_ALIASES.get(value, value)
 
 BASIC_FIELDS = [
     "Local Record ID",

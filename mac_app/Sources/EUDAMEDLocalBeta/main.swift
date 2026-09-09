@@ -97,6 +97,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         process.currentDirectoryURL = projectRoot
         process.environment = [
             "PYTHONUNBUFFERED": "1",
+            "PYTHONDONTWRITEBYTECODE": "1",
             "EUDAMED_NO_BROWSER": "1",
             "EUDAMED_DATA_DIR": dataRoot.path,
             "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"

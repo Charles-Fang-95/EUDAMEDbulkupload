@@ -120,18 +120,18 @@ SUPPORTED_SERVICES = {
         "after": "在 EUDAMED 选择 Update product original manufacturer 上传。空白不用于删除；提交前请核对完整组织信息。",
         "after_en": "Upload using Update product original manufacturer in EUDAMED. Blank values are not a deletion request; review the complete organisation information before submitting.",
     },
-    "MARKET_INFO.PATCH": {
+    "MARKET_INFO.PUT": {
         "task_zh": "更新已注册 UDI-DI 的市场国家 / 上市日期",
         "task_en": "Update market countries / dates for an existing UDI-DI",
         "label": "Update market information",
-        "scope": "更新已注册 UDI-DI 的上市国家、可用开始/结束日期和首次投放成员国。",
-        "scope_en": "Update market countries, availability start/end dates and first placed Member State for an already registered UDI-DI.",
-        "requires": "UDI-DI 必须已在 EUDAMED 注册；Market Info 明细表必须填写；Originally Placed on Market 必须且只能有一条 TRUE。本 service 不需要 EUDAMED version 字段。",
-        "requires_en": "The UDI-DI must already be registered in EUDAMED; Market Info rows must be filled; Originally Placed on Market must have exactly one TRUE. This service does not require the EUDAMED version field.",
-        "after": "用于纠正市场信息时，请提交期望的完整市场集合。停止在某国销售时优先填写 End Date，而不是删除该国行；不要通过删除并重建 UDI-DI 来改市场信息。",
-        "after_en": "When correcting market information, submit the intended complete market set. To stop selling in a country, set End Date rather than deleting that country row; do not delete and re-register the UDI-DI just to correct market information.",
+        "scope": "更新已注册 UDI-DI 的上市国家及可用开始/结束日期；本 service 不能修改首次投放成员国。",
+        "scope_en": "Update market countries and availability start/end dates for an already registered UDI-DI; this service cannot change the first placed Member State.",
+        "requires": "UDI-DI 必须已在 EUDAMED 注册；Market Info 明细表必须填写；Originally Placed on Market 必须且只能有一条 TRUE，并与 EUDAMED 当前保存的首次投放成员国一致。本 service 不需要 EUDAMED version 字段。",
+        "requires_en": "The UDI-DI must already be registered in EUDAMED; Market Info rows must be filled; Originally Placed on Market must have exactly one TRUE and must match the first placed Member State currently stored in EUDAMED. This service does not require the EUDAMED version field.",
+        "after": "请提交期望的完整市场集合。停止在某国销售时优先填写 End Date，而不是删除该国行；如需修改首次投放成员国，请使用 UDI_DI.PATCH。",
+        "after_en": "Submit the intended complete market set. To stop selling in a country, set End Date rather than deleting that country row. To change the first placed Member State, use UDI_DI.PATCH.",
     },
-    "PACKAGE_UDI.PATCH": {
+    "PACKAGE_UDI.PUT": {
         "task_zh": "更新已注册 UDI-DI 的包装结构",
         "task_en": "Update package hierarchy for an existing UDI-DI",
         "label": "Update container package",
@@ -143,9 +143,6 @@ SUPPORTED_SERVICES = {
         "after_en": "Suitable for maintaining packaging hierarchy for registered products. Each Package Info row means one package DI contains one child DI; fill multi-level packaging by the hierarchy relationship.",
     },
 }
-
-UNAVAILABLE_SERVICES = []
-
 
 # 字段规格映射：field 名 -> template_schema 列定义，用于详情页按 schema 渲染下拉 / 说明 / 必填
 FIELD_SPECS = {col["field"]: col for col in MAIN_COLUMNS}
@@ -217,11 +214,11 @@ GLOSSARY = {
         "用于更新已注册 UDI-DI，需要 EUDAMED 当前 version。",
         "Service for updating an existing UDI-DI; current EUDAMED version is required.",
     ),
-    "MARKET_INFO.PATCH": (
+    "MARKET_INFO.PUT": (
         "用于更新已注册 UDI-DI 的市场国家和上市日期。",
         "Service for updating market countries and dates for an existing UDI-DI.",
     ),
-    "PACKAGE_UDI.PATCH": (
+    "PACKAGE_UDI.PUT": (
         "用于更新已注册 UDI-DI 的 container package / 包装层级。",
         "Service for updating container package / package hierarchy for an existing UDI-DI.",
     ),
@@ -711,24 +708,12 @@ def support_status_panel(xsd_report: dict) -> str:
         f"<li><strong>{esc(service_task(item))}</strong><br><span class='muted'>{esc(item['label'])}</span><br><span class='muted'>{esc(service_text(item, 'scope'))}</span></li>"
         for item in SUPPORTED_SERVICES.values()
     )
-    unavailable = "".join(
-        f"<li><strong>{esc(item['label'])}</strong> <span class='badge muted-badge'>{esc(service_text(item, 'status'))}</span></li>"
-        for item in UNAVAILABLE_SERVICES
-    )
     return f"""
     <section class="panel">
       <h2>{t('EUDAMED 支持状态', 'EUDAMED support status')}</h2>
       {xsd_panel(xsd_report)}
-      <div class="grid columns">
-        <article>
-          <h3>{t('当前工具可生成 XML 的 service', 'Services this tool can generate XML for')}</h3>
-          <ul>{supported}</ul>
-        </article>
-        <article>
-          <h3>{t('暂未开放', 'Not available yet')}</h3>
-          <ul>{unavailable}</ul>
-        </article>
-      </div>
+      <h3>{t('当前工具可生成 XML 的 service', 'Services this tool can generate XML for')}</h3>
+      <ul>{supported}</ul>
     </section>
     """
 
@@ -743,7 +728,7 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
         <li>{t(f'使用当前 {TEMPLATE_VERSION} 模板；旧模板或客户原始 Excel 请先走迁移/映射。', f'Use the current {TEMPLATE_VERSION} template; migrate/map old templates or customer source Excel first.')}</li>
         <li>{t('如果导入旧模板，系统会按当前规则重新校验并提示 Special Device Type、CMR Substance Type 等自动归一或错误项。', 'If you import an old template, the tool revalidates it against current rules and reports Special Device Type, CMR Substance Type and other normalized or invalid fields.')}</li>
         <li>{t('Market Info：同一 UDI-DI 可有多个 made available 国家，但 Originally Placed on Market 必须且只能有一个 TRUE。', 'Market Info: one UDI-DI may have multiple made available countries, but Originally Placed on Market must have exactly one TRUE.')}</li>
-        <li>{t('国家/市场信息填报错误时，优先通过 EUDAMED update/create new version 纠正，不要默认删除 UDI-DI 重建。', 'Market information errors should be corrected through EUDAMED update/create new version where possible; do not default to deleting and re-registering the UDI-DI.')}</li>
+        <li>{t('国家/市场信息填报错误时，优先通过 EUDAMED update/create new version 纠正；首次投放成员国只能通过 UDI-DI update service 修改，不要默认删除 UDI-DI 重建。', 'Correct market information through the appropriate EUDAMED update/create-new-version service where possible; the first placed Member State can only be changed through the UDI-DI update service. Do not default to deleting and re-registering the UDI-DI.')}</li>
       </ul>
     </details>
     """
@@ -1244,27 +1229,17 @@ def export_page(
         )
     table = "".join(record_rows) or f'<tr><td colspan="6"><div class="empty-state">{t("没有可导出的记录。请检查筛选条件，或先导入 Excel。", "No records to export. Check filters or import Excel first.")} <a class="button" href="/library">{t("去产品库", "Open library")}</a> <a class="button primary" href="/import">{t("导入 Excel", "Import Excel")}</a></div></td></tr>'
     service = SUPPORTED_SERVICES.get(service_type, SUPPORTED_SERVICES["DEVICE.POST"])
-    unavailable = "".join(
-        f"<li><strong>{esc(item['label'])}</strong><br><span class='muted'>{esc(service_text(item, 'status'))}</span></li>"
-        for item in UNAVAILABLE_SERVICES
-    )
     body = f"""
     <section class="panel">
       <h1>{t('导出任务', 'Export task')}</h1>
       {steps}
-      <div class="grid columns">
-        <article>
-          <h2>{t('当前 service', 'Current service')}</h2>
-          <p><strong>{esc(service_task(service))}</strong></p>
-          <p class="muted">{term_hint(service_type)} · {esc(service['label'])}</p>
-          <p>{esc(service_text(service, 'scope'))}</p>
-          <p><strong>{t('要求：', 'Requires: ')}</strong>{esc(service_text(service, 'requires'))}</p>
-        </article>
-        <article>
-          <h2>{t('暂未开放', 'Not available yet')}</h2>
-          <ul>{unavailable}</ul>
-        </article>
-      </div>
+      <article>
+        <h2>{t('当前 service', 'Current service')}</h2>
+        <p><strong>{esc(service_task(service))}</strong></p>
+        <p class="muted">{term_hint(service_type)} · {esc(service['label'])}</p>
+        <p>{esc(service_text(service, 'scope'))}</p>
+        <p><strong>{t('要求：', 'Requires: ')}</strong>{esc(service_text(service, 'requires'))}</p>
+      </article>
       {bulk_limit_notice()}
       {xsd}
       {import_batch_notice(filters)}
@@ -1365,7 +1340,7 @@ def service_wizard() -> str:
       var task = document.getElementById('wiz-task');
       if (!kind || !task) return;
       var newTasks = ['DEVICE.POST', 'UDI_DI.POST'];
-      var updateTasks = ['Basic_UDI.PATCH', 'UDI_DI.PATCH', 'MARKET_INFO.PATCH', 'PACKAGE_UDI.PATCH', 'PRODUCT_DESIGNER.PUT'];
+      var updateTasks = ['Basic_UDI.PATCH', 'UDI_DI.PATCH', 'MARKET_INFO.PUT', 'PACKAGE_UDI.PUT', 'PRODUCT_DESIGNER.PUT'];
       function chooseDefault() {{
         var list = kind.value === 'new' ? newTasks : updateTasks;
         if (list.indexOf(task.value) === -1) task.value = list[0];

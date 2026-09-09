@@ -480,7 +480,7 @@ def build_reply(item: MailItem) -> tuple[str, str]:
 {chr(10).join(attachment_notes)}
 
 建议处理：
-1. 先确认 EUDAMED bulk upload 页面选择的 service 与 XML 文件一致，例如 DEVICE.POST、UDI_DI.POST、UDI_DI.PATCH、MARKET_INFO.PATCH 等不能混用。
+1. 先确认 EUDAMED bulk upload 页面选择的 service 与 XML 文件一致，例如 DEVICE.POST、UDI_DI.POST、UDI_DI.PATCH、MARKET_INFO.PUT 等不能混用。
 2. 如果 response XML 提到枚举值无效，请回到模板中检查对应字段，不要把产品名称、型号或自由文本填入官方枚举字段。
 3. 如果是 PATCH 类服务，请确认模板中填写了 EUDAMED 网页显示的当前 version。
 4. 如果是 ZIP 分片包，请按 manifest 顺序上传；依赖 DEVICE.POST 的 UDI_DI.POST 需要等前一步成功后再传。
