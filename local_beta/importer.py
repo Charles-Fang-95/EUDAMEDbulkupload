@@ -86,8 +86,28 @@ class WorkbookImporter:
     def __init__(self, repository: Repository):
         self.repository = repository
 
+    @staticmethod
+    def _load_import_workbook(path: Path):
+        """Retain values and number formats without materializing styled blank cells."""
+        source = openpyxl.load_workbook(path, read_only=True, data_only=True)
+        workbook = openpyxl.Workbook()
+        workbook.remove(workbook.active)
+        try:
+            for sheet in source:
+                target = workbook.create_sheet(sheet.title)
+                for row in sheet.iter_rows():
+                    for cell in row:
+                        if cell.value is None:
+                            continue
+                        copied = target.cell(cell.row, cell.column, cell.value)
+                        copied.data_type = cell.data_type
+                        copied.number_format = cell.number_format
+        finally:
+            source.close()
+        return workbook
+
     def import_workbook(self, workbook_path: Path) -> dict:
-        wb = openpyxl.load_workbook(workbook_path, data_only=True)
+        wb = self._load_import_workbook(workbook_path)
         parsed, import_meta, format_warnings, migration_warnings, identifier_errors = self._parse_workbook(wb)
 
         summary = self._summary(parsed)

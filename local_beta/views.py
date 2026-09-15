@@ -810,7 +810,8 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
             <p class="muted">{t('导出入口会保留本次导入筛选，并让你选择正确的 EUDAMED service。新增、已更新、未变化表示本次导入对本地 Basic/UDI 记录产生的结果；“已更新”不代表清空或覆盖整个产品库。', 'The export link keeps this import filter and lets you choose the correct EUDAMED service. Created, Updated and Unchanged describe how this import affected local Basic/UDI records. Updated does not mean the whole library was cleared or replaced.')}</p>
             """
         details = f"""
-        <section class="panel">
+        <section class="panel" id="import-result" tabindex="-1">
+          {alert}
           <h2>{t('导入结果', 'Import result')}</h2>
           <p>Basic UDI-DI: {result['summary']['basic_count']} · UDI-DI: {result['summary']['udi_count']}</p>
           {batch_actions}
@@ -826,25 +827,30 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
             <tbody>{change_rows}</tbody>
           </table></div>
           <div class="grid columns">
-            <article><h3>{t('错误', 'Errors')}</h3><ul>{error_rows}</ul></article>
-            <article><h3>{t('警告', 'Warnings')}</h3><ul>{warning_rows}</ul></article>
+            <article class="alert {'error' if errors else 'success'}"><h3>{t('错误', 'Errors')} ({len(errors)})</h3><ul>{error_rows}</ul></article>
+            <article class="alert {'warning' if warnings else 'success'}"><h3>{t('警告', 'Warnings')} ({len(warnings)})</h3><ul>{warning_rows}</ul></article>
           </div>
           <p><a class="button" href="/library">{t('进入完整产品库', 'Open full product library')}</a></p>
         </section>
         """
     body = f"""
+    {details}
     <section class="panel narrow">
       <h1>{t('导入产品总表', 'Import product workbook')}</h1>
       <p>{t('上传最新版 Excel template。Excel 是主维护文件；本地库用于批量校验、筛选、选择 service 和导出 XML。',
             'Upload the latest Excel template. The Excel file is the master data; the local database is for bulk validation, filtering, choosing a service and exporting XML.')}</p>
-      {alert}
-      <form action="/import" method="post" enctype="multipart/form-data" class="stack">
+      {alert if not result else ''}
+      <form action="/import" method="post" enctype="multipart/form-data" class="stack" onsubmit="this.querySelector('button').disabled=true; this.setAttribute('aria-busy','true'); document.getElementById('import-progress').hidden=false;">
+        <p id="import-progress" class="alert notice" role="status" hidden>{t('正在读取并校验 Excel，请稍候。数据较多时需要更长时间，请勿重复提交或关闭窗口。', 'Reading and validating Excel. Please wait; large workbooks take longer. Do not resubmit or close this window.')}</p>
         <input type="file" name="workbook" accept=".xlsx" required>
         <button class="button primary" type="submit">{t('开始导入', 'Start import')}</button>
       </form>
       {import_notes}
     </section>
-    {details}
+    <script>document.addEventListener('DOMContentLoaded', function () {{
+      var result = document.getElementById('import-result');
+      if (result) {{ result.focus(); result.scrollIntoView({{block: 'start'}}); }}
+    }});</script>
     """
     return page(t("导入 Excel", "Import Excel"), body, "/import")
 
@@ -1309,8 +1315,8 @@ def export_result_panel(result: dict, service_type: str) -> str:
       {download}
       {freshness}
       <div class="grid columns">
-        <article><h3>{t('错误', 'Errors')}</h3><ul>{errors}</ul></article>
-        <article><h3>{t('警告', 'Warnings')}</h3><ul>{warnings}</ul></article>
+        <article class="alert {'error' if result.get('errors') else 'success'}" role="alert"><h3>{t('错误', 'Errors')} ({len(result.get('errors', []))})</h3><ul>{errors}</ul></article>
+        <article class="alert {'warning' if result.get('warnings') else 'success'}"><h3>{t('警告', 'Warnings')} ({len(result.get('warnings', []))})</h3><ul>{warnings}</ul></article>
       </div>
       {batches}
       {guidance}

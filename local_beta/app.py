@@ -355,7 +355,7 @@ class App:
             result = self.importer.import_workbook(upload_path)
             error_count = len(result.get("validation", {}).get("errors", []))
             if error_count:
-                return self.respond_html(request, import_page(t("导入完成，但发现错误，请先处理后再导出。", "Import finished, but errors were found — please fix them before exporting."), result, "warning"))
+                return self.respond_html(request, import_page(t("导入完成，但发现错误，请先处理后再导出。", "Import finished, but errors were found — please fix them before exporting."), result, "error"))
             return self.respond_html(request, import_page(t("导入完成。", "Import finished."), result, "success"))
         except Exception as exc:
             log_path = log_exception("import", exc)
