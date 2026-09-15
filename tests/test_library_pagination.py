@@ -123,6 +123,23 @@ class LibraryPaginationTests(unittest.TestCase):
         self.assertIn('导出全部筛选结果（179）', html)
         self.assertEqual(html.count('name="record_ids"'), 50)
 
+    def test_export_buttons_require_selection_in_selected_mode(self):
+        import_id = self._new_import("B.xlsx")
+        self._seed_udis(import_id, "EXPORT", 3, "BASIC-EXPORT")
+        records = self.repo.list_udis(import_id=import_id, limit=3)
+
+        html = views.export_page(
+            "UDI_DI.POST",
+            records,
+            filters={"import_id": str(import_id)},
+            total_filtered=3,
+            page_number=1,
+            page_size=200,
+        )
+
+        self.assertIn('onclick="return requireExportSelection()"', html)
+        self.assertIn("请先勾选至少一条记录", html)
+
     def test_reimport_updates_same_code_and_keeps_distinct_historical_records(self):
         import_a = self._new_import("A.xlsx")
         self._seed_udis(import_a, "OLD", 1, "BASIC-SHARED")

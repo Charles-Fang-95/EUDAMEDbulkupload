@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **1.0.0 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **1.0.0 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **1.0.1 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **1.0.1 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -128,7 +128,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **1.0.0 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **1.0.1 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -264,7 +264,7 @@ Helpers:
 
 ## Version history
 
-Current **1.0.0 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **1.0.1 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 
@@ -275,7 +275,7 @@ Current **1.0.0 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHA
 
 > Maintainer / project-structure / release docs: [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) and [`docs/GITHUB_RELEASE_PROCESS.md`](docs/GITHUB_RELEASE_PROCESS.md).
 
-### macOS 1.0.0 与 Original manufacturer
+### macOS 1.0.1 与 Original manufacturer
 
 运行 `./script/build_and_run.sh --build-only` 生成 `dist/EUDAMED Local Beta.app` 和本机架构 Mac ZIP。Mac 需要 Python 3.10+，用户数据继续保存在 `~/Library/Application Support/EUDAMED Local Beta/local_beta_data`。此构建为本地签名、未公证版本。
 

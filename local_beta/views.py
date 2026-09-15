@@ -469,6 +469,16 @@ def page(title: str, body: str, active_path: str = "") -> str:
     }}
     return true;
   }}
+  function requireExportSelection() {{
+    var form = document.getElementById('export-form');
+    if (!form) return true;
+    var mode = form.querySelector('input[name=selection_mode]:checked');
+    if (mode && mode.value === 'selected' && selectedRecordCount('export-form') === 0) {{
+      alert('{esc(t("请先勾选至少一条记录，或切换为“导出全部筛选结果”。", "Select at least one record first, or switch to Export all filtered results."))}');
+      return false;
+    }}
+    return true;
+  }}
   function saveExportQuery(query) {{
     try {{
       if (query) sessionStorage.setItem('eudamed_export_query', query);
@@ -511,6 +521,7 @@ def page(title: str, body: str, active_path: str = "") -> str:
   }}
   function restoreExportPageIfNeeded() {{
     if (window.location.pathname !== '/export') return false;
+    if (document.getElementById('result')) return false;
     var params = new URLSearchParams(window.location.search);
     if (params.get('service_type') || params.get('import_id')) {{
       if (params.get('service_type')) saveExportQuery(params.toString());
@@ -1230,6 +1241,7 @@ def export_page(
     table = "".join(record_rows) or f'<tr><td colspan="6"><div class="empty-state">{t("没有可导出的记录。请检查筛选条件，或先导入 Excel。", "No records to export. Check filters or import Excel first.")} <a class="button" href="/library">{t("去产品库", "Open library")}</a> <a class="button primary" href="/import">{t("导入 Excel", "Import Excel")}</a></div></td></tr>'
     service = SUPPORTED_SERVICES.get(service_type, SUPPORTED_SERVICES["DEVICE.POST"])
     body = f"""
+    {preview}
     <section class="panel">
       <h1>{t('导出任务', 'Export task')}</h1>
       {steps}
@@ -1264,12 +1276,11 @@ def export_page(
         </table></div>
         {pagination_block('/export', filters, total_filtered, page_number, page_size, {"service_type": service_type, "selection_mode": selection_mode})}
         <div class="toolbar">
-          <button class="button" type="submit" name="action" value="preflight">{t('只做预检', 'Pre-check only')}</button>
-          <button class="button primary" type="submit" name="action" value="export">{t('生成 XML', 'Generate XML')}</button>
+          <button class="button" type="submit" name="action" value="preflight" onclick="return requireExportSelection()">{t('只做预检', 'Pre-check only')}</button>
+          <button class="button primary" type="submit" name="action" value="export" onclick="return requireExportSelection()">{t('生成 XML', 'Generate XML')}</button>
         </div>
       </form>
     </section>
-    {preview}
     """
     return page(t("导出任务", "Export"), body, "/export")
 
@@ -1279,6 +1290,14 @@ def export_result_panel(result: dict, service_type: str) -> str:
     warnings = "".join(f"<li>{esc(item)}</li>" for item in result.get("warnings", [])) or f"<li>{t('无', 'None')}</li>"
     selected_count = result.get("selected_count", len(result.get("codes", [])))
     download = export_downloads(result)
+    auto_download = ""
+    if result.get("file_path") and not result.get("errors") and result.get("action") == "export":
+        auto_download = """<script>
+        window.addEventListener("load", function () {
+          var link = document.querySelector("#result .toolbar a");
+          if (link) window.location.assign(link.href);
+        }, {once: true});
+        </script>"""
     guidance = upload_guidance(service_type) if result.get("file_path") else ""
     batches = export_batch_table(result.get("files") or result.get("batches") or [])
     freshness = freshness_summary_block(result.get("freshness_summary") or {})
@@ -1287,15 +1306,16 @@ def export_result_panel(result: dict, service_type: str) -> str:
     <section class="panel" id="result">
       <h2>{title}</h2>
       <p>Service: <strong>{esc(result['service_type'])}</strong> · {t('选择记录', 'Selected records')}: <strong>{esc(selected_count)}</strong></p>
+      {download}
       {freshness}
       <div class="grid columns">
         <article><h3>{t('错误', 'Errors')}</h3><ul>{errors}</ul></article>
         <article><h3>{t('警告', 'Warnings')}</h3><ul>{warnings}</ul></article>
       </div>
       {batches}
-      {download}
       {guidance}
     </section>
+    {auto_download}
     """
 
 
@@ -1396,7 +1416,7 @@ def export_downloads(result: dict) -> str:
             f'<a class="button" href="/download/{esc(Path(item["file_path"]).name)}">{esc(item["file_name"])}</a>'
             for item in files
         )
-    return f'<div class="toolbar">{"".join(links)}</div>'
+    return f'<p>{t("文件已生成。若未开始下载或取消了保存，请点击下方按钮。", "File generated. If the download did not start or you cancelled saving, use the button below.")}</p><div class="toolbar">{"".join(links)}</div>'
 
 
 def export_batch_table(batches: list[dict]) -> str:

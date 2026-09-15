@@ -190,7 +190,7 @@ class BetaXMLExporter:
         if validation["errors"]:
             return validation
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + uuid.uuid4().hex
         files = []
         all_codes = []
         for batch in validation["batches"]:

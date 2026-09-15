@@ -245,6 +245,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
 
     func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
+        let failure = error as NSError
+        if failure.domain == NSURLErrorDomain && failure.code == NSURLErrorCancelled { return }
         let alert = NSAlert()
         alert.messageText = "下载失败"
         alert.informativeText = error.localizedDescription
