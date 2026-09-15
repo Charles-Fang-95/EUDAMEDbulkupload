@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+from functools import cmp_to_key
 import platform
 import urllib.error
 import urllib.request
@@ -157,7 +158,10 @@ def _load_release(url: str, timeout: int, source: str):
     if isinstance(payload, list):
         if not payload:
             return None, "no_release", f"{_source_label(source)} 仓库尚未发布 Release。", source
-        payload = payload[0]
+        releases = [item for item in payload if isinstance(item, dict) and item.get("tag_name") and not item.get("draft")]
+        if not releases:
+            return None, "no_release", f"{_source_label(source)} 未返回有效 Release。", source
+        payload = max(releases, key=cmp_to_key(lambda a, b: compare_versions(str(a["tag_name"]), str(b["tag_name"]))))
     return payload, "", "", source
 
 
@@ -185,7 +189,7 @@ def _fallback_releases_url(api_url: str) -> str:
     marker = "/releases/latest"
     if marker not in api_url:
         return ""
-    return api_url.replace(marker, "/releases?per_page=1")
+    return api_url.replace(marker, "/releases?per_page=100")
 
 
 def _normalize_release(payload, source: str) -> dict:

@@ -37,14 +37,14 @@ BULK_UPLOAD_LIMIT_SOURCE = (
 
 # 工具自身版本与最近更新日期（页脚展示，由维护者更新）
 # TOOL_VERSION 是语义化版本号，用于「检查更新」比对；TOOL_VERSION_LABEL 给人看，可带中文修饰。
-TOOL_VERSION = "1.0.1"
-TOOL_VERSION_LABEL = "1.0.1 · 公开测试版"
+TOOL_VERSION = "1.0.2"
+TOOL_VERSION_LABEL = "1.0.2 · 公开测试版"
 TOOL_UPDATED = "2026-09-15"
 
 # 检查更新：优先 GitHub Releases API，失败时尝试 Gitee Release API；留空时帮助页显示「未配置更新源」。
 RELEASES_API_URL = "https://api.github.com/repos/Charles-Fang-95/EUDAMEDbulkupload/releases/latest"
 RELEASES_PAGE_URL = "https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases"
-GITEE_RELEASES_API_URL = "https://gitee.com/api/v5/repos/Charles-Fang-95/EUDAMEDbulkupload/releases?per_page=1"
+GITEE_RELEASES_API_URL = "https://gitee.com/api/v5/repos/Charles-Fang-95/EUDAMEDbulkupload/releases/latest"
 GITEE_RELEASES_PAGE_URL = "https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases"
 
 # 版权信息（页脚 / 帮助页展示）
