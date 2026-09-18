@@ -39,8 +39,8 @@ if ($Console) {
     --add-data "EUDAMED_TOOL_v2/lib;EUDAMED_TOOL_v2/lib" `
     --add-data "EUDAMED_TOOL_v2/validator.py;EUDAMED_TOOL_v2" `
     --add-data "official_docs/unpacked/xsd_production;official_docs/unpacked/xsd_production" `
-    --add-data "EUDAMED_Template_v2.13.xlsx;." `
-    --add-data "EUDAMED_Template_v2.13_EN.xlsx;." `
+    --add-data "EUDAMED_Template_v2.14.xlsx;." `
+    --add-data "EUDAMED_Template_v2.14_EN.xlsx;." `
     --add-data "README.md;." `
     run_local_beta.py
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller build failed; refusing to archive stale artifacts" }

@@ -45,7 +45,7 @@
 2. 选择 `Release` workflow。
 3. 点击 `Run workflow`。
 4. `version` 填不带 `v` 的版本号，例如 `0.7.1`。该版本必须与 `local_beta/constants.py` 的 `TOOL_VERSION` 和 `CHANGELOG.md` 顶部章节一致。
-5. workflow 会生成 `EUDAMED_Local_Beta_Windows.zip` 和 `EUDAMED_Local_Beta_Mac_arm64.zip`，并把它们、`SHA256SUMS-<version>.txt`、`EUDAMED_Template_v2.13.xlsx` 和 `EUDAMED_Template_v2.13_EN.xlsx` 上传到 GitHub Release。
+5. workflow 会生成 `EUDAMED_Local_Beta_Windows.zip` 和 `EUDAMED_Local_Beta_Mac_arm64.zip`，并把它们、`SHA256SUMS-<version>.txt`、`EUDAMED_Template_v2.14.xlsx` 和 `EUDAMED_Template_v2.14_EN.xlsx` 上传到 GitHub Release。
 6. 同一 workflow 会调用 Gitee API 创建/更新同 tag 的 Gitee Release，并尽力上传同名附件；Gitee 镜像失败不会阻断 GitHub 主发布。
 
 Gitee Release 附件限制：普通项目单个附件不能超过 100M，仓库总附件容量普通项目不能超过 1G。GitHub runner 到 Gitee 上传 50MB 以上附件可能因跨境网络超时；如 Gitee ZIP 上传失败，GitHub Release 仍有效，Gitee 可手动补传或改用 OSS/COS/网盘等备用下载源。
@@ -61,8 +61,8 @@ Gitee Release 附件限制：普通项目单个附件不能超过 100M，仓库�
    - `EUDAMED_Local_Beta_Windows.zip`
    - `EUDAMED_Local_Beta_Mac_arm64.zip`
    - `SHA256SUMS-<version>.txt`
-   - `EUDAMED_Template_v2.13.xlsx`（中文模板，方便用户单独下载）
-   - `EUDAMED_Template_v2.13_EN.xlsx`（英文模板，方便海外用户单独下载）
+   - `EUDAMED_Template_v2.14.xlsx`（中文模板，方便用户单独下载）
+   - `EUDAMED_Template_v2.14_EN.xlsx`（英文模板，方便海外用户单独下载）
 7. 公开测试阶段可勾选 `Set as a pre-release`；稳定后取消。
 8. 发布后确认 Release 页面能看到附件下载链接。
 

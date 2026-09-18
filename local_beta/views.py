@@ -787,7 +787,7 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
         if result.get("normalized_filename"):
             normalized_link = (
                 f'<p><a class="button primary" href="/download/{esc(result["normalized_filename"])}">'
-                f'{t("下载规范化 v2.13 模板副本", "Download normalized v2.13 workbook")}</a></p>'
+                f'{t("下载规范化 v2.14 模板副本", "Download normalized v2.14 workbook")}</a></p>'
                 f'<p class="muted">{t("原始上传文件未被覆盖；副本保留 Local Record ID 和计算输入，并写入最终 B-/D-/UDI-DI 关联。", "The uploaded workbook was not overwritten. The copy retains Local Record ID and calculation input and fills final B-/D-/UDI-DI links.")}</p>'
             )
         import_id = result.get("import_id")

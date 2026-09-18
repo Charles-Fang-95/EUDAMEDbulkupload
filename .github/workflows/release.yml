@@ -179,14 +179,14 @@ jobs:
               "2. Apple Silicon Mac: download `EUDAMED_Local_Beta_Mac_arm64.zip`, extract it, and open `EUDAMED Local Beta.app`.",
               "3. The Mac build is ad-hoc signed and not Apple-notarized. It requires macOS 13+ and Python 3.10+; on first launch, Control-click the app and choose Open if Gatekeeper asks for confirmation.",
               "4. User data is stored separately from the application package; replacing the package does not delete the database or exports.",
-              "5. Download `EUDAMED_Template_v2.13.xlsx` for the Chinese template or `EUDAMED_Template_v2.13_EN.xlsx` for the English template.",
+              "5. Download `EUDAMED_Template_v2.14.xlsx` for the Chinese template or `EUDAMED_Template_v2.14_EN.xlsx` for the English template.",
               "",
               "中文说明：",
               "1. Windows：下载 `EUDAMED_Local_Beta_Windows.zip`，完整解压后运行启动程序。",
               "2. Apple 芯片 Mac：下载 `EUDAMED_Local_Beta_Mac_arm64.zip`，解压后打开 `EUDAMED Local Beta.app`。",
               "3. Mac 包使用本地签名、未经 Apple 公证，需要 macOS 13+ 和 Python 3.10+；首次启动如被 Gatekeeper 拦截，请按住 Control 点击应用并选择“打开”。",
               "4. 用户数据与应用包分开保存；替换新版程序不会删除数据库或导出文件。",
-              "5. 中文模板下载 `EUDAMED_Template_v2.13.xlsx`，英文模板下载 `EUDAMED_Template_v2.13_EN.xlsx`。",
+              "5. 中文模板下载 `EUDAMED_Template_v2.14.xlsx`，英文模板下载 `EUDAMED_Template_v2.14_EN.xlsx`。",
           ])
           body = guide.strip() + "\n\n" + body
           with open("release_notes.md", "w", encoding="utf-8") as f:
@@ -225,8 +225,8 @@ jobs:
           assets = [
               Path("dist/EUDAMED_Local_Beta_Windows.zip"),
               Path("dist/EUDAMED_Local_Beta_Mac_arm64.zip"),
-              Path("EUDAMED_Template_v2.13.xlsx"),
-              Path("EUDAMED_Template_v2.13_EN.xlsx"),
+              Path("EUDAMED_Template_v2.14.xlsx"),
+              Path("EUDAMED_Template_v2.14_EN.xlsx"),
           ]
           lines = []
           for asset in assets:
@@ -247,8 +247,8 @@ jobs:
           test -f "dist/EUDAMED_Local_Beta_Windows.zip" || { echo "::error::Windows ZIP 未生成"; exit 1; }
           test -f "dist/EUDAMED_Local_Beta_Mac_arm64.zip" || { echo "::error::Mac ZIP 未从 macOS job 下载"; exit 1; }
           test -f "dist/SHA256SUMS-${{ steps.ver.outputs.version }}.txt" || { echo "::error::SHA-256 文件缺失"; exit 1; }
-          test -f "EUDAMED_Template_v2.13.xlsx" || { echo "::error::模板 xlsx 缺失"; exit 1; }
-          test -f "EUDAMED_Template_v2.13_EN.xlsx" || { echo "::error::英文模板 xlsx 缺失"; exit 1; }
+          test -f "EUDAMED_Template_v2.14.xlsx" || { echo "::error::模板 xlsx 缺失"; exit 1; }
+          test -f "EUDAMED_Template_v2.14_EN.xlsx" || { echo "::error::英文模板 xlsx 缺失"; exit 1; }
           ls -la dist/
 
       - name: Create or update GitHub Release
@@ -271,8 +271,8 @@ jobs:
               "dist/EUDAMED_Local_Beta_Windows.zip" \
               "dist/EUDAMED_Local_Beta_Mac_arm64.zip" \
               "dist/SHA256SUMS-${VERSION}.txt" \
-              "EUDAMED_Template_v2.13.xlsx" \
-              "EUDAMED_Template_v2.13_EN.xlsx" \
+              "EUDAMED_Template_v2.14.xlsx" \
+              "EUDAMED_Template_v2.14_EN.xlsx" \
               --clobber
           else
             # 不带 --target 时，workflow_dispatch 会在当前 commit 上自动创建 tag
@@ -284,8 +284,8 @@ jobs:
               "dist/EUDAMED_Local_Beta_Windows.zip" \
               "dist/EUDAMED_Local_Beta_Mac_arm64.zip" \
               "dist/SHA256SUMS-${VERSION}.txt" \
-              "EUDAMED_Template_v2.13.xlsx" \
-              "EUDAMED_Template_v2.13_EN.xlsx"
+              "EUDAMED_Template_v2.14.xlsx" \
+              "EUDAMED_Template_v2.14_EN.xlsx"
           fi
 
           echo "Release URL:"
@@ -331,8 +331,8 @@ jobs:
           title = tag
           notes = pathlib.Path("release_notes.md").read_text(encoding="utf-8")
           assets = [
-              pathlib.Path("EUDAMED_Template_v2.13.xlsx"),
-              pathlib.Path("EUDAMED_Template_v2.13_EN.xlsx"),
+              pathlib.Path("EUDAMED_Template_v2.14.xlsx"),
+              pathlib.Path("EUDAMED_Template_v2.14_EN.xlsx"),
               pathlib.Path("dist/EUDAMED_Local_Beta_Windows.zip"),
               pathlib.Path("dist/EUDAMED_Local_Beta_Mac_arm64.zip"),
               pathlib.Path(f"dist/SHA256SUMS-{version}.txt"),

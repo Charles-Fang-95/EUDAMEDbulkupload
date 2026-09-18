@@ -10,7 +10,7 @@ from pathlib import Path
 from xml.dom import minidom
 
 from .constants import BULK_UPLOAD_ENTITY_LIMIT, EXPORT_DIR, canonical_service_type
-from .template_schema import ENUM_SOURCES
+from .template_schema import ENUM_SOURCES, is_retired_orthopedic, RETIRED_ORTHOPEDIC_MESSAGE
 from .legacy_identifiers import LegacyIdentifierError, resolve_legacy_identifiers
 from .xsd_version import get_tool_xsd_version
 from .storage import Repository
@@ -971,7 +971,9 @@ class BetaXMLExporter:
     def _validate_basic_enum_fields(self, errors: list[str], basic_code: str, payload: dict):
         special_device = self._special_device_code(payload.get("Special Device Type"), payload)
         raw_special_device = str(payload.get("Special Device Type") or "").strip()
-        if raw_special_device and not special_device:
+        if is_retired_orthopedic(raw_special_device):
+            errors.append(f"Basic UDI-DI {basic_code}: {RETIRED_ORTHOPEDIC_MESSAGE}")
+        elif raw_special_device and not special_device:
             errors.append(
                 f"Basic UDI-DI {basic_code} 的 Special Device Type 不是当前法规对应的官方枚举；普通器械请留空。"
             )
@@ -1623,8 +1625,6 @@ class BetaXMLExporter:
 
         legacy_map = {
             "SOFTWARE": "SOFTWARE",
-            "ORTHOPEDIC": "ORTHOPEDIC",
-            "ORTHOPAEDIC": "ORTHOPEDIC",
             "STANDARD SOFT CONTACT LENSES": "STANDARD_SOFT_CONTACT_LENSES",
             "RIGID GAS PERMEABLE": "RIGID_GAS_PERMEABLE",
             "MADE TO ORDER": "MADE_TO_ORDER",

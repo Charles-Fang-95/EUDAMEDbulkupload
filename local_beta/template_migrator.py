@@ -13,6 +13,8 @@ from .template_schema import (
     IMPORT_ENTRY_SHEETS,
     LEGACY_ENTRY_SHEETS,
     ENUM_SOURCES,
+    is_retired_orthopedic,
+    RETIRED_ORTHOPEDIC_MESSAGE,
     RELATED_SHEETS,
     TEMPLATE_VERSION,
     columns_for_entry_sheet,
@@ -526,6 +528,9 @@ def _normalize_main_row(ws, target_headers: list[str], row_idx: int, report: dic
     value = cell.value
     if value in (None, ""):
         return
+    if is_retired_orthopedic(value):
+        report["warnings"].append(f"{ws.title} 第 {row_idx} 行：{RETIRED_ORTHOPEDIC_MESSAGE} 已保留原值供核对。")
+        return
     display = _special_device_display(value, ws.title, legislation)
     if display:
         if str(value or "").strip() != display:
@@ -572,8 +577,6 @@ def _special_device_display(value, sheet_name: str, legislation: str = "") -> st
         return code_to_display[normalized_code]
     aliases = {
         "SOFTWARE": "SOFTWARE",
-        "ORTHOPEDIC": "ORTHOPEDIC",
-        "ORTHOPAEDIC": "ORTHOPEDIC",
         "STANDARD SOFT CONTACT LENSES": "STANDARD_SOFT_CONTACT_LENSES",
         "RIGID GAS PERMEABLE": "RIGID_GAS_PERMEABLE",
         "MADE TO ORDER": "MADE_TO_ORDER",

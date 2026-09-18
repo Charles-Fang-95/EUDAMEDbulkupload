@@ -12,7 +12,7 @@ COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.13"
+TEMPLATE_VERSION = "v2.14"
 
 
 _FORMAT_EN = {
@@ -78,7 +78,7 @@ _DESCRIPTION_EN_OVERRIDES = {
     "Presence of Human Tissues": "Confirm whether the device contains human tissues/cells. Applies to MDR/MDD/AIMDD/IVDR/IVDD; blank values are exported as FALSE.",
     "Presence of Animal Tissues": "Confirm whether the device contains animal tissues/cells. Applies to MDR/MDD/AIMDD/IVDR/IVDD; blank values are exported as FALSE.",
     "Is it a Kit": "Confirm whether the device is a kit. IVDR/IVDD values are exported to XML; MDR/MDD are not force-output by this tool.",
-    "Special Device Type": "Official special device type enum. Leave blank for ordinary devices. System/Procedure Pack usually does not provide this value.",
+    "Special Device Type": "Currently registrable special device type. Orthopedic/Orthopaedic is retired: leave blank unless another valid special type applies. System/Procedure Pack usually does not provide this value.",
     "Is Suture/Staple/Filling/Brace (IIb Implant)": "Only applies to Class IIb implantable devices to identify suture/staple/dental filling/dental brace exceptions. Leave blank or FALSE if not applicable.",
     "udi_version": "Conditionally required only for Update of UDI-DI / Master UDI-DI (UDI_DI.PATCH). Fill the current UDI-DI version shown in EUDAMED; leave blank for new uploads.",
     "UDI-DI Code": "Required for MDR/IVDR and for Legacy with an assigned UDI-DI. For first generation without a UDI-DI, leave it blank and the tool fills the final D- EUDAMED ID.",
@@ -373,8 +373,22 @@ def _annex_xvi_values() -> list[str]:
     return _xsd_enum_values_from_file(REGULATION_UDI_XSD, "NonMedicalDeviceEnum")
 
 
+def is_retired_orthopedic(value) -> bool:
+    code = str(value or "").split(" - ", 1)[0].strip().upper().replace("-", "_").replace(" ", "_")
+    return code in {"ORTHOPEDIC", "ORTHOPAEDIC", "MDR_ORTHOPEDIC", "MDD_ORTHOPEDIC", "AIMDD_ORTHOPEDIC", "MDR_ORTHOPAEDIC", "MDD_ORTHOPAEDIC", "AIMDD_ORTHOPAEDIC"}
+
+
+RETIRED_ORTHOPEDIC_MESSAGE = (
+    "EUDAMED 已移除 Orthopedic/Orthopaedic 特殊器械类型；请核对并清空 Basic - Special Device Type 中的骨科旧值后重新导入。"
+    "骨科器械仍可按适用规则注册，不要改选其他特殊类型替代。"
+    " Orthopedic is no longer a registrable special device type; review and clear the obsolete value."
+)
+
+
 def _special_device_mdr_values() -> list[str]:
-    return _xsd_enum_values_from_file(BASIC_UDI_XSD, "MDRSpecialDeviceTypeEnum")
+    # Production 2.15.0 §3.2: removed from registration, although XSD retains historical codes.
+    return [value for value in _xsd_enum_values_from_file(BASIC_UDI_XSD, "MDRSpecialDeviceTypeEnum")
+            if not is_retired_orthopedic(value)]
 
 
 def _special_device_ivdr_values() -> list[str]:
@@ -424,7 +438,7 @@ MAIN_COLUMNS = [
     _col("Basic", "Basic - Device Model", "basic", "Device Model", False, None, "仅在 EUDAMED 中 Model 适用于 Basic UDI-DI 时填写；不适用则留空。", "", "文本"),
     _col("Basic", "Basic - Is it a Kit", "basic", "Is it a Kit", False, "boolean", "是否为 Kit。IVDR/IVDD 会按官方 XSD 输出，必须确认 TRUE/FALSE；MDR/MDD 暂无安全输出位置，不会强行写入 XML。", "FALSE", "TRUE / FALSE", requirement="conditional"),
     _col("Basic", "Basic - Authorised Representative SRN", "basic", "Authorised Representative SRN", False, None, "非欧盟/EEA 制造商的欧盟授权代表 SRN。", "NL-AR-000000247", "文本"),
-    _col("Basic", "Basic - Special Device Type", "basic", "Special Device Type", False, None, "特殊设备类型。仅软件、眼镜/隐形眼镜、骨科、定制等官方特殊类型适用；普通器械留空。System/Procedure Pack 通常不提供。", "MDR_SOFTWARE - Software", "法规专属下拉选择"),
+    _col("Basic", "Basic - Special Device Type", "basic", "Special Device Type", False, None, "当前可注册的特殊器械类型。适用于软件及对应的眼镜/隐形眼镜类型；Orthopedic/Orthopaedic 已停用，若无其他适用特殊类型则留空。System/Procedure Pack 通常不提供。", "MDR_SOFTWARE - Software", "法规专属下拉选择"),
     _col("Basic", "Basic - Reagent", "basic", "Reagent", False, "boolean", "IVDR 下是否为试剂。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Presence of Medicinal Substance", "basic", "Presence of Medicinal Substance", False, "boolean", "待审计字段：当前 XML 不单独输出；目前导出的是 Basic - Medicinal Product Device。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Basic", "Basic - Is Suture/Staple/Filling/Brace (IIb Implant)", "basic", "Is Suture/Staple/Filling/Brace (IIb Implant)", False, "boolean", "仅 Class IIb + Implantable 时适用，用于判断是否属于 suture/staple/dental filling/dental brace 等特殊情形；不适用留空或填 FALSE。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
@@ -628,7 +642,7 @@ ENTRY_SHEETS = OrderedDict(
     }
 )
 
-# v2.4-v2.13 mixed main sheets remain accepted for direct import/migration.
+# v2.4-v2.14 mixed main sheets remain accepted for direct import/migration.
 # They are never generated in the current four-sheet template.
 LEGACY_ENTRY_SHEETS = OrderedDict(
     {
