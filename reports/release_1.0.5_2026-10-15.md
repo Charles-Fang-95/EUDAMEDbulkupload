@@ -42,3 +42,13 @@
 ## 验证边界
 
 本地业务预检、Production XSD 结构校验均通过。不代表在线接受；**未实际上传 EUDAMED Playground，线上验收尚未完成**。Windows Runner 和发布附件状态以新 v1.0.5 Release workflow 为准，不能用 Mac 本地构建代替 Windows 运行验证。
+
+## GitHub 发布核验
+
+- 发布提交 `7895211`，标签 `v1.0.5`；[Release](https://github.com/Charles-Fang-95/EUDAMEDbulkupload/releases/tag/v1.0.5)。
+- [新发布流水线](https://github.com/Charles-Fang-95/EUDAMEDbulkupload/actions/runs/38754665123) 中 Mac 构建与 Windows 打包步骤均成功，GitHub 发布完成。
+- 实际下载 Mac 与 Windows ZIP，检查 ZIP 完整性、发布 SHA-256 以及包内 exporter.py、validator.py、版本和两个模板，均与本次提交匹配（Windows 文本按 CRLF/LF 归一化比较）。
+- 发布清单中的四项文件 SHA-256 全部核对通过。Windows GUI 未在本机运行；Windows Runner 打包成功不等于 Windows 手工验收。
+
+- Gitee [v1.0.5 镜像](https://gitee.com/Charles-Fang-95/EUDAMEDbulkupload/releases/tag/v1.0.5) 的中英文模板、Windows ZIP、Mac ZIP、SHA256SUMS 共五个附件均已实际下载，与 GitHub SHA-256 完全一致。源码自动压缩包不属于本次安装包核验范围。
+- 发布 workflow 最终为 completed / success。旧版 1.0.4 调用工具检查更新能发现 GitHub 1.0.5，并返回对应平台安装包。
