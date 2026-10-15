@@ -2059,6 +2059,7 @@ def ack_page(result: dict | None = None, message: str = "", message_level: str =
       <p>{t('在 EUDAMED bulk upload 后下载官方 response / acknowledgement XML，上传到这里查看哪些实体成功、哪些被拒，以及能否匹配到本地记录。',
             'After EUDAMED bulk upload, download the official response / acknowledgement XML and upload it here to see which entities passed, which were rejected, and whether they match local records.')}</p>
       <p class="muted">{t('工具不会自动上传任何文件；response XML 只在本机解析。', 'The tool does not upload anything automatically; the response XML is parsed locally only.')}</p>
+      <p class="muted">{t('若 Response 提示 UDI-DI / EUDAMED DI 已存在，请先核对远端记录；需要更新已存在的 UDI-DI 时选择 UDI_DI.PATCH，并填写 EUDAMED 中的当前 version。离线工具不能查询远端是否重复，也不会自动将 POST 改为 PATCH。', 'If the Response reports an existing UDI-DI / EUDAMED DI, check the remote record first. To update an existing UDI-DI, choose UDI_DI.PATCH and enter its current EUDAMED version. This offline tool cannot check remote duplicates or switch POST to PATCH automatically.')}</p>
       {alert_block(message, message_level)}
       <form action="/ack" method="post" enctype="multipart/form-data" class="stack">
         <input type="file" name="ack_xml" accept=".xml,text/xml" required>

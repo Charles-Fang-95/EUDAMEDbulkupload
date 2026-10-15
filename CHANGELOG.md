@@ -2,6 +2,14 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
+## 1.0.5 - 2026-10-15
+
+- 修复 BR-UDID-131（当前官方 RULE-00185）业务规则预检：System / Procedure Pack 或 Kit=TRUE（含 IVDR 和 IVDD Legacy）的每条 UDI-DI 必须填写 Additional Description；普通 Regulation / Legacy 器械仍可留空。
+- 任意 UDI 描述有值时必须明确填写 Description Language，取消该字段的 EN 默认值。导入保留记录并显示红色错误；DEVICE.POST、UDI_DI.POST、UDI_DI.PATCH 导出前阻止缺项，PATCH 当前 version 检查保持不变。
+- 修复 Excel 布尔 FALSE 被旧 Kit (IVDR) 别名覆盖、以及被预检误报为空白的问题；不修改用户 Kit 属性、不生成替代描述、不自动切换 POST/PATCH，也不声称检查远端重复记录。
+- 模板保持 v2.14，更新中英文 Kit、UDI 描述和语言的条件必填说明及镜像模板。内部字段 key、行容量和 Production XSD 3.0.30 不变。
+- 此为本地业务规则检查；XSD 结构校验通过与本地预检通过均不代表 EUDAMED Playground/Production 接受。
+
 ## 1.0.4 - 2026-09-18
 
 - 依据 EUDAMED Production 2.15.0 §3.2 和 Playground 3.9 §3.2，移除 Orthopedic/Orthopaedic 特殊类型的模板选项。XSD 仍保留旧枚举，但不等于当前平台允许注册。

@@ -1,3 +1,5 @@
+from EUDAMED_TOOL_v2.validator import additional_description_errors
+
 import csv
 import html
 import io
@@ -367,6 +369,7 @@ class BetaXMLExporter:
                             )
                         else:
                             self._validate_market_rows(errors, item)
+                    errors.extend(message for _, message in additional_description_errors(payload, basic_payload))
                     self._validate_package_rows(errors, item)
                     self._validate_number_of_reuses(errors, warnings, item)
                     self._validate_mdr_detail_rows(errors, warnings, item)
@@ -596,7 +599,7 @@ class BetaXMLExporter:
         return ""
 
     def _is_blank_bool(self, value) -> bool:
-        return str(value or "").strip() == ""
+        return value is None or str(value).strip() == ""
 
     def _warn_blank_basic_booleans(self, warnings: list[str], basic_code: str, basic_payload: dict):
         profile = self._profile(basic_payload)
@@ -1431,7 +1434,7 @@ class BetaXMLExporter:
             self._text(parent, "basicudi", "specialDevice", self._special_device_code(data.get("Special Device Type"), data))
             self._bool(parent, "commondi", "companionDiagnostics", data.get("Companion Diagnostic (IVDR)"))
             self._bool(parent, "commondi", "instrument", data.get("Instrument (IVDR)"))
-            self._bool(parent, "commondi", "kit", data.get("Is it a Kit") or data.get("Kit (IVDR)"))
+            self._bool(parent, "commondi", "kit", data.get("Is it a Kit") if self._has_value(data.get("Is it a Kit")) else data.get("Kit (IVDR)"))
             self._bool(parent, "commondi", "microbialSubstances", data.get("Microbial Origin (IVDR)"))
             self._bool(parent, "commondi", "nearPatientTesting", data.get("Near Patient Testing (IVDR)"))
             self._bool(parent, "commondi", "professionalTesting", data.get("Professional Testing (IVDR)"))
@@ -1479,13 +1482,16 @@ class BetaXMLExporter:
             data.get("Device Status", ""), data.get("Device Status", "")
         )
 
-        description = data.get("Additional Description")
+        description_errors = additional_description_errors(data, basic_payload)
+        if description_errors:
+            raise ValueError("\n".join(message for _, message in description_errors))
+        description = str(data.get("Additional Description") or "").strip()
         if description:
             self._append_language_texts(
                 parent,
                 "udidi",
                 "additionalDescription",
-                [(data.get("Description Language") or "EN", description)],
+                [(str(data["Description Language"]).strip(), description)],
             )
 
         basic_code, basic_issuing_entity = self._legacy_basic_identifier(

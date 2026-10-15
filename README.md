@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **1.0.4 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **1.0.4 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **1.0.5 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **1.0.5 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -128,7 +128,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **1.0.4 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **1.0.5 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -264,7 +264,7 @@ Helpers:
 
 ## Version history
 
-Current **1.0.4 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **1.0.5 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 
@@ -275,10 +275,18 @@ Current **1.0.4 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHA
 
 > Maintainer / project-structure / release docs: [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) and [`docs/GITHUB_RELEASE_PROCESS.md`](docs/GITHUB_RELEASE_PROCESS.md).
 
-### macOS 1.0.4 与 Original manufacturer
+### macOS 1.0.5 与 Original manufacturer
 
 运行 `./script/build_and_run.sh --build-only` 生成 `dist/EUDAMED Local Beta.app` 和本机架构 Mac ZIP。Mac 需要 Python 3.10+，用户数据继续保存在 `~/Library/Application Support/EUDAMED Local Beta/local_beta_data`。此构建为本地签名、未公证版本。
 
 v2.14 主表的 `UDI - Product Designer SRN` 支持原始制造商 Actor ID/SRN；未注册组织可填写 `UDI - Product Designer Organisation Name` 及地址字段。两种方式互斥；填写地址时 Country 和 Post Code 必填。旧 `Product Designer ID` 不可上传，应留空。首次注册可随 DEVICE.POST / UDI_DI.POST 上传；已注册器械可选择 **Update product original manufacturer / PRODUCT_DESIGNER.PUT**，无需 UDI 当前版本号。组织名称使用 ANY 语言；本版不提供联系人字段或删除操作，独立更新前请核对完整组织信息。PR/SPP 暂不支持此功能。
 
 依据：[官方 M2M 用户指南](https://webgate.ec.europa.eu/eudamed-help/en/files/M2M%20-%20user%20guide.pdf)，官方样例 `SAMPLE_DTX_UDI_015.01.xml` / `015.02.xml` 及生产 XSD 3.0.30。XSD 通过仅证明 XML 结构，实际业务接受仍需在 Playground 验证。
+
+### Additional Product Description / BR-UDID-131
+
+System / Procedure Pack 或 Kit=TRUE（含 IVDD Legacy）必须填写每条 UDI 的 Additional Description；只要填写描述，就必须明确选择 Description Language。工具不会自动填写 en、替代描述或更改 Kit 属性。导入会保存记录并显示红色错误；DEVICE.POST、UDI_DI.POST、UDI_DI.PATCH 在缺项时阻止导出。其余普通 Regulation / Legacy 器械仍可留空。模板保持 v2.14。
+
+Additional Description is required for System / Procedure Pack and Kit=TRUE, including IVDD Legacy. Any supplied description requires an explicit Description Language. No language, description or Kit status is inferred. Imports retain the records with errors; DEVICE.POST, UDI_DI.POST and UDI_DI.PATCH block export until corrected. Other ordinary Regulation / Legacy devices may leave it blank. Template version remains v2.14.
+
+Official rule: [RULE-00185, formerly BR-UDID-131](https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20business%20rules.pdf), page 26. Local business checks and Production XSD validation do not establish actual EUDAMED acceptance.

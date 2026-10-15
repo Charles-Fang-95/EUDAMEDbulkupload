@@ -14,6 +14,29 @@ import re
 from datetime import datetime
 from typing import Dict, List, Tuple
 
+def additional_description_errors(udi: dict, basic: dict) -> list:
+    """BR-UDID-131 / RULE-00185: local business checks, independent of XSD."""
+    code = str(udi.get("UDI-DI Code") or "").strip()
+    basic_code = str(udi.get("Parent Basic UDI-DI") or "").strip()
+    description = str(udi.get("Additional Description") or "").strip()
+    language = str(udi.get("Description Language") or "").strip()
+    device_type = str(basic.get("Device Type") or "").strip()
+    kit = basic.get("Is it a Kit")
+    if kit is None or str(kit).strip() == "":
+        kit = basic.get("Kit (IVDR)")  # Historical field alias; explicit FALSE wins.
+    is_kit = str(kit).strip().upper() in {"TRUE", "YES", "1"}
+    errors = []
+    if not description and (is_kit or device_type in {"System", "Procedure Pack"}):
+        reason = (f"Basic UDI-DI {basic_code} 的 Is it a Kit = TRUE" if is_kit
+                  else f"Device Type 为 {device_type}")
+        errors.append(("Additional Description",
+                       f"UDI-DI {code}: BR-UDID-131 - {reason}，因此 UDI - Additional Description 必填。"))
+    if description and not language:
+        errors.append(("Description Language",
+                       f"UDI-DI {code}: 已填写 Additional Description，但缺少 Description Language。"))
+    return errors
+
+
 class ValidationError:
     """验证错误"""
     
@@ -310,6 +333,14 @@ class DataValidator:
                         '必填字段缺失',
                         '请填写此字段'
                     ))
+
+            basic = self.basic_by_code.get(str(row.get('Parent Basic UDI-DI') or '').strip(), {})
+            for field, message in additional_description_errors(row, basic):
+                self.errors.append(ValidationError(
+                    'UDI-DI', row.get('_row_number', '?'), field, row.get(field),
+                    'CONDITIONAL_REQUIRED_MISSING', message,
+                    '请填写真实产品描述并明确选择其语言；不要修改 Kit 属性来绕过检查。'
+                ))
 
             if self._requires_latex_field(row):
                 value = row.get('Containing Latex', '')

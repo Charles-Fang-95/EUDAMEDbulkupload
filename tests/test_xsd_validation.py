@@ -138,6 +138,8 @@ class XSDValidationBase(unittest.TestCase):
         self.repo.upsert_basic(import_id=1, row_number=4, payload=basic,
                                cmr_rows=[], cert_rows=certs or [], version=version)
         udi = _udi_payload(ucode, bcode)
+        if profile == "PR":
+            udi.update({"Additional Description": "Synthetic system description", "Description Language": "en"})
         if udi_over:
             udi.update(udi_over)
         effective_ucode = str(udi["UDI-DI Code"])
