@@ -93,7 +93,8 @@ class LibraryPaginationTests(unittest.TestCase):
             def __init__(self):
                 self.record_ids = []
 
-            def export(self, service_type, record_ids):
+            def export(self, service_type, record_ids, *, include_udi_post=False):
+                self.include_udi_post = include_udi_post
                 self.record_ids = list(record_ids)
                 return {"service_type": service_type, "errors": [], "warnings": []}
 
@@ -117,6 +118,7 @@ class LibraryPaginationTests(unittest.TestCase):
         }):
             html = app.handle_export(object())
 
+        self.assertFalse(app.exporter.include_udi_post)
         self.assertEqual(len(app.exporter.record_ids), 179)
         self.assertEqual(len(set(app.exporter.record_ids)), 179)
         self.assertIn('选择记录: <strong>179</strong>', html)

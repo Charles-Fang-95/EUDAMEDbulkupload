@@ -14,6 +14,39 @@ import re
 from datetime import datetime
 from typing import Dict, List, Tuple
 
+ENTITY_FIELD = "Registration Entity Type"
+CONFLICT_FIELD = "Registration classification conflict"
+DEVICE_PROFILES = {"MDR": "MDR", "IVDR": "IVDR", "MDD": "MDEU", "AIMDD": "MDEU", "IVDD": "IVDEU"}
+PACK_TYPES = {"System", "Procedure Pack"}
+
+
+def registration_profile(basic: dict) -> str:
+    """Resolve only supported Basic combinations. Never infer PR from the attribute."""
+    entity = str(basic.get(ENTITY_FIELD) or "").strip()
+    kind = str(basic.get("Device Type") or "").strip()
+    legislation = str(basic.get("Applicable Legislation") or "").strip().upper()
+    prefix = f"Basic {basic.get('Basic UDI-DI Code') or '?'} / {ENTITY_FIELD}: "
+    if basic.get(CONFLICT_FIELD):
+        raise ValueError(prefix + str(basic[CONFLICT_FIELD]))
+    if legislation not in DEVICE_PROFILES or kind not in PACK_TYPES | {"Regular Device"}:
+        raise ValueError(prefix + f"请核对 Applicable Legislation ({legislation}) 和 Device Type ({kind})。")
+    if kind in PACK_TYPES and legislation not in {"MDR", "MDD", "AIMDD"}:
+        raise ValueError(prefix + f"{legislation} 不支持 Device Type = {kind}。")
+    if not entity and kind in PACK_TYPES:
+        raise ValueError(prefix + "待确认。请核对 EUDAMED Basic，在 Basic 详情选择 Device 或 PR/SPP 后导出。 "
+                         "Confirm the registered Basic category before export.")
+    actor = str(basic.get("Manufacturer SRN") or "").strip()
+    if entity == "PR/SPP" and legislation == "MDR" and kind in PACK_TYPES:
+        if not re.fullmatch(r"[A-Z]{2}-PR-[0-9]{9}", actor):
+            raise ValueError(prefix + "请在 Manufacturer SRN 填写独立 PR/SPP 生产者的 PR Actor ID。")
+        return "PR"
+    if entity in {"", "Device"}:
+        if "-PR-" in actor:
+            raise ValueError(prefix + "Device 需要 Manufacturer actor，请核对 SRN 和注册类别。")
+        return DEVICE_PROFILES[legislation]
+    raise ValueError(prefix + f"{entity} 与 {legislation} / {kind} 组合无效。请核对 Basic 注册类别。")
+
+
 def additional_description_errors(udi: dict, basic: dict) -> list:
     """BR-UDID-131 / RULE-00185: local business checks, independent of XSD."""
     code = str(udi.get("UDI-DI Code") or "").strip()
@@ -323,7 +356,11 @@ class DataValidator:
         ]
         
         for row in self.data.get('UDI-DI', []):
+            basic = self.basic_by_code.get(str(row.get('Parent Basic UDI-DI') or '').strip(), {})
+            is_pr = basic.get(ENTITY_FIELD) == 'PR/SPP'
             for field in udi_di_required:
+                if is_pr and field == 'Single Use Device':
+                    continue
                 value = row.get(field, '')
                 # BUG FIX 2: 使用is not None判断，避免False被当作空值
                 if value is None or value == '':
@@ -334,7 +371,6 @@ class DataValidator:
                         '请填写此字段'
                     ))
 
-            basic = self.basic_by_code.get(str(row.get('Parent Basic UDI-DI') or '').strip(), {})
             for field, message in additional_description_errors(row, basic):
                 self.errors.append(ValidationError(
                     'UDI-DI', row.get('_row_number', '?'), field, row.get(field),
@@ -342,7 +378,7 @@ class DataValidator:
                     '请填写真实产品描述并明确选择其语言；不要修改 Kit 属性来绕过检查。'
                 ))
 
-            if self._requires_latex_field(row):
+            if not is_pr and self._requires_latex_field(row):
                 value = row.get('Containing Latex', '')
                 if value is None or value == '':
                     self.errors.append(ValidationError(
@@ -372,18 +408,14 @@ class DataValidator:
             self._validate_enum_value(row, 'Basic UDI-DI', 'Risk Class')
             self._validate_enum_value(row, 'Basic UDI-DI', 'Applicable Legislation')
             self._validate_enum_value(row, 'Basic UDI-DI', 'Device Type')
-            device_type = str(row.get('Device Type') or '').strip()
-            legislation = str(row.get('Applicable Legislation') or '').strip().upper()
-            if device_type in {'System', 'Procedure Pack'} and legislation != 'MDR':
+            try:
+                registration_profile(row)
+            except ValueError as exc:
                 self.errors.append(ValidationError(
-                    'Basic UDI-DI', row.get('_row_number', '?'),
-                    'Device Type / Applicable Legislation',
-                    f'{device_type} / {legislation}',
-                    'INVALID_DEVICE_TYPE_LEGISLATION',
-                    'System / Procedure Pack 仅适用于 MDR。',
-                    '请将记录放到 MDR sheet 并把 Applicable Legislation 设为 MDR，或改为 Regular Device。'
+                    row.get('_sheet_name', 'Basic UDI-DI'), row.get('_row_number', '?'),
+                    ENTITY_FIELD, row.get(ENTITY_FIELD, ''), 'REGISTRATION_CLASSIFICATION', str(exc)
                 ))
-        
+
         # 验证UDI-DI枚举值
         for row in self.data.get('UDI-DI', []):
             self._validate_enum_value(row, 'UDI-DI', 'UDI-DI Issuing Entity', 'Issuing Entity')
@@ -464,7 +496,7 @@ class DataValidator:
         # BR-UDID-018: 非欧盟制造商必须有授权代表
         for row in self.data.get('Basic UDI-DI', []):
             manufacturer_srn = row.get('Manufacturer SRN', '')
-            if manufacturer_srn and not self._is_eu_manufacturer(manufacturer_srn):
+            if row.get(ENTITY_FIELD) != 'PR/SPP' and manufacturer_srn and not self._is_eu_manufacturer(manufacturer_srn):
                 ar_srn = row.get('Authorised Representative SRN', '')
                 if not ar_srn or ar_srn == '':
                     self.errors.append(ValidationError(

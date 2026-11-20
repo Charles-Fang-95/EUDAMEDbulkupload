@@ -1,4 +1,4 @@
-from EUDAMED_TOOL_v2.validator import additional_description_errors
+from EUDAMED_TOOL_v2.validator import additional_description_errors, registration_profile
 
 import csv
 import html
@@ -186,9 +186,9 @@ class BetaXMLExporter:
     def __init__(self, repository: Repository):
         self.repository = repository
 
-    def export(self, service_type: str, record_ids: list[int]) -> dict:
+    def export(self, service_type: str, record_ids: list[int], *, include_udi_post: bool = False) -> dict:
         service_type = canonical_service_type(service_type)
-        validation = self.validate(service_type, record_ids)
+        validation = self.validate(service_type, record_ids, include_udi_post=include_udi_post)
         if validation["errors"]:
             return validation
 
@@ -274,6 +274,7 @@ class BetaXMLExporter:
             "depends_on_upload_order",
             "dependency_note",
             "udi_di_codes",
+            "sender_actor",
         ])
         for item in files:
             writer.writerow([
@@ -286,6 +287,7 @@ class BetaXMLExporter:
                 item.get("depends_on") or "",
                 item.get("dependency") or "",
                 " ".join(item.get("codes") or []),
+                item["sender"],
             ])
         return output.getvalue()
 
@@ -303,6 +305,7 @@ class BetaXMLExporter:
                 f"<td>{html.escape(str(item.get('depends_on') or ''))}</td>"
                 f"<td>{html.escape(item.get('dependency') or '')}</td>"
                 f"<td>{html.escape(' '.join(item.get('codes') or []))}</td>"
+                f"<td>{html.escape(item['sender'])}</td>"
                 "</tr>"
             )
         return f"""<!doctype html>
@@ -323,14 +326,14 @@ class BetaXMLExporter:
   <p>Original selected service: <strong>{html.escape(service_type)}</strong></p>
   <p class="warning">如果某一行依赖前序上传，请先确认前序 XML 在 EUDAMED 上传成功并保存 response，再继续上传依赖文件。</p>
   <table>
-    <thead><tr><th>Order</th><th>File</th><th>Service</th><th>Payload entity</th><th>Count</th><th>Basic UDI-DI</th><th>Depends on</th><th>Dependency note</th><th>Codes</th></tr></thead>
+    <thead><tr><th>Order</th><th>File</th><th>Service</th><th>Payload entity</th><th>Count</th><th>Basic UDI-DI</th><th>Depends on</th><th>Dependency note</th><th>Codes</th><th>Sender actor</th></tr></thead>
     <tbody>{''.join(rows)}</tbody>
   </table>
 </body>
 </html>
 """
 
-    def validate(self, service_type: str, record_ids: list[int]) -> dict:
+    def validate(self, service_type: str, record_ids: list[int], *, include_udi_post: bool = False) -> dict:
         service_type = canonical_service_type(service_type)
         errors = []
         warnings = []
@@ -348,6 +351,11 @@ class BetaXMLExporter:
             for item in udis:
                 payload = item["payload"]
                 basic_payload = item.get("basic_payload") or {}
+                try:
+                    profile = registration_profile(basic_payload)
+                except ValueError as exc:
+                    errors.append(f"UDI-DI {item['udi_code']} (row {item['row_number']}): {exc}")
+                    continue
                 if not payload.get("UDI-DI Code"):
                     errors.append(f"记录 #{item['id']} 缺少 UDI-DI Code。")
                 if not payload.get("UDI-DI Issuing Entity"):
@@ -362,7 +370,7 @@ class BetaXMLExporter:
                     if not payload.get("Reference Number"):
                         errors.append(f"UDI-DI {item['udi_code']} 缺少 Reference Number。")
                     status = payload.get("Device Status", "")
-                    if status == "On the EU market":
+                    if profile != "PR" and status == "On the EU market":
                         if not item["market_rows"]:
                             errors.append(
                                 f"UDI-DI {item['udi_code']} 为 On the EU market，缺少 Market Info。"
@@ -375,8 +383,8 @@ class BetaXMLExporter:
                     self._validate_mdr_detail_rows(errors, warnings, item)
                     self._warn_blank_udi_booleans(warnings, item)
                     self._warn_quantity_of_device(warnings, item)
-                    self._warn_pr_ignored_udi_fields(warnings, item)
-                    self._validate_device_type_legislation(errors, item)
+                    if profile == "PR":
+                        self._validate_pr_udi_fields(errors, item)
                     self._warn_legacy_production_identifiers(warnings, item)
                     self._warn_legacy_eudamed_di_derivation(warnings, item)
                     self._validate_legacy_identifiers(errors, item)
@@ -384,14 +392,18 @@ class BetaXMLExporter:
                     basic_code = str(item.get("basic_code") or payload.get("Parent Basic UDI-DI") or "").strip()
                     if basic_code and basic_code not in checked_basic_enum_codes:
                         checked_basic_enum_codes.add(basic_code)
-                        basic = self.repository.get_basic_by_code(basic_code)
+                        basic = item["basic"]
                         if basic:
+                            if profile == "PR" and basic["cmr_rows"]:
+                                errors.append(f"Basic {basic_code}: PR/SPP 不支持上传 CMR Substances。")
                             self._validate_basic_enum_fields(errors, basic["basic_code"], basic["payload"])
                             self._validate_cmr_rows(errors, basic["basic_code"], basic.get("cmr_rows") or [])
                             self._warn_blank_basic_booleans(warnings, basic["basic_code"], basic["payload"])
                 if service_type in {"DEVICE.POST", "UDI_DI.POST", "UDI_DI.PATCH", "PRODUCT_DESIGNER.PUT"}:
                     self._validate_product_designer(errors, item, required=service_type == "PRODUCT_DESIGNER.PUT")
                 if service_type == "MARKET_INFO.PUT":
+                    if profile == "PR":
+                        errors.append(f"Basic {item['basic_code']}: MARKET_INFO.PUT 仅支持 Device。")
                     self._validate_market_rows(errors, item, require_rows=True)
                 if service_type == "PACKAGE_UDI.PUT":
                     if not payload.get("Device Status"):
@@ -401,7 +413,7 @@ class BetaXMLExporter:
                     else:
                         self._validate_package_rows(errors, item)
                 if service_type == "DEVICE.POST":
-                    basic = self.repository.get_basic_by_code(item["basic_code"])
+                    basic = item["basic"]
                     if not basic:
                         errors.append(f"UDI-DI {item['udi_code']} 找不到对应的 Basic UDI-DI。")
                     else:
@@ -410,7 +422,7 @@ class BetaXMLExporter:
                             checked_basic_codes.add(basic["basic_code"])
                             if not basic_data.get("Manufacturer SRN"):
                                 errors.append(f"Basic UDI-DI {basic['basic_code']} 缺少 Manufacturer SRN。")
-                            self._validate_authorised_representative(errors, basic["basic_code"], basic_data)
+                            self._validate_basic_actor_and_fields(errors, basic, profile)
                             if not basic_data.get("Risk Class"):
                                 errors.append(f"Basic UDI-DI {basic['basic_code']} 缺少 Risk Class。")
                             self._certificate_warning_if_needed(warnings, basic)
@@ -427,7 +439,12 @@ class BetaXMLExporter:
                     errors.append(f"记录 #{item['id']} 缺少 Basic UDI-DI Code。")
                 if not payload.get("Manufacturer SRN"):
                     errors.append(f"Basic UDI-DI {item['basic_code']} 缺少 Manufacturer SRN。")
-                self._validate_authorised_representative(errors, item["basic_code"], payload)
+                try:
+                    profile = registration_profile(payload)
+                except ValueError as exc:
+                    errors.append(f"row {item['row_number']}: {exc}")
+                    continue
+                self._validate_basic_actor_and_fields(errors, item, profile)
                 if not payload.get("Risk Class"):
                     errors.append(f"Basic UDI-DI {item['basic_code']} 缺少 Risk Class。")
                 self._validate_basic_enum_fields(errors, item["basic_code"], payload)
@@ -466,10 +483,15 @@ class BetaXMLExporter:
                 result["errors"].append("导出分片计划与选中记录数量不一致，已阻止导出以避免漏传或重复。")
             if len(result["batches"]) > 1:
                 result["warnings"].append(
-                    f"根据 EUDAMED 官方 XSD {get_tool_xsd_version()}，单个 XML 同类 payload entity 最多 "
+                    f"按发送方、Basic 依赖关系及官方 XSD {get_tool_xsd_version()} 分组，单个 XML 同类 payload entity 最多 "
                     f"{BULK_UPLOAD_ENTITY_LIMIT} 条；本次将自动拆分为 {len(result['batches'])} 个 XML。"
                 )
             if any(batch.get("depends_on") for batch in result["batches"]):
+                result["requires_udi_post"] = True
+                result["include_udi_post"] = include_udi_post
+                if not include_udi_post:
+                    errors.append("同一 Basic 选择了多个 UDI。请每个 Basic 只选一条，或明确勾选同时生成后续 UDI_DI.POST。 "
+                                  "Select one UDI per Basic or explicitly include follow-up UDI_DI.POST files.")
                 result["warnings"].append(
                     "本次包含跨 service 顺序导出：请先上传对应 DEVICE.POST 并确认 EUDAMED 成功，再上传依赖的 UDI_DI.POST。"
                 )
@@ -602,7 +624,7 @@ class BetaXMLExporter:
         return value is None or str(value).strip() == ""
 
     def _warn_blank_basic_booleans(self, warnings: list[str], basic_code: str, basic_payload: dict):
-        profile = self._profile(basic_payload)
+        profile = registration_profile(basic_payload)
         if profile == "PR":
             return
         group = self._legislation_group(basic_payload.get("Applicable Legislation"))
@@ -619,11 +641,13 @@ class BetaXMLExporter:
     def _warn_blank_udi_booleans(self, warnings: list[str], item: dict):
         payload = item.get("payload") or {}
         basic_payload = item.get("basic_payload") or {}
-        profile = self._profile(basic_payload or payload)
+        profile = registration_profile(basic_payload or payload)
         group = self._legislation_group(basic_payload.get("Applicable Legislation") or payload.get("Applicable Legislation"))
         fields = list(MANDATORY_UDI_BOOLEANS.get("all", []))
         if group:
             fields += MANDATORY_UDI_BOOLEANS.get(group, [])
+        if profile == "PR":
+            fields = ["Device Labelled as Sterile", "Needs Sterilisation Before Use", "Trade Name Applicable"]
         if profile == "IVDR":
             fields += MANDATORY_UDI_BOOLEANS.get("ivdr", [])
         blank = [f for f in fields if self._is_blank_bool(payload.get(f))]
@@ -635,7 +659,7 @@ class BetaXMLExporter:
 
     def _warn_quantity_of_device(self, warnings: list[str], item: dict):
         payload = item.get("payload") or {}
-        profile = self._profile(item.get("basic_payload") or payload)
+        profile = registration_profile(item.get("basic_payload") or payload)
         value = payload.get("Quantity of Device")
         if profile in {"MDR", "IVDR"} and not self._has_value(value):
             warnings.append(
@@ -647,40 +671,24 @@ class BetaXMLExporter:
                 f"UDI-DI {item.get('udi_code')} 是 Legacy Device，Quantity of Device 不会输出到 XML。"
             )
 
-    def _warn_pr_ignored_udi_fields(self, warnings: list[str], item: dict):
-        payload = item.get("payload") or {}
-        profile = self._profile(item.get("basic_payload") or payload)
-        if profile != "PR":
-            return
-        ignored = []
-        if item.get("market_rows"):
-            ignored.append("Market Info")
-        if self._has_value(payload.get("Quantity of Device")):
-            ignored.append("Quantity of Device")
-        if (
-            self._is_true(payload.get("Direct Marking"))
-            or self._has_value(payload.get("DM DI Code"))
-            or self._has_value(payload.get("Unit of Use DI Code"))
-        ):
-            ignored.append("Direct Marking / Unit of Use DI")
-        if self._is_true(payload.get("Single Use Device")) or self._has_value(payload.get("Max Number of Reuses")):
-            ignored.append("Single Use / Max Number of Reuses")
-        if self._is_true(payload.get("Containing Latex")):
-            ignored.append("Containing Latex")
-        if self._is_true(payload.get("Reprocessed Single Use Device")):
-            ignored.append("Reprocessed Single Use Device")
-        if self._is_true(payload.get("New Device (IVDR)")):
-            ignored.append("New Device (IVDR)")
-        if not ignored:
-            return
-        warnings.append(
-            f"UDI-DI {item.get('udi_code')} 是 System / Procedure Pack；官方 PRUDIDIDataType 不支持输出 "
-            f"{', '.join(ignored)}。这些值仅本地保留，不会写入 XML。"
-        )
+    def _validate_pr_udi_fields(self, errors: list[str], item: dict):
+        payload = item["payload"]
+        fields = ("Quantity of Device", "Single Use Device", "Max Number of Reuses", "Containing Latex",
+                  "Reprocessed Single Use Device", "New Device (IVDR)", "Direct Marking",
+                  "DM DI Same as UDI-DI", "DM DI Code", "DM Issuing Entity",
+                  "Unit of Use DI Code", "Unit of Use Issuing Entity")
+        unsupported = [field for field in fields if self._has_value(payload.get(field))]
+        for key, label in (("market_rows", "Market Info"), ("clinical_size_rows", "Clinical Sizes"),
+                           ("annex_xvi_rows", "Annex XVI Purposes")):
+            if item.get(key):
+                unsupported.append(label)
+        if unsupported:
+            errors.append(f"UDI-DI {item['udi_code']}: PRUDIDIDataType 不支持 {', '.join(unsupported)}。"
+                          "请核对注册类别，仅在确认字段不适用后清空。")
 
     def _warn_legacy_production_identifiers(self, warnings: list[str], item: dict):
         payload = item.get("payload") or {}
-        profile = self._profile(item.get("basic_payload") or payload)
+        profile = registration_profile(item.get("basic_payload") or payload)
         if profile not in {"MDEU", "IVDEU"}:
             return
         selected = [field for field in PRODUCTION_IDENTIFIER_MAP if self._is_true(payload.get(field))]
@@ -693,7 +701,7 @@ class BetaXMLExporter:
     def _warn_legacy_eudamed_di_derivation(self, warnings: list[str], item: dict):
         payload = item.get("payload") or {}
         basic_payload = item.get("basic_payload") or {}
-        profile = self._profile(basic_payload or payload)
+        profile = registration_profile(basic_payload or payload)
         if not self._is_legacy_profile(profile):
             return
         udi_code = str(payload.get("UDI-DI Code") or "").strip()
@@ -717,20 +725,10 @@ class BetaXMLExporter:
             "仅用于本地关联，本次 XML 不会原样使用。"
         )
 
-    def _validate_device_type_legislation(self, errors: list[str], item: dict):
-        payload = item.get("basic_payload") or item.get("payload") or {}
-        device_type = str(payload.get("Device Type") or "").strip()
-        legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
-        if device_type in {"System", "Procedure Pack"} and legislation != "MDR":
-            errors.append(
-                f"Basic UDI-DI {item.get('basic_code') or payload.get('Basic UDI-DI Code')}："
-                f"{device_type} 仅适用于 MDR，当前 Applicable Legislation 为 {legislation or '(blank)'}。"
-            )
-
     def _validate_legacy_identifiers(self, errors: list[str], item: dict):
         payload = item.get("payload") or {}
         basic_payload = item.get("basic_payload") or {}
-        if not self._is_legacy_profile(self._profile(basic_payload or payload)):
+        if not self._is_legacy_profile(registration_profile(basic_payload or payload)):
             return
         try:
             resolve_legacy_identifiers(basic_payload, payload)
@@ -763,9 +761,22 @@ class BetaXMLExporter:
 
     def plan_export_batches(self, service_type: str, records: list[dict]) -> list[dict]:
         service_type = canonical_service_type(service_type)
-        if service_type == "DEVICE.POST":
-            return self._plan_device_post_batches(records)
-        return self._plan_simple_batches(service_type, records)
+        by_sender = {}
+        for item in records:
+            basic = item.get("basic_payload") or item.get("payload") or {}
+            by_sender.setdefault(self._sender_code_from_basic(basic), []).append(item)
+        batches = []
+        for sender, group in sorted(by_sender.items()):
+            planned = (self._plan_device_post_batches(group) if service_type == "DEVICE.POST"
+                       else self._plan_simple_batches(service_type, group))
+            offset = len(batches)
+            for batch in planned:
+                batch["sender"] = sender
+                batch["sequence"] += offset
+                if batch["depends_on"]:
+                    batch["depends_on"] += offset
+            batches.extend(planned)
+        return batches
 
     def _plan_simple_batches(self, service_type: str, records: list[dict]) -> list[dict]:
         sorted_records = sorted(records, key=lambda item: int(item["id"]))
@@ -956,11 +967,13 @@ class BetaXMLExporter:
             )
 
     def _validate_mdr_detail_rows(self, errors: list[str], warnings: list[str], item: dict):
-        profile = self._profile(item.get("basic_payload") or item.get("payload") or {})
+        profile = registration_profile(item.get("basic_payload") or item.get("payload") or {})
         clinical_rows = item.get("clinical_size_rows") or []
         annex_rows = item.get("annex_xvi_rows") or []
         udi_code = item.get("udi_code") or item.get("payload", {}).get("UDI-DI Code", "")
 
+        if profile == "PR":
+            return  # These rows are blocking errors in _validate_pr_udi_fields.
         if profile != "MDR":
             if clinical_rows:
                 warnings.append(f"UDI-DI {udi_code} 填写了 Clinical Sizes，但该结构仅适用于 MDR UDI-DI；导出时会忽略。")
@@ -1074,6 +1087,27 @@ class BetaXMLExporter:
             current = edges[current]
         return []
 
+    def _validate_basic_actor_and_fields(self, errors: list[str], basic: dict, profile: str):
+        payload = basic["payload"]
+        code = basic["basic_code"]
+        if profile != "PR":
+            self._validate_authorised_representative(errors, code, payload)
+            if payload.get("PR Medical Purpose Language"):
+                errors.append(f"Basic {code}: PR Medical Purpose Language 仅适用于 PR/SPP。")
+            return
+        if not str(payload.get("Additional Description") or "").strip() or str(payload.get("PR Medical Purpose Language") or "").lower() not in ENUM_SOURCES["language"]:
+            errors.append(f"Basic {code}: 请填写 PR 医疗目的 (Basic - Additional Description) 及 PR Medical Purpose Language。")
+        fields = (MANDATORY_BASIC_BOOLEANS["common_device"] + MANDATORY_BASIC_BOOLEANS["mdr_mdd"]
+                  + MANDATORY_BASIC_BOOLEANS["ivdr_ivdd"] + ["Authorised Representative SRN",
+                  "Special Device Type", "Medicinal Product Device", "Presence of Medicinal Substance",
+                  "Is Suture/Staple/Filling/Brace (IIb Implant)"])
+        unsupported = [field for field in fields if self._has_value(payload.get(field))]
+        if basic.get("cert_rows"):
+            unsupported.append("Device Certificates")
+        if unsupported:
+            errors.append(f"Basic {code}: 本工具的 PRBasicUDIType 路径不输出 {', '.join(unsupported)}。"
+                          "请核对类别和字段适用性，再编辑 Basic。")
+
     def _validate_authorised_representative(self, errors: list[str], basic_code: str, payload: dict):
         manufacturer_srn = str(payload.get("Manufacturer SRN") or "").strip()
         ar_srn = str(payload.get("Authorised Representative SRN") or "").strip()
@@ -1087,7 +1121,7 @@ class BetaXMLExporter:
         payload_nodes = []
         sender_code = ""
         for item in udis:
-            basic = self.repository.get_basic_by_code(item["basic_code"])
+            basic = item["basic"]
             if not basic:
                 continue
             payload_nodes.append(self._build_device_node(basic, item))
@@ -1150,8 +1184,8 @@ class BetaXMLExporter:
             if required:
                 errors.append(prefix + "请填写 SRN 或组织名称；空白不会用于删除原始制造商。")
             return
-        if self._profile(item.get("basic_payload") or data) == "PR":
-            errors.append(prefix + "System / Procedure Pack 暂不支持原始制造商上传。")
+        if registration_profile(item.get("basic_payload") or data) == "PR":
+            errors.append(prefix + "独立 PR/SPP 暂不支持原始制造商上传。")
         if srn and details:
             errors.append(prefix + "SRN 与组织信息只能选择一种，不能同时填写。")
         if srn and (not re.fullmatch(r"[A-Z]{2}-MF-[0-9]{9}", srn) or srn[:2] not in ENUM_SOURCES["designer_country"]):
@@ -1304,7 +1338,7 @@ class BetaXMLExporter:
         ET.SubElement(service, qn("s", "serviceOperation")).text = service_operation
 
     def _build_device_node(self, basic: dict, item: dict):
-        profile = self._profile(basic["payload"])
+        profile = registration_profile(basic["payload"])
         device = ET.Element(qn("device", "Device"))
         device.set(qn("xsi", "type"), f"device:{profile}DeviceType")
         if profile in {"MDEU", "IVDEU"}:
@@ -1324,14 +1358,14 @@ class BetaXMLExporter:
         return device
 
     def _build_basic_patch_node(self, basic: dict):
-        profile = self._profile(basic["payload"])
+        profile = registration_profile(basic["payload"])
         node = ET.Element(qn("device", "BasicUDI"))
         node.set(qn("xsi", "type"), self._basic_patch_type(profile))
         self._build_basic_body(node, basic["payload"], basic["cmr_rows"], basic.get("cert_rows", []), profile, include_version=True, version=basic["version"])
         return node
 
     def _build_udi_data_node(self, item: dict, include_version: bool):
-        profile = self._profile(item.get("basic_payload") or item["payload"])
+        profile = registration_profile(item.get("basic_payload") or item["payload"])
         node = ET.Element(qn("device", "UDIDIData"))
         node.set(qn("xsi", "type"), self._udi_data_type(profile))
         self._build_udi_body(node, item, profile, include_version=include_version)
@@ -1371,7 +1405,7 @@ class BetaXMLExporter:
         include_version: bool,
         item: dict | None = None,
     ):
-        profile = self._profile(data)
+        profile = registration_profile(data)
         legacy_tags = {"MDEU": "MDEUDI", "IVDEU": "IVDEUDI"}
         tag = legacy_tags.get(profile) or ("PRBasicUDI" if profile == "PR" else f"{profile}BasicUDI")
         node = ET.Element(qn("device", tag))
@@ -1413,15 +1447,10 @@ class BetaXMLExporter:
                 parent,
                 "basicudi",
                 "medicinalPurpose",
-                [
-                    (
-                        data.get("Description Language") or "EN",
-                        data.get("Additional Description") or data.get("Device Name/Model") or data.get("Basic UDI-DI Code"),
-                    )
-                ],
+                [(data["PR Medical Purpose Language"], data["Additional Description"])],
             )
             self._text(parent, "basicudi", "PRActorCode", data.get("Manufacturer SRN"))
-            self._text(parent, "basicudi", "type", DEVICE_TYPE_MAP.get(data.get("Device Type", ""), data.get("Device Type", "")) or "SYSTEM")
+            self._text(parent, "basicudi", "type", DEVICE_TYPE_MAP[str(data["Device Type"]).strip()])
             return
 
         self._bool(parent, "basicudi", "animalTissuesCells", data.get("Presence of Animal Tissues"))
@@ -1447,7 +1476,7 @@ class BetaXMLExporter:
             self._bool(parent, "basicudi", "IIb_implantable_exceptions", data.get("Is Suture/Staple/Filling/Brace (IIb Implant)"))
         self._bool(parent, "basicudi", "medicinalProductCheck", data.get("Medicinal Product Device"))
         self._text(parent, "basicudi", "specialDevice", self._special_device_code(data.get("Special Device Type"), data))
-        self._text(parent, "basicudi", "type", DEVICE_TYPE_MAP.get(data.get("Device Type", ""), data.get("Device Type", "")) or "DEVICE")
+        self._text(parent, "basicudi", "type", DEVICE_TYPE_MAP[str(data["Device Type"]).strip()])
         self._bool(parent, "commondi", "active", data.get("Active Device"))
         self._bool(parent, "commondi", "administeringMedicine", data.get("Administer Medicine"))
         self._bool(parent, "commondi", "implantable", data.get("Implantable"))
@@ -1471,8 +1500,7 @@ class BetaXMLExporter:
 
     def _build_udi_body(self, parent: ET.Element, item: dict, profile: str, include_version: bool):
         data = item["payload"]
-        basic = self.repository.get_basic_by_code(item["basic_code"])
-        basic_payload = item.get("basic_payload") or (basic["payload"] if basic else {})
+        basic_payload = item["basic_payload"]
         if include_version:
             ET.SubElement(parent, qn("e", "version")).text = item["version"]
 
@@ -1553,7 +1581,7 @@ class BetaXMLExporter:
 
         self._bool(parent, "udidi", "latex", data.get("Containing Latex"))
         self._bool(parent, "udidi", "reprocessed", data.get("Reprocessed Single Use Device"))
-        self._append_substances(parent, item["basic_code"])
+        self._append_substances(parent, item["basic"]["cmr_rows"])
         if profile == "MDR":
             self._append_clinical_sizes(parent, item.get("clinical_size_rows") or [])
 
@@ -1669,7 +1697,7 @@ class BetaXMLExporter:
         legislation = str(payload.get("Applicable Legislation") or "").strip().upper()
         if legislation in {"MDR", "MDD", "AIMDD", "IVDR", "IVDD"}:
             return legislation
-        profile = self._profile(payload)
+        profile = registration_profile(payload)
         return {"MDEU": "MDD", "IVDEU": "IVDD"}.get(profile, profile)
 
     def _split_enum_label(self, value: str) -> tuple[str, str]:
@@ -1836,12 +1864,11 @@ class BetaXMLExporter:
             return package_by_code[child_code].get("Package Issuing Entity")
         return payload.get("UDI-DI Issuing Entity")
 
-    def _append_substances(self, parent: ET.Element, basic_code: str):
-        basic = self.repository.get_basic_by_code(basic_code)
-        if not basic or not basic["cmr_rows"]:
+    def _append_substances(self, parent: ET.Element, rows: list[dict]):
+        if not rows:
             return
         container = ET.SubElement(parent, qn("udidi", "substances"))
-        for row in basic["cmr_rows"]:
+        for row in rows:
             normal_type = self._normal_substance_type(row.get("Substance Type"))
             if not normal_type:
                 continue
@@ -1883,19 +1910,6 @@ class BetaXMLExporter:
             data.get("Unit of Use Issuing Entity")
         )
 
-    def _profile(self, data: dict) -> str:
-        device_type = data.get("Device Type", "")
-        legislation = str(data.get("Applicable Legislation", "") or "").strip().upper()
-        if device_type in {"System", "Procedure Pack"}:
-            return "PR"
-        if legislation in {"MDD", "AIMDD"}:
-            return "MDEU"
-        if legislation == "IVDD":
-            return "IVDEU"
-        if legislation == "IVDR":
-            return "IVDR"
-        return "MDR"
-
     def _is_legacy_profile(self, profile: str) -> bool:
         return profile in {"MDEU", "IVDEU"}
 
@@ -1936,7 +1950,7 @@ class BetaXMLExporter:
 
     def _device_post_group_key(self, item: dict) -> str:
         basic_payload = item.get("basic_payload") or item.get("payload") or {}
-        profile = self._profile(basic_payload)
+        profile = registration_profile(basic_payload)
         code, _ = self._legacy_basic_identifier(basic_payload, profile, item=item)
         return code or str(item.get("basic_code") or "")
 

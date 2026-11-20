@@ -132,6 +132,11 @@ class XSDValidationBase(unittest.TestCase):
             certs = [{"Certificate Type": cfg["cert"], "Notified Body ID": "1234",
                       "Certificate Number": "C-1", "Expiry Date": "2030-01-01"}]
         basic = _basic_payload(bcode, cfg)
+        if profile == "PR":
+            basic = {key: basic[key] for key in ("Basic UDI-DI Code", "Issuing Entity", "Risk Class",
+                     "Applicable Legislation", "Device Type", "Device Name/Model", "EMDN Code")}
+            basic.update({"Registration Entity Type": "PR/SPP", "Manufacturer SRN": "DE-PR-000000001",
+                          "Additional Description": "Synthetic medical purpose", "PR Medical Purpose Language": "de"})
         if basic_over:
             basic.update(basic_over)
         bcode = str(basic["Basic UDI-DI Code"])
@@ -139,6 +144,11 @@ class XSDValidationBase(unittest.TestCase):
                                cmr_rows=[], cert_rows=certs or [], version=version)
         udi = _udi_payload(ucode, bcode)
         if profile == "PR":
+            for field in ("Single Use Device", "Quantity of Device", "Containing Latex",
+                          "Reprocessed Single Use Device", "New Device (IVDR)"):
+                del udi[field]
+            if market_rows is None:
+                market_rows = []
             udi.update({"Additional Description": "Synthetic system description", "Description Language": "en"})
         if udi_over:
             udi.update(udi_over)
@@ -525,7 +535,7 @@ class NegativePreflight(XSDValidationBase):
         result = self.exporter.validate("DEVICE.POST", [uid])
         self.assertTrue(any("Originally Placed" in e or "TRUE" in e for e in result["errors"]))
 
-    def test_pr_ignored_udi_fields_warn_without_blocking(self):
+    def test_pr_device_only_fields_block_export(self):
         _, uid = self._seed(
             "PR",
             udi_over={
@@ -537,13 +547,12 @@ class NegativePreflight(XSDValidationBase):
             },
         )
         result = self.exporter.validate("DEVICE.POST", [uid])
-        self.assertFalse(result["errors"])
-        self.assertTrue(any("PRUDIDIDataType" in warning and "不会写入 XML" in warning for warning in result["warnings"]))
+        self.assertTrue(any("PRUDIDIDataType" in error and "Containing Latex" in error for error in result["errors"]))
 
-    def test_system_or_procedure_pack_with_non_mdr_legislation_blocks(self):
+    def test_legacy_system_without_registration_category_blocks(self):
         _, uid = self._seed("MDD", basic_over={"Device Type": "System"})
         result = self.exporter.validate("DEVICE.POST", [uid])
-        self.assertTrue(any("仅适用于 MDR" in error for error in result["errors"]))
+        self.assertTrue(any("待确认" in error for error in result["errors"]))
 
     def test_invalid_notified_body_id_warns_before_xsd_rejection(self):
         certs = [{"Certificate Type": "MDR_TYPE_EXAMINATION", "Notified Body ID": "CN-NB-000000001"}]

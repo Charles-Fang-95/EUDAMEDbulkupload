@@ -14,6 +14,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
+from EUDAMED_TOOL_v2.validator import CONFLICT_FIELD, ENTITY_FIELD
+
 from .constants import (
     BASIC_FIELDS,
     EXPORT_DIR,
@@ -421,6 +423,10 @@ class App:
         payload = dict(record["payload"])
         for field in BASIC_FIELDS:
             payload[field] = form.get(f"field_{field}", [""])[0]
+        if payload.get(ENTITY_FIELD):
+            payload.pop(CONFLICT_FIELD, None)
+        elif payload.get(CONFLICT_FIELD):
+            payload[ENTITY_FIELD] = record["payload"].get(ENTITY_FIELD, "")
         try:
             cmr_rows = parse_json_array(form.get("cmr_json", [""])[0])
             cert_rows = parse_json_array(form.get("cert_json", [""])[0])
@@ -502,7 +508,8 @@ class App:
         result = self._xsd_blocking_result(service_type, xsd_report)
         action = form.get("action", ["export"])[0]
         if not result:
-            result = self.exporter.validate(service_type, record_ids) if action == "preflight" else self.exporter.export(service_type, record_ids)
+            operation = self.exporter.validate if action == "preflight" else self.exporter.export
+            result = operation(service_type, record_ids, include_udi_post=form.get("include_udi_post") == ["yes"])
             if invalid_ids:
                 result["warnings"].append(
                     f"{t('忽略了无效记录 ID', 'Ignored invalid record IDs')}: {', '.join(invalid_ids)}"

@@ -135,6 +135,16 @@ def _inferred_path(basic: dict, udi: dict) -> bool:
     )
 
 
+def uses_legacy_identifiers(basic: dict) -> bool:
+    legislation = _text(basic.get("Applicable Legislation")).upper()
+    entity = _text(basic.get("Registration Entity Type"))
+    if not is_legacy_legislation(legislation) or entity not in {"", "Device"}:
+        return False
+    if _text(basic.get("Device Type")) in {"System", "Procedure Pack"}:
+        return entity == "Device" and legislation in {"MDD", "AIMDD"}
+    return True
+
+
 def resolve_legacy_identifiers(
     basic: dict,
     udi: dict,
@@ -142,9 +152,7 @@ def resolve_legacy_identifiers(
     allow_v211_inference: bool = True,
 ) -> LegacyIdentifierResolution | None:
     """Resolve a Legacy row; return None for MDR/IVDR/PR-SPP rows."""
-    if not is_legacy_legislation(basic.get("Applicable Legislation")):
-        return None
-    if _text(basic.get("Device Type")).lower() in {"system", "procedure pack"}:
+    if not uses_legacy_identifiers(basic):
         return None
 
     raw_path = udi.get("Legacy Has Assigned UDI-DI")

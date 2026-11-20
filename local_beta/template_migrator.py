@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .build_unified_template import DATA_START_ROW, build_workbook
 from .constants import EXPORT_DIR, TOOL_DIR, VENDOR_LIB
+from .legacy_identifiers import uses_legacy_identifiers
 from .template_schema import (
     ENTRY_SHEETS,
     IMPORT_ENTRY_SHEETS,
@@ -92,7 +93,7 @@ def migrate_workbook(source_path: Path, output_dir: Path = EXPORT_DIR) -> dict:
     detected_version = _detect_template_version(source)
     if detected_version != TEMPLATE_VERSION:
         report["warnings"].append(
-            f"源文件模板版本为 {detected_version or '未知版本'}，当前模板为 {TEMPLATE_VERSION}；迁移后请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info 和 IVD 人源/动物源字段。"
+            f"源文件模板版本为 {detected_version or '未知版本'}，当前模板为 {TEMPLATE_VERSION}；System / Procedure Pack 需核对 Registration Entity Type，旧模板缺失时保留空白。迁移后请重点核对 Special Device Type、CMR Substance Type、Is Suture/Staple/Filling/Brace、Package Info 和 IVD 人源/动物源字段。"
         )
     elif set(source.sheetnames).intersection(LEGACY_ENTRY_SHEETS):
         report["warnings"].append(
@@ -267,15 +268,22 @@ def _headers(ws) -> list[str]:
 
 def _header_map(source_headers: list[str], target_headers: list[str], extra_aliases: dict | None = None) -> dict:
     extra_aliases = extra_aliases or {}
-    target_by_key = {_canonical(header): header for header in target_headers if header}
+    full_headers = {header.rstrip("*").strip().casefold(): header for header in target_headers if header}
+    candidates = defaultdict(list)
+    for header in full_headers.values():
+        candidates[_canonical(header)].append(header)
     mapping = {}
     for source_header in source_headers:
         if not source_header:
             continue
         target_header = extra_aliases.get(source_header, source_header)
-        key = _canonical(target_header)
-        if key in target_by_key:
-            mapping[source_header] = target_by_key[key]
+        match = full_headers.get(target_header.rstrip("*").strip().casefold())
+        if match:
+            mapping[source_header] = match
+        else:
+            options = candidates[_canonical(target_header)]
+            if len(options) == 1:
+                mapping[source_header] = options[0]
     return mapping
 
 
@@ -290,7 +298,7 @@ def _write_by_field(ws, target_headers: list[str], target_row: int, field_values
     target_index = {header: idx for idx, header in enumerate(target_headers, start=1)}
     field_to_header = {item["field"]: item["header"] for item in columns_for_entry_sheet(ws.title)}
     for field, value in field_values.items():
-        header = field_to_header.get(field)
+        header = field if field in target_index else field_to_header.get(field)
         if header in target_index:
             ws.cell(target_row, target_index[header]).value = value
 
@@ -301,7 +309,8 @@ def _legacy_combined_row(basic: dict, udi: dict) -> dict:
     for header, value in basic.items():
         field = field_map.get(_canonical(header))
         if field:
-            mapped[field] = value
+            # Both source sheets use "Additional Description", with distinct XML meanings.
+            mapped["Basic - Additional Description" if field == "Additional Description" else field] = value
     for header, value in udi.items():
         field = field_map.get(_canonical(header))
         if field:
@@ -489,7 +498,12 @@ def _normalize_main_row(ws, target_headers: list[str], row_idx: int, report: dic
 
     legislation = value("Applicable Legislation").upper()
     device_type = value("Device Type")
-    if legislation in {"MDD", "AIMDD", "IVDD"} and device_type not in {"System", "Procedure Pack"}:
+    entity = value("Registration Entity Type")
+    if device_type in {"System", "Procedure Pack"} and not entity:
+        report["warnings"].append(f"{ws.title} 第 {row_idx} 行 Basic {value('Basic UDI-DI Code')}："
+                                  "Registration Entity Type 待确认。请核对 EUDAMED 后明确选择。")
+    if uses_legacy_identifiers({"Applicable Legislation": legislation, "Device Type": device_type,
+                                "Registration Entity Type": entity}):
         path = value("Legacy Has Assigned UDI-DI").upper()
         udi_code = value("UDI-DI Code")
         udi_entity = value("UDI-DI Issuing Entity").upper()

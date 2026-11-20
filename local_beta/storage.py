@@ -506,6 +506,7 @@ class Repository:
             "Manufacturer SRN": "CN-MF-000000001",
             "Risk Class": "Class IIa",
             "Applicable Legislation": "MDR",
+            "Registration Entity Type": "Device",
             "Device Type": "Regular Device",
             "Device Name/Model": "SAMPLE Training Device",
             "EMDN Code": "M020101",
@@ -1057,12 +1058,21 @@ class Repository:
         placeholders = ",".join("?" for _ in record_ids)
         with self.connect() as conn:
             rows = conn.execute(
-                f"SELECT u.*, b.payload_json AS basic_payload_json FROM udi_records u "
+                f"SELECT u.*, b.payload_json AS basic_payload_json, b.cmr_json AS basic_cmr_json, "
+                f"b.cert_json AS basic_cert_json FROM udi_records u "
                 f"LEFT JOIN basic_records b ON b.basic_code = u.basic_code "
                 f"WHERE u.id IN ({placeholders}) ORDER BY u.id",
                 record_ids,
             ).fetchall()
-        return [self._row_to_udi_dict(row) for row in rows]
+        records = []
+        for row in rows:
+            record = self._row_to_udi_dict(row)
+            record["basic"] = {
+                "basic_code": record["basic_code"], "payload": record["basic_payload"],
+                "cmr_rows": _json_list(row["basic_cmr_json"]), "cert_rows": _json_list(row["basic_cert_json"]),
+            }
+            records.append(record)
+        return records
 
     def get_basics_by_ids(self, record_ids: list[int]) -> list[dict]:
         if not record_ids:

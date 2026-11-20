@@ -6,6 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote, urlencode
 
+from EUDAMED_TOOL_v2.validator import CONFLICT_FIELD, ENTITY_FIELD, registration_profile
+
 from .constants import (
     BASIC_FIELDS,
     BULK_UPLOAD_ENTITY_LIMIT,
@@ -145,11 +147,12 @@ SUPPORTED_SERVICES = {
 }
 
 # 字段规格映射：field 名 -> template_schema 列定义，用于详情页按 schema 渲染下拉 / 说明 / 必填
-FIELD_SPECS = {col["field"]: col for col in MAIN_COLUMNS}
+FIELD_SPECS = {(col["entity"], col["field"]): col for col in MAIN_COLUMNS}
 ENUM_SELECT_VALIDATIONS = {
     "issuing_entity",
     "risk_class",
     "legislation",
+    "registration_entity",
     "device_type",
     "device_status",
     "language",
@@ -291,9 +294,9 @@ def _bool_select(field: str, current: str) -> str:
     return f'<select name="field_{esc(field)}">{"".join(parts)}</select>'
 
 
-def field_input(field: str, value) -> str:
+def field_input(field: str, value, entity: str = "basic") -> str:
     """按 template_schema 规格渲染单个详情页字段：枚举→下拉、布尔→是/否、其余→文本。"""
-    spec = FIELD_SPECS.get(field)
+    spec = FIELD_SPECS.get((entity, field))
     current = "" if value is None else str(value)
     validation = spec.get("validation") if spec else None
     readonly = field.startswith("Legacy ")
@@ -443,8 +446,8 @@ def page(title: str, body: str, active_path: str = "") -> str:
   function toggleChecks(formId, checked) {{
     var form = document.getElementById(formId);
     if (!form) return;
-    var boxes = document.querySelectorAll('input[type=checkbox][form=' + formId + ']');
-    if (boxes.length === 0) {{ boxes = form.querySelectorAll('input[type=checkbox]'); }}
+    var boxes = document.querySelectorAll('input[type=checkbox][name=record_ids][form=' + formId + ']');
+    if (boxes.length === 0) {{ boxes = form.querySelectorAll('input[type=checkbox][name=record_ids]'); }}
     boxes.forEach(function (box) {{ box.checked = checked; }});
     updateSelectedCount(formId);
     syncExportUrl(formId);
@@ -762,7 +765,7 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
             change_rows = f'<tr><td colspan="6">{t("没有可展示的入库记录。", "No records to show.")}</td></tr>'
         error_rows = "".join(
             f"<li>{esc(item.get('sheet'))} {t('第', 'row')} {esc(item.get('row'))} {esc(item.get('field'))}: {esc(item.get('message'))}</li>"
-            for item in errors[:50]
+            for item in errors
         ) or f"<li>{t('无', 'None')}</li>"
         warning_rows = "".join(
             f"<li>{esc(item.get('sheet'))} {t('第', 'row')} {esc(item.get('row'))} {esc(item.get('field'))}: {esc(item.get('message'))}</li>"
@@ -787,7 +790,7 @@ def import_page(message: str = "", result: dict | None = None, message_level: st
         if result.get("normalized_filename"):
             normalized_link = (
                 f'<p><a class="button primary" href="/download/{esc(result["normalized_filename"])}">'
-                f'{t("下载规范化 v2.14 模板副本", "Download normalized v2.14 workbook")}</a></p>'
+                f'{t("下载规范化 v2.15 模板副本", "Download normalized v2.15 workbook")}</a></p>'
                 f'<p class="muted">{t("原始上传文件未被覆盖；副本保留 Local Record ID 和计算输入，并写入最终 B-/D-/UDI-DI 关联。", "The uploaded workbook was not overwritten. The copy retains Local Record ID and calculation input and fills final B-/D-/UDI-DI links.")}</p>'
             )
         import_id = result.get("import_id")
@@ -1105,7 +1108,15 @@ def record_history_block(changes: list[dict] | None) -> str:
 
 
 def basic_detail(record: dict, message: str = "", message_level: str = "notice", freshness: dict | None = None, changes: list[dict] | None = None) -> str:
-    form_fields = "".join(field_input(field, record["payload"].get(field, "")) for field in BASIC_FIELDS)
+    values = dict(record["payload"])
+    if values.get(CONFLICT_FIELD):
+        values[ENTITY_FIELD] = ""
+    form_fields = "".join(field_input(field, values.get(field, "")) for field in BASIC_FIELDS)
+    classification_notice = ""
+    try:
+        registration_profile(record["payload"])
+    except ValueError as exc:
+        classification_notice = alert_block(f"Excel row {record['row_number']} · {exc}", "error")
     cmr_json = json.dumps(record["cmr_rows"], ensure_ascii=False, indent=2)
     cert_json = json.dumps(record.get("cert_rows", []), ensure_ascii=False, indent=2)
     advanced = _advanced_json_block(
@@ -1120,6 +1131,7 @@ def basic_detail(record: dict, message: str = "", message_level: str = "notice",
       <p>{sample_badge() if record.get('is_sample') else ''}Basic UDI-DI Code: <strong>{esc(record['basic_code'])}</strong></p>
       <p>{state_badge(record['state'])} {change_badge(record.get('last_change_type'))} {freshness_badge(freshness)}</p>
       {message_block(message, message_level)}
+      {classification_notice}
       <form action="/basic/{record['id']}" method="post" class="stack">
         <div class="form-grid">{form_fields}</div>
         <label><span>{t('当前 EUDAMED 版本号（更新用）', 'Current EUDAMED version (for updates)')}</span><input type="text" name="version" value="{esc(record['version'])}"></label>
@@ -1135,7 +1147,7 @@ def basic_detail(record: dict, message: str = "", message_level: str = "notice",
 
 
 def udi_detail(record: dict, message: str = "", message_level: str = "notice", freshness: dict | None = None, changes: list[dict] | None = None) -> str:
-    form_fields = "".join(field_input(field, record["payload"].get(field, "")) for field in UDI_FIELDS)
+    form_fields = "".join(field_input(field, record["payload"].get(field, ""), "udi") for field in UDI_FIELDS)
 
     def _dump(value):
         return json.dumps(value, ensure_ascii=False, indent=2)
@@ -1246,6 +1258,11 @@ def export_page(
         )
     table = "".join(record_rows) or f'<tr><td colspan="6"><div class="empty-state">{t("没有可导出的记录。请检查筛选条件，或先导入 Excel。", "No records to export. Check filters or import Excel first.")} <a class="button" href="/library">{t("去产品库", "Open library")}</a> <a class="button primary" href="/import">{t("导入 Excel", "Import Excel")}</a></div></td></tr>'
     service = SUPPORTED_SERVICES.get(service_type, SUPPORTED_SERVICES["DEVICE.POST"])
+    followup_option = ""
+    if service_type == "DEVICE.POST" and result and result.get("requires_udi_post"):
+        label = t("同时生成同一 Basic 其余 UDI 的 UDI_DI.POST 文件", "Include follow-up UDI_DI.POST files for additional UDIs of the same Basic")
+        checked = " checked" if result.get("include_udi_post") else ""
+        followup_option = f'<label><input type="checkbox" name="include_udi_post" value="yes"{checked}> {label}</label>'
     body = f"""
     {preview}
     <section class="panel">
@@ -1282,6 +1299,7 @@ def export_page(
         </table></div>
         {pagination_block('/export', filters, total_filtered, page_number, page_size, {"service_type": service_type, "selection_mode": selection_mode})}
         <div class="toolbar">
+          {followup_option}
           <button class="button" type="submit" name="action" value="preflight" onclick="return requireExportSelection()">{t('只做预检', 'Pre-check only')}</button>
           <button class="button primary" type="submit" name="action" value="export" onclick="return requireExportSelection()">{t('生成 XML', 'Generate XML')}</button>
         </div>

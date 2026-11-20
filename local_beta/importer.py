@@ -31,7 +31,7 @@ if str(TOOL_DIR) not in sys.path:
     sys.path.insert(0, str(TOOL_DIR))
 
 import openpyxl  # type: ignore
-from validator import DataValidator  # type: ignore
+from validator import CONFLICT_FIELD, ENTITY_FIELD, DataValidator  # type: ignore
 
 
 BUSINESS_SHEETS = [
@@ -122,7 +122,7 @@ class WorkbookImporter:
                         "field": "",
                         "value": workbook_path.name,
                         "error_type": "unsupported_template",
-                        "message": "未识别到可导入的 EUDAMED 模板数据。请使用当前 v2.14 的 MDR、MDD_AIMDD、IVDR 或 IVDD 主表。",
+                        "message": "未识别到可导入的 EUDAMED 模板数据。请使用当前 v2.15 的 MDR、MDD_AIMDD、IVDR 或 IVDD 主表。",
                         "suggestion": f"旧模板或客户原始清单不要直接导入；请先迁移/映射到当前 {TEMPLATE_VERSION} 模板字段，确认字段含义后再导入。",
                     }
                 ],
@@ -265,6 +265,7 @@ class WorkbookImporter:
                 duplicate_local_ids,
             )
 
+        self._check_basic_classifications(parsed, import_meta)
         self._filter_duplicate_legacy_results(
             parsed,
             import_meta,
@@ -287,6 +288,27 @@ class WorkbookImporter:
             parsed[spec["target"]].extend(rows)
 
         return parsed, import_meta, format_warnings, migration_warnings, identifier_errors
+
+    def _check_basic_classifications(self, parsed, import_meta):
+        for basic in parsed["Basic UDI-DI"]:
+            code = basic["Basic UDI-DI Code"]
+            conflicts = []
+            for field, origins in import_meta["classification_origins"][code].items():
+                if len(origins) > 1:
+                    conflicts.append(f"{field}: " + ", ".join(f"{v} ({loc})" for v, loc in origins.items()))
+            existing = self.repository.get_basic_by_code(code) if self.repository else None
+            previous = existing["payload"].get(ENTITY_FIELD) if existing else None
+            current = basic.get(ENTITY_FIELD)
+            if not current and basic.get("Device Type") == "Regular Device":
+                current = "Device"
+            if previous and current and previous != current:
+                conflicts.append(f"{ENTITY_FIELD}: 产品库 {previous}, Excel {current}")
+            if conflicts:
+                basic[CONFLICT_FIELD] = "分类冲突，请在 Basic 详情核对并确认。 " + " / ".join(conflicts)
+                # Retain an earlier explicit decision for conflict detection on retry.
+                # The conflict marker always blocks XML, and the editor requires a fresh choice.
+                basic[ENTITY_FIELD] = previous or ""
+                import_meta["normalization_blocked"] = True
 
     def _filter_duplicate_legacy_results(self, parsed: dict, import_meta: dict, local_record_map: dict, errors: list[dict]):
         origins = defaultdict(list)
@@ -590,7 +612,7 @@ class WorkbookImporter:
                     "value": "",
                     "warning_type": "LEGACY_EIFU_URL_NOT_OUTPUT",
                     "message": "检测到旧模板字段 UDI - eIFU URL。0.9.6 模板曾明确该字段不输出到 XML；本次导入不会自动把它映射到官方 URL for additional information。",
-                    "suggestion": "如该链接确实需要提交到 EUDAMED，请在当前 v2.14 模板中人工复制到 UDI - Additional Information URL / eIFU webpage 后再导入。",
+                    "suggestion": "如该链接确实需要提交到 EUDAMED，请在当前 v2.15 模板中人工复制到 UDI - Additional Information URL / eIFU webpage 后再导入。",
                 }
             )
 
@@ -764,19 +786,17 @@ class WorkbookImporter:
 
             if self._should_create_basic(basic_payload, basic_version):
                 basic_payload["_row_number"] = row_idx
-                clean_basic = self._clean_row(basic_payload)
+                basic_payload["_sheet_name"] = ws.title
+                origins = import_meta.setdefault("classification_origins", {}).setdefault(basic_code, {})
+                for field in (ENTITY_FIELD, "Device Type", "Applicable Legislation", "Manufacturer SRN"):
+                    value = basic_payload.get(field)
+                    if value:
+                        origins.setdefault(field, {}).setdefault(value, f"{ws.title}!{row_idx}")
                 if basic_code not in basic_index:
-                    basic_index[basic_code] = clean_basic
+                    basic_index[basic_code] = basic_payload
                     parsed["Basic UDI-DI"].append(basic_payload)
                 else:
-                    self._merge_missing_basic_fields(basic_index[basic_code], clean_basic)
-                    for idx, item in enumerate(parsed["Basic UDI-DI"]):
-                        if item.get("Basic UDI-DI Code") == basic_code:
-                            merged = dict(item)
-                            self._merge_missing_basic_fields(merged, clean_basic)
-                            merged["_row_number"] = item.get("_row_number", row_idx)
-                            parsed["Basic UDI-DI"][idx] = merged
-                            break
+                    self._merge_missing_basic_fields(basic_index[basic_code], self._clean_row(basic_payload))
                 if basic_version:
                     import_meta["basic_versions"][basic_code] = basic_version
 
@@ -921,7 +941,7 @@ class WorkbookImporter:
                     "value": "MDR_MDD / IVDR_IVDD",
                     "warning_type": "TEMPLATE_LAYOUT_MIGRATION",
                     "message": "检测到拆表前的历史混合主表；本次仍兼容导入，规范化副本会按法规迁移到四个主表。",
-                    "suggestion": "后续请使用包含 MDR、MDD_AIMDD、IVDR、IVDD 的当前 v2.14 模板。",
+                    "suggestion": "后续请使用包含 MDR、MDD_AIMDD、IVDR、IVDD 的当前 v2.15 模板。",
                 }
             )
             return warnings
@@ -1374,7 +1394,11 @@ class WorkbookImporter:
             udi_code = str(row.get("UDI-DI Code", "")).strip()
             market_rows_by_udi[udi_code].append(row)
 
+        pr_basics = {row["Basic UDI-DI Code"] for row in parsed.get("Basic UDI-DI", [])
+                     if row.get(ENTITY_FIELD) == "PR/SPP"}
         for udi_code, udi_row in udi_rows.items():
+            if udi_row.get("Parent Basic UDI-DI") in pr_basics:
+                continue
             if str(udi_row.get("Device Status", "")).strip() != "On the EU market":
                 continue
             rows = market_rows_by_udi.get(udi_code, [])

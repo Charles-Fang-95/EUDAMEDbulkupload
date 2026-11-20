@@ -12,7 +12,7 @@ COUNTRY_XSD = XSD_BASE / "Common" / "CountryEnum.xsd"
 LANGUAGE_XSD = XSD_BASE / "Common" / "LanguageSpecificNameType.xsd"
 ISSUING_ENTITY_XSD = XSD_BASE / "Device" / "RegulationDevice" / "UDIDIType.xsd"
 LINK_XSD = XSD_BASE / "Links" / "LinkType.xsd"
-TEMPLATE_VERSION = "v2.14"
+TEMPLATE_VERSION = "v2.15"
 
 
 _FORMAT_EN = {
@@ -36,8 +36,7 @@ _FORMAT_EN = {
 
 
 _DESCRIPTION_EN_BY_ZH = {
-    "制造商 SRN。非欧盟/EEA 制造商必须填写授权代表 SRN。": "Manufacturer SRN. For non-EU/EEA manufacturers, the authorised representative SRN must also be provided.",
-    "Basic UDI-DI 层级附加描述；不要填写随 UDI-DI 变化的尺寸规格。": "Basic UDI-DI-level additional description. Do not enter sizes or specifications that vary by UDI-DI here.",
+    "Basic 层级附加描述。独立 PR/SPP 在此填写生产者声明的医疗目的，并选择 PR Medical Purpose Language。": "Basic UDI-DI-level description. For PR/SPP, enter the producer’s medical purpose and select its PR Medical Purpose Language.",
     "仅在 EUDAMED 中 Model 适用于 Basic UDI-DI 时填写；不适用则留空。": "Fill this only when Model applies at Basic UDI-DI level in EUDAMED; otherwise leave it blank.",
     "非欧盟/EEA 制造商的欧盟授权代表 SRN。": "EU authorised representative SRN for a non-EU/EEA manufacturer.",
     "IVDR 下是否为试剂。": "For IVDR devices, confirm whether the device is a reagent.",
@@ -45,7 +44,7 @@ _DESCRIPTION_EN_BY_ZH = {
     "条件必填：主表 Trade Name 快捷列不够用、需要多语言/多个商品名时才填写本 sheet。若填写 Trade Names 行，本列必须关联主表 UDI-DI Code。": "Use the Trade Names sheet when the main-sheet shortcut is insufficient or multiple/language-specific names are needed. Every populated row must link to a main-sheet UDI-DI Code.",
     "条件必填：若填写 Trade Names 行，本列为 UDI-DI 层商品名，必须填写；可同语言多名称或不同语言多名称。": "Required for every populated Trade Names row. Enter the UDI-DI-level trade name; multiple names may use the same or different languages.",
     "条件必填：若填写 Trade Names 行，本列为商品名语言，必须填写。若同一商品名不限定具体语言，优先选择 ANY，不需要为 27 种语言重复建 27 行；ANY 不会自动翻译。": "Required for every populated Trade Names row. Choose ANY when the same name is not language-specific; do not create 27 duplicate rows. ANY does not translate the name.",
-    "条件必填：当主表 Device Status 为 On the EU market，或使用 Update market information service 时填写 Market Info。同一 UDI-DI 有多个国家时，请用多行重复填写同一个 UDI-DI Code。": "Fill Market Info when Device Status is On the EU market or when using Update Market Information. Repeat the same UDI-DI Code on separate rows for multiple countries.",
+    "条件必填：当 Device 类别的 Device Status 为 On the EU market，或使用 Update market information service 时填写 Market Info。同一 UDI-DI 有多个国家时，请用多行重复填写同一个 UDI-DI Code。": "For Device, fill Market Info when Device Status is On the EU market or when using Update Market Information. Repeat the same UDI-DI Code on separate rows for multiple countries.",
     "条件必填：只有产品存在 container package / 多层包装 DI 时才需要填写 Package Info。若填写本 sheet 任意包装行，本列用于关联主表 UDI-DI Code，必须填写；无包装层级时整张 sheet 可留空。": "Use Package Info only when container-package or multi-level packaging DIs exist. Every populated row must link to the main UDI-DI Code; leave the whole sheet blank when no package DI exists.",
     "条件必填：仅 MDR 设备存在结构化 Clinical Sizes 时填写。若填写 Clinical Sizes 行，本列必须关联主表 UDI-DI Code。": "Use Clinical Sizes only for MDR devices with structured clinical-size data. Every populated row must link to a main-sheet UDI-DI Code.",
     "条件必填：填写 Clinical Size Type Description 时说明语言。": "Required when Clinical Size Type Description is filled; select the description language.",
@@ -69,27 +68,27 @@ _DESCRIPTION_EN_OVERRIDES = {
     "basic_version": "Conditionally required only for Update Basic UDI / Basic_UDI.PATCH. Fill the current Basic version shown in EUDAMED in column B; leave blank for new uploads.",
     "Basic UDI-DI Code": "Required for MDR/IVDR. For Legacy with an assigned UDI-DI, an existing local linking key may be retained and XML derives B-<UDI-DI>. For first generation without a UDI-DI, leave it blank and the tool fills the final B- identifier.",
     "Issuing Entity": "Required for MDR/IVDR. For Legacy with an assigned UDI-DI, the XML EUDAMED DI issuer is EUDAMED. Without a UDI-DI, both final B-/D- identifiers use EUDAMED.",
-    "Manufacturer SRN": "Manufacturer SRN. For non-EU/EEA manufacturers, the authorised representative SRN may also be required.",
+    "Manufacturer SRN": "For Device, enter the manufacturer SRN. For PR/SPP, enter the producer’s PR Actor ID.",
     "Risk Class": "Device risk class. The available values differ between MDR/MDD/AIMDD and IVDR/IVDD.",
-    "Applicable Legislation": "Applicable legislation. MDR/IVDR are exported as Regulation Device; MDD/AIMDD/IVDD are exported as Legacy Device / EUDI.",
-    "Device Type": "Device type. Use Regular Device for normal devices.",
+    "Applicable Legislation": "Applicable legislation. MDR/IVDR with category Device are exported as Regulation Device; MDD/AIMDD/IVDD are exported as Legacy Device / EUDI.",
+    "Device Type": "Device attribute. Select Regular Device for ordinary devices. System and Procedure Pack require a separate Basic registration category.",
     "Device Name/Model": "Basic UDI-DI level device name. If Model does not apply at Basic level in EUDAMED, fill this column and leave Basic - Device Model blank.",
     "EMDN Code": "EMDN classification code used by EUDAMED.",
     "Presence of Human Tissues": "Confirm whether the device contains human tissues/cells. Applies to MDR/MDD/AIMDD/IVDR/IVDD; blank values are exported as FALSE.",
     "Presence of Animal Tissues": "Confirm whether the device contains animal tissues/cells. Applies to MDR/MDD/AIMDD/IVDR/IVDD; blank values are exported as FALSE.",
     "Is it a Kit": "Confirm whether the device is a kit. TRUE requires UDI - Additional Description and its explicit Description Language (BR-UDID-131), including IVDD Legacy. IVDR/IVDD values are exported to XML; MDR/MDD are not force-output by this tool.",
-    "Special Device Type": "Currently registrable special device type. Orthopedic/Orthopaedic is retired: leave blank unless another valid special type applies. System/Procedure Pack usually does not provide this value.",
+    "Special Device Type": "Currently registrable special device type. Orthopedic/Orthopaedic is retired: leave blank unless another valid special type applies. Leave blank for independent PR/SPP.",
     "Is Suture/Staple/Filling/Brace (IIb Implant)": "Only applies to Class IIb implantable devices to identify suture/staple/dental filling/dental brace exceptions. Leave blank or FALSE if not applicable.",
     "udi_version": "Conditionally required only for Update of UDI-DI / Master UDI-DI (UDI_DI.PATCH). Fill the current UDI-DI version shown in EUDAMED; leave blank for new uploads.",
     "UDI-DI Code": "Required for MDR/IVDR and for Legacy with an assigned UDI-DI. For first generation without a UDI-DI, leave it blank and the tool fills the final D- EUDAMED ID.",
     "UDI-DI Issuing Entity": "For an assigned Legacy UDI-DI, enter its actual non-EUDAMED issuing entity. Without a UDI-DI, the final D- identifier uses EUDAMED. Required for MDR/IVDR.",
-    "Device Status": "Device status. If On the EU market, Market Info rows are required and exactly one country must be marked as originally placed on market.",
+    "Device Status": "Device status. For Device on the EU market, Market Info rows are required and exactly one country must be marked as originally placed on market.",
     "Quantity of Device": "Base quantity in the unit of sale. Recommended/conditional for MDR/IVDR Regulation Device; not exported for MDD/AIMDD/IVDD Legacy.",
-    "Single Use Device": "Confirm whether this is a single-use device.",
+    "Single Use Device": "Required for Device. Leave blank for PR/SPP.",
     "Max Number of Reuses": "Conditional: enter 0 for single-use; leave blank or use -1 for reusable devices with no declared maximum; enter a positive integer only when a maximum is declared.",
     "Device Labelled as Sterile": "Confirm whether the device label states it is sterile.",
     "Needs Sterilisation Before Use": "Confirm whether the device needs sterilisation before use. Blank values are exported as FALSE.",
-    "Containing Latex": "MDR/MDD/AIMDD only. Confirm whether the device contains natural rubber latex.",
+    "Containing Latex": "Required for MDR/MDD/AIMDD Device. Leave blank for PR/SPP.",
     "Reprocessed Single Use Device": "MDR/MDD/AIMDD only. Confirm whether this is a reprocessed single-use device.",
     "New Device (IVDR)": "IVDR Regulation Device only. IVDD Legacy does not export this field. Blank IVDR values are exported as FALSE.",
     "Direct Marking": "Confirm whether direct marking is applied.",
@@ -414,10 +413,14 @@ MAIN_COLUMNS = [
     _col("Meta", "Legacy - EUDAMED ID", "udi", "Legacy EUDAMED ID", False, None, "锁定结果列。没有 UDI-DI 时规范化模板会填入最终 D- EUDAMED ID；已有真实 UDI-DI 时保持空白。", "", "工具生成", applies="legacy", editable=False),
     _col("Basic", "Basic - Basic UDI-DI Code", "basic", "Basic UDI-DI Code", False, None, "MDR/IVDR 必填。Legacy 已有 UDI-DI 时可保留现有本地关联键，XML 自动派生 B-<UDI-DI>；Legacy 没有 UDI-DI 的首次生成可留空，由工具生成最终 B-。", "BASIC001234", "1-120 个字符；按发码机构/EUDAMED 原值填写", requirement="conditional"),
     _col("Basic", "Basic - Issuing Entity", "basic", "Issuing Entity", False, "issuing_entity", "MDR/IVDR 必填。Legacy 已有 UDI-DI 时 XML 的 EUDAMED DI issuer 固定为 EUDAMED；Legacy 没有 UDI-DI 时最终 B-/D- issuer 均为 EUDAMED。", "GS1", "下拉选择", requirement="conditional"),
-    _col("Basic", "Basic - Manufacturer SRN*", "basic", "Manufacturer SRN", True, None, "制造商 SRN。非欧盟/EEA 制造商必须填写授权代表 SRN。", "CN-MF-000001", "文本"),
+    _col("Basic", "Basic - Manufacturer SRN*", "basic", "Manufacturer SRN", True, None, "Device 填制造商 SRN。独立 PR/SPP 填生产者的 PR Actor ID。", "CN-MF-000001", "文本"),
     _col("Basic", "Basic - Risk Class*", "basic", "Risk Class", True, "risk_class", "器械风险等级。MDR/MDD、AIMDD、IVDR/IVDD 取值不同。", "Class IIa", "下拉选择"),
-    _col("Basic", "Basic - Applicable Legislation*", "basic", "Applicable Legislation", True, "legislation", "适用法规。MDR/IVDR 输出 Regulation Device；MDD/AIMDD/IVDD 输出 Legacy Device / EUDI。", "MDR", "下拉选择"),
-    _col("Basic", "Basic - Device Type*", "basic", "Device Type", True, "device_type", "设备类型。普通器械选择 Regular Device。", "Regular Device", "下拉选择"),
+    _col("Basic", "Basic - Applicable Legislation*", "basic", "Applicable Legislation", True, "legislation", "适用法规。Device 类别的 MDR/IVDR 输出 Regulation Device；MDD/AIMDD/IVDD 输出 Legacy Device / EUDI。", "MDR", "下拉选择"),
+    _col("Basic", "Basic - Registration Entity Type", "basic", "Registration Entity Type", False, "registration_entity",
+         "选择 Basic 的注册对象类别。Device 包括本身作为器械注册的 System / Procedure Pack。独立组合包选择 PR/SPP。必须与 EUDAMED 既有 Basic 一致；多个组件不足以判断类别。类别待确认时不能导出。",
+         "Device", "下拉选择", requirement="conditional",
+         description_en="Match the registered Basic in EUDAMED. Select Device for a system or procedure pack registered as a device, or PR/SPP for a separately registered pack or system. Multiple components alone do not determine the category. Confirm before export."),
+    _col("Basic", "Basic - Device Type*", "basic", "Device Type", True, "device_type", "器械属性。普通器械选择 Regular Device；System / Procedure Pack 还须明确选择 Basic 注册类别。", "Regular Device", "下拉选择"),
     _col("Basic", "Basic - Device Name*", "basic", "Device Name/Model", True, None, "Basic UDI-DI 层级设备名称。Model 不适用于 BUDI 时填本列并留空 Basic - Device Model。", "Cardiac Stent", "文本"),
     _col("Basic", "Basic - EMDN Code*", "basic", "EMDN Code", True, None, "EUDAMED 使用的 EMDN 分类代码。", "Z120302", "文本"),
     _col("Basic", "Basic - Active Device", "basic", "Active Device", False, "boolean", "是否为有源设备。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
@@ -434,24 +437,27 @@ MAIN_COLUMNS = [
     _col("Basic", "Basic - Professional Testing (IVDR)", "basic", "Professional Testing (IVDR)", False, "boolean", "IVDR 下是否为专业人员检测。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Instrument (IVDR)", "basic", "Instrument (IVDR)", False, "boolean", "IVDR 下是否为仪器。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Microbial Origin (IVDR)", "basic", "Microbial Origin (IVDR)", False, "boolean", "IVDR 下是否具有微生物来源。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
-    _col("Basic", "Basic - Additional Description", "basic", "Additional Description", False, None, "Basic UDI-DI 层级附加描述；不要填写随 UDI-DI 变化的尺寸规格。", "", "文本"),
+    _col("Basic", "Basic - Additional Description", "basic", "Additional Description", False, None, "Basic 层级附加描述。独立 PR/SPP 在此填写生产者声明的医疗目的，并选择 PR Medical Purpose Language。", "", "文本"),
+    _col("Basic", "Basic - PR Medical Purpose Language", "basic", "PR Medical Purpose Language", False, "language",
+         "仅独立 PR/SPP：在 Basic - Additional Description 填写生产者声明的医疗目的，并在此选择原文语言。", "", "下拉选择",
+         requirement="conditional", description_en="PR/SPP only. Enter the producer’s medical purpose in Basic - Additional Description and select its language here."),
     _col("Basic", "Basic - Device Model", "basic", "Device Model", False, None, "仅在 EUDAMED 中 Model 适用于 Basic UDI-DI 时填写；不适用则留空。", "", "文本"),
     _col("Basic", "Basic - Is it a Kit", "basic", "Is it a Kit", False, "boolean", "是否为 Kit。TRUE 时该 Basic 下每条 UDI 的 Additional Description 和 Description Language 必填（BR-UDID-131，含 IVDD Legacy）。IVDR/IVDD 会按官方 XSD 输出，必须确认 TRUE/FALSE；MDR/MDD 暂无安全输出位置，不会强行写入 XML。", "FALSE", "TRUE / FALSE", requirement="conditional"),
     _col("Basic", "Basic - Authorised Representative SRN", "basic", "Authorised Representative SRN", False, None, "非欧盟/EEA 制造商的欧盟授权代表 SRN。", "NL-AR-000000247", "文本"),
-    _col("Basic", "Basic - Special Device Type", "basic", "Special Device Type", False, None, "当前可注册的特殊器械类型。适用于软件及对应的眼镜/隐形眼镜类型；Orthopedic/Orthopaedic 已停用，若无其他适用特殊类型则留空。System/Procedure Pack 通常不提供。", "MDR_SOFTWARE - Software", "法规专属下拉选择"),
+    _col("Basic", "Basic - Special Device Type", "basic", "Special Device Type", False, None, "当前可注册的特殊器械类型。适用于软件及对应的眼镜/隐形眼镜类型；Orthopedic/Orthopaedic 已停用，若无其他适用特殊类型则留空。独立 PR/SPP 留空。", "MDR_SOFTWARE - Software", "法规专属下拉选择"),
     _col("Basic", "Basic - Reagent", "basic", "Reagent", False, "boolean", "IVDR 下是否为试剂。", "FALSE", "TRUE / FALSE", "ivdr_ivdd"),
     _col("Basic", "Basic - Presence of Medicinal Substance", "basic", "Presence of Medicinal Substance", False, "boolean", "待审计字段：当前 XML 不单独输出；目前导出的是 Basic - Medicinal Product Device。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Basic", "Basic - Is Suture/Staple/Filling/Brace (IIb Implant)", "basic", "Is Suture/Staple/Filling/Brace (IIb Implant)", False, "boolean", "仅 Class IIb + Implantable 时适用，用于判断是否属于 suture/staple/dental filling/dental brace 等特殊情形；不适用留空或填 FALSE。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("Meta", "UDI - Current Version", "meta", "udi_version", False, None, "条件必填：仅在使用 Update of UDI-DI / Master UDI-DI（UDI_DI.PATCH）时填写 EUDAMED 当前版本号；新上传留空。", "", "数字或文本", requirement="conditional"),
     _col("UDI", "UDI - UDI-DI Code", "udi", "UDI-DI Code", False, None, "MDR/IVDR 以及 Legacy 已有 UDI-DI 时必填真实代码。Legacy 没有 UDI-DI 的首次生成可留空，工具生成最终 D- EUDAMED ID。", "06942495390010", "1-120 个字符；按发码机构/EUDAMED 原值填写", requirement="conditional"),
     _col("UDI", "UDI - UDI-DI Issuing Entity", "udi", "UDI-DI Issuing Entity", False, "issuing_entity", "已有 UDI-DI 时填写真实发码机构且不得选 EUDAMED；没有 UDI-DI 时最终 D- 标识的 issuer 为 EUDAMED。MDR/IVDR 必填。", "GS1", "下拉选择", requirement="conditional"),
-    _col("UDI", "UDI - Device Status*", "udi", "Device Status", True, "device_status", "设备状态。On the EU market 时必须在 Market Info 填市场国家，且每个 UDI-DI 只能有一个首次投放市场国家。国家/市场信息错误应优先通过 update/create new version 修正，不应默认删除 UDI-DI 重建。", "On the EU market", "下拉选择"),
+    _col("UDI", "UDI - Device Status*", "udi", "Device Status", True, "device_status", "设备状态。Device 在 On the EU market 时必须在 Market Info 填市场国家，且每个 UDI-DI 只能有一个首次投放市场国家。国家/市场信息错误应优先通过 update/create new version 修正，不应默认删除 UDI-DI 重建。", "On the EU market", "下拉选择"),
     _col("UDI", "UDI - Quantity of Device", "udi", "Quantity of Device", False, None, "销售单元中的设备数量。MDR/IVDR Regulation Device 建议填写；MDD/AIMDD/IVDD Legacy 不输出到 XML。", "1", "正整数", requirement="conditional"),
-    _col("UDI", "UDI - Single Use Device*", "udi", "Single Use Device", True, "boolean", "是否为一次性使用器械。", "TRUE", "TRUE / FALSE"),
+    _col("UDI", "UDI - Single Use Device", "udi", "Single Use Device", False, "boolean", "Device 必填；PR/SPP 留空。是否为一次性使用器械。", "TRUE", "TRUE / FALSE", requirement="conditional"),
     _col("UDI", "UDI - Max Number of Reuses", "udi", "Max Number of Reuses", False, None, "条件填写：一次性使用填 0；可重复使用但未声明最大次数请留空或填 -1（工具会按官方 XML 输出 -1）；有明确上限时填正整数。不要填空标签或普通横杠。", "0 / -1 / 100", "整数；-1 表示未定义/不适用", requirement="conditional"),
     _col("UDI", "UDI - Device Labelled as Sterile*", "udi", "Device Labelled as Sterile", True, "boolean", "标签上是否标示为无菌。", "FALSE", "TRUE / FALSE"),
     _col("UDI", "UDI - Needs Sterilisation Before Use", "udi", "Needs Sterilisation Before Use", False, "boolean", "使用前是否需要灭菌。官方 XML 必须确认 TRUE/FALSE；留空导出会按 FALSE 处理。", "FALSE", "TRUE / FALSE", requirement="conditional"),
-    _col("UDI", "UDI - Containing Latex*", "udi", "Containing Latex", True, "boolean", "是否含天然橡胶乳胶。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
+    _col("UDI", "UDI - Containing Latex", "udi", "Containing Latex", False, "boolean", "Device 必填；PR/SPP 留空。是否含天然橡胶乳胶。", "FALSE", "TRUE / FALSE", "mdr_mdd", requirement="conditional"),
     _col("UDI", "UDI - Reprocessed Single Use Device", "udi", "Reprocessed Single Use Device", False, "boolean", "是否为重复处理的一次性使用器械。", "FALSE", "TRUE / FALSE", "mdr_mdd"),
     _col("UDI", "UDI - New Device (IVDR)", "udi", "New Device (IVDR)", False, "boolean", "仅 IVDR Regulation Device 输出；IVDR 下必须确认 TRUE/FALSE，留空导出会按 FALSE 处理。", "FALSE", "TRUE / FALSE", "ivdr", requirement="conditional"),
     _col("UDI", "UDI - Direct Marking", "udi", "Direct Marking", False, "boolean", "是否进行直接标识。", "FALSE", "TRUE / FALSE"),
@@ -502,7 +508,7 @@ RELATED_SHEETS = OrderedDict(
         "Market Info": {
             "target": "Market Information",
             "columns": [
-                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：当主表 Device Status 为 On the EU market，或使用 Update market information service 时填写 Market Info。同一 UDI-DI 有多个国家时，请用多行重复填写同一个 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
+                _related_col("UDI-DI Code*", "UDI-DI Code", True, None, "条件必填：当 Device 类别的 Device Status 为 On the EU market，或使用 Update market information service 时填写 Market Info。同一 UDI-DI 有多个国家时，请用多行重复填写同一个 UDI-DI Code。", "06942495390010", "文本", requirement="conditional"),
                 _related_col("Country Code*", "Country Code", True, "country_code", "条件必填：每行填写一个 made available / 市场国家代码；多个国家请新增多行，不是在一个单元格多选。希腊使用官方代码 EL，不是 GR。", "IT", "下拉选择", requirement="conditional"),
                 _related_col("Placed on Market", "Placed on Market", False, "boolean", "条件必填/业务核对：若填写 Market Info 行，建议说明该国家是否已投放市场。", "TRUE", "TRUE / FALSE", requirement="conditional"),
                 _related_col("Start Date", "Start Date", False, None, "条件必填：若该国家已投放或将投放市场，建议填写上市开始日期；无法确认时先与客户核对。", "2026-01-01", "YYYY-MM-DD", requirement="conditional"),
@@ -623,7 +629,7 @@ ENTRY_SHEETS = OrderedDict(
             "default_legislation": "MDD",
             "legislations": ["MDD", "AIMDD"],
             "risk_validation": "risk_class_mdd_aimdd",
-            "device_type_validation": "device_type_legacy",
+            "device_type_validation": "device_type_mdr",
         },
         "IVDR": {
             "applies": {"all", "ivdr_ivdd", "regulation", "ivdr"},
@@ -642,7 +648,7 @@ ENTRY_SHEETS = OrderedDict(
     }
 )
 
-# v2.4-v2.14 mixed main sheets remain accepted for direct import/migration.
+# v2.4-v2.15 mixed main sheets remain accepted for direct import/migration.
 # They are never generated in the current four-sheet template.
 LEGACY_ENTRY_SHEETS = OrderedDict(
     {
@@ -680,6 +686,8 @@ ENUM_SOURCES = OrderedDict(
         "legislation_mdd_aimdd": ["MDD", "AIMDD"],
         "legislation_ivdr": ["IVDR"],
         "legislation_ivdd": ["IVDD"],
+        "registration_entity": ["Device", "PR/SPP"],
+        "entity_device_only": ["Device"],
         "device_type": ["Regular Device", "System", "Procedure Pack"],
         "device_type_mdr": ["Regular Device", "System", "Procedure Pack"],
         "device_type_regular": ["Regular Device"],
@@ -726,6 +734,8 @@ def columns_for_entry_sheet(sheet_name: str) -> list[dict]:
             column["validation"] = spec["risk_validation"]
             values = ENUM_SOURCES.get(column["validation"], [])
             column["example"] = values[0] if values else column["example"]
+        elif column["field"] == "Registration Entity Type" and "MDR" not in spec["legislations"]:
+            column["validation"] = "entity_device_only"
         elif column["field"] == "Device Type" and spec.get("device_type_validation"):
             column["validation"] = spec["device_type_validation"]
             values = ENUM_SOURCES.get(column["validation"], [])

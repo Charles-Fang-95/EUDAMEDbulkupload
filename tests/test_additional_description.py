@@ -71,7 +71,7 @@ class DescriptionRuleTests(XSDValidationBase):
 
     def test_valid_description_preserved_and_xsd_passes(self):
         for profile in ("IVDD", "IVDR", "PR"):
-            _, uid = self._seed(profile, version="1", basic_over={"Is it a Kit": True},
+            _, uid = self._seed(profile, version="1", basic_over={} if profile == "PR" else {"Is it a Kit": True},
                                 udi_over={"Additional Description": "Synthetic kit description", "Description Language": "de"})
             for service in SERVICES:
                 for xml in self._xmls(service, [uid]):

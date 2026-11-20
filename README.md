@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **1.0.5 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **1.0.5 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **1.0.6 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **1.0.6 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -78,7 +78,7 @@ http://127.0.0.1:8765
 
 ## 工具怎么用
 
-1. **下载模板**：顶栏「下载模板」，或直接用仓库里的中文模板 `EUDAMED_Template_v2.14.xlsx`；海外用户可使用英文模板 `EUDAMED_Template_v2.14_EN.xlsx`。
+1. **下载模板**：顶栏「下载模板」，或直接用仓库里的中文模板 `EUDAMED_Template_v2.15.xlsx`；海外用户可使用英文模板 `EUDAMED_Template_v2.15_EN.xlsx`。
 2. **填写 Excel**：在 Excel / WPS 里填数据（填写规则见下一节）。
 3. **导入 Excel**：在「导入 Excel」页上传，系统立即校验并显示新增 / 已更新 / 未变化 / 错误行。产品库会保留历史记录；导入完成后可直接点击“查看本次导入”或“导出本次导入”。
 4. **产品库**：浏览、搜索、按导入批次或 Manufacturer SRN 筛选；列表分页显示当前范围与总匹配数量，详情页可做临时修正（正式维护建议回到 Excel）。
@@ -86,14 +86,14 @@ http://127.0.0.1:8765
 6. **上传 EUDAMED**：按页面 / manifest 指引上传。**先在 Playground TEST 环境验收**，通过后再上生产。
 
 辅助功能：
-- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.14 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
+- **迁移模板**（`/migrate-template`）：把旧版或客户自有的 EUDAMED Excel 搬到当前 v2.15 模板，并生成迁移报告；能确指的字段才自动搬，搬不准的列会列在报告里。
 - **XSD 版本**页：核对工具内置 XSD、本地 XSD 包、官方文档页版本是否一致。
 
 ## 模板怎么用
 
-模板 `EUDAMED_Template_v2.14.xlsx` / `EUDAMED_Template_v2.14_EN.xlsx` 的字段结构完全一致：
+模板 `EUDAMED_Template_v2.15.xlsx` / `EUDAMED_Template_v2.15_EN.xlsx` 的字段结构完全一致：
 
-- **四个法规主录入表**：`MDR`、`MDD_AIMDD`、`IVDR`、`IVDD`。Legacy 专属字段仅出现在 `MDD_AIMDD` / `IVDD`；System/Procedure Pack 仅在 `MDR` 使用。
+- **四个法规主录入表**：`MDR`、`MDD_AIMDD`、`IVDR`、`IVDD`。Legacy 专属字段仅出现在 `MDD_AIMDD` / `IVDD`；独立 PR/SPP 仅在 `MDR` 使用。本身作为器械注册的 System / Procedure Pack 在 MDR、MDD、AIMDD 下选择 Device。
   - 第 1 行 = 字段名，第 2 行 = 填写说明（中文模板为中文，英文模板为英文），第 3 行 = 示例（前三行已锁定，请勿改）。
   - **正式数据从第 4 行开始填**。
 - **9 个明细表**：`Trade Names`、`Market Info`、`Package Info`、`Device Certificates`、`Clinical Sizes`、`Annex XVI Purposes`、`Critical Warnings`、`Storage Conditions`、`CMR Substances`，通过 `UDI-DI Code` / `Basic UDI-DI Code` 与主表关联。
@@ -108,7 +108,7 @@ http://127.0.0.1:8765
 - MDD/AIMDD/IVDD 每行先选择 `Legacy - Has Assigned UDI-DI?`。已有 UDI-DI 时，XML 自动派生 EUDAMED DI `B-<UDI-DI>` / `EUDAMED`，UDI-DI 层仍保留原始代码和真实发码机构。
 - 没有 UDI-DI 时，由制造商在 `Legacy - EUDAMED DI Input` 提供 1–21 个字符的唯一主体；工具不决定主体、不改变大小写，只按官方字符值、质数权重、模 1021 和校验字符表生成配对的 `B-` EUDAMED DI 与 `D-` EUDAMED ID。
 - 旧记录已有 `B-` / `D-` 时，可不填主体和 `Local - Record ID`，但必须同时提供合法且后缀一致的标识对；关联 sheet 可直接填写正式 B-/D- 编码。首次生成 B-/D- 时仍须填写唯一的 `Local - Record ID`。
-- 导入成功后可下载 `NORMALIZED_EUDAMED_Template_v2.14_<timestamp>.xlsx`。副本填入最终标识与关联，不覆盖用户上传的原始 Excel。
+- 导入成功后可下载 `NORMALIZED_EUDAMED_Template_v2.15_<timestamp>.xlsx`。副本填入最终标识与关联，不覆盖用户上传的原始 Excel。
 - 本地只能检查格式、校验字符和当前工作簿内重复；最终标识唯一性仍需在 EUDAMED Playground/Production 确认。生成 XML 前请复核，正式提交前必须先在 Playground 验证。本工具不是欧盟委员会官方产品。
 - IVDR/IVDD 也需要确认 `Basic - Presence of Human Tissues` 和 `Basic - Presence of Animal Tissues`；`Containing Latex` 和 `Reprocessed Single Use Device` 不适用于 IVDR/IVDD。
 - `UDI - New Device (IVDR)` 仅 IVDR Regulation Device 输出；IVDD legacy 不输出该字段。
@@ -122,13 +122,13 @@ http://127.0.0.1:8765
 ## 注意事项
 
 - **非官方软件**，与欧盟委员会 / EUDAMED 无关联；按「现状」提供，不保证生成的 XML 一定符合 EUDAMED 要求；**数据准确性与合规责任由使用者承担**。正式提交前请务必在 EUDAMED Playground（测试环境）验收：<https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/>
-- **DTX 规则（重要）**：一次 `DEVICE.POST` 里，每个 Basic UDI-DI 只能创建一次（随它的第 1 个 UDI-DI 一起）；同一个 Basic 下的其余 UDI-DI 必须走 `UDI_DI.POST` 追加。工具已自动这样拆分；若重复在 DEVICE.POST 里带同一个 Basic，EUDAMED 会报「already exists」。
+- **DTX 规则（重要）**：一次 `DEVICE.POST` 里，每个 Basic UDI-DI 只能创建一次（随它的第 1 个 UDI-DI 一起）；同一个 Basic 下的其余 UDI-DI 必须走 `UDI_DI.POST` 追加。可先预检，再勾选同时生成后续 UDI_DI.POST 文件；若重复在 DEVICE.POST 里带同一个 Basic，EUDAMED 会报「already exists」。
 - `UDI - Additional Information URL / eIFU webpage` 对应官方 `FLD-UDID-174 - URL for additional information`，会作为 DTX XML 的 `udidi:website` 上传；这不是独立 eIFU 字段。部分字段仍**只收集、暂不输出到 XML**（如 Public Email 等）。完整清单见 [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md)。
 - 数据默认只保存在本机 `local_beta_data/`；工具**没有登录权限控制**，请勿在共享电脑上保存敏感数据。
 
 ## 版本历史
 
-当前 **1.0.5 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **1.0.6 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -214,7 +214,7 @@ http://127.0.0.1:8765
 
 ## Using the tool
 
-1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.14_EN.xlsx` from the repo. The Chinese template remains available as `EUDAMED_Template_v2.14.xlsx`.
+1. **Download the template**: top-bar "Download Template", or use `EUDAMED_Template_v2.15_EN.xlsx` from the repo. The Chinese template remains available as `EUDAMED_Template_v2.15.xlsx`.
 2. **Fill in the Excel** (rules in the next section).
 3. **Import Excel**: upload on the "Import Excel" page; it validates immediately and shows created / updated / error rows.
 4. **Product Library**: browse, search, switch actor by Manufacturer SRN; the detail page allows quick fixes (for real maintenance, go back to Excel).
@@ -222,14 +222,14 @@ http://127.0.0.1:8765
 6. **Upload to EUDAMED** following the page / manifest. **Validate in the Playground TEST environment first**, then go to production.
 
 Helpers:
-- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.14 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
+- **Migrate template** (`/migrate-template`): move an old or customer-specific EUDAMED Excel into the current v2.15 template and produce a migration report. Only confidently mappable fields are moved; unmapped columns are listed in the report.
 - **XSD version** page: check that the tool's built-in XSD, local XSD package, and the official documentation version are consistent.
 
 ## Using the template
 
-`EUDAMED_Template_v2.14.xlsx` and `EUDAMED_Template_v2.14_EN.xlsx` have the same field structure:
+`EUDAMED_Template_v2.15.xlsx` and `EUDAMED_Template_v2.15_EN.xlsx` have the same field structure:
 
-- **Four regulation-specific main sheets**: `MDR`, `MDD_AIMDD`, `IVDR`, and `IVDD`. Legacy-only fields appear only in `MDD_AIMDD` / `IVDD`; System/Procedure Pack is used only in `MDR`.
+- **Four regulation-specific main sheets**: `MDR`, `MDD_AIMDD`, `IVDR`, and `IVDD`. Legacy-only fields appear only in `MDD_AIMDD` / `IVDD`; independent PR/SPP uses `MDR`. A system or procedure pack registered as a device can select Device for MDR, MDD or AIMDD.
   - Row 1 = field name, Row 2 = filling instruction (Chinese in the Chinese template, English in the English template), Row 3 = example (first three rows are locked — do not edit).
   - **Real data starts at Row 4.**
 - **Nine detail sheets**: `Trade Names`, `Market Info`, `Package Info`, `Device Certificates`, `Clinical Sizes`, `Annex XVI Purposes`, `Critical Warnings`, `Storage Conditions`, `CMR Substances`, linked to the main sheets via `UDI-DI Code` / `Basic UDI-DI Code`.
@@ -244,7 +244,7 @@ Helpers:
 - For each MDD/AIMDD/IVDD row, first select `Legacy - Has Assigned UDI-DI?`. If a UDI-DI exists, XML derives the EUDAMED DI as `B-<UDI-DI>` / `EUDAMED`, while the UDI-DI identifier keeps the original code and issuing entity.
 - Without a UDI-DI, the manufacturer supplies its unique 1–21 character body in `Legacy - EUDAMED DI Input`. The tool does not choose the body or change case; it applies the official values, prime weights, modulo 1021 and check-character table to generate the paired `B-` EUDAMED DI and `D-` EUDAMED ID.
 - Existing records may omit both the input body and `Local - Record ID` when a valid, suffix-matched `B-` / `D-` pair is provided; related sheets can reference the formal B-/D- identifier directly. A unique `Local - Record ID` remains required when generating a pair for the first time.
-- After import, download `NORMALIZED_EUDAMED_Template_v2.14_<timestamp>.xlsx`. It fills final identifiers and formal links without overwriting the uploaded workbook.
+- After import, download `NORMALIZED_EUDAMED_Template_v2.15_<timestamp>.xlsx`. It fills final identifiers and formal links without overwriting the uploaded workbook.
 - Local checks cover format, check characters and duplicates within the current workbook only. Confirm final uniqueness in EUDAMED Playground/Production, review the XML and test it in Playground before production. This is not an official European Commission product.
 - IVDR/IVDD devices must also confirm `Basic - Presence of Human Tissues` and `Basic - Presence of Animal Tissues`; `Containing Latex` and `Reprocessed Single Use Device` do not apply to IVDR/IVDD.
 - `UDI - New Device (IVDR)` is output only for IVDR Regulation Devices; it is not output for IVDD legacy devices.
@@ -258,13 +258,13 @@ Helpers:
 ## Important notes
 
 - **Unofficial software**, not affiliated with the European Commission / EUDAMED; provided "as is" with no warranty that the generated XML fully meets EUDAMED requirements; **the user is responsible for data accuracy and compliance**. Always validate in the EUDAMED Playground (test) before any production submission: <https://webgate.training.ec.europa.eu/eudamed-play/landing-page#/>
-- **DTX rule (important)**: within one `DEVICE.POST`, each Basic UDI-DI can be created only once (together with its first UDI-DI); the remaining UDI-DIs of that Basic must be added via `UDI_DI.POST`. The tool splits this automatically; repeating the same Basic inside one DEVICE.POST makes EUDAMED return "already exists".
+- **DTX rule (important)**: within one `DEVICE.POST`, each Basic UDI-DI can be created only once (together with its first UDI-DI); the remaining UDI-DIs of that Basic must be added via `UDI_DI.POST`. Pre-check the selection and explicitly include the follow-up UDI_DI.POST files to generate both services; repeating the same Basic inside one DEVICE.POST makes EUDAMED return "already exists".
 - `UDI - Additional Information URL / eIFU webpage` maps to official `FLD-UDID-174 - URL for additional information` and is exported as DTX XML `udidi:website`; it is not a separate eIFU field. Some fields are still **collected but not yet written to XML** (e.g. Public Email). Full list: [`docs/DATA_DICTIONARY_FIELD_AUDIT.md`](docs/DATA_DICTIONARY_FIELD_AUDIT.md).
 - Data is stored only on your machine under `local_beta_data/`; the tool has **no login / access control**, so do not keep sensitive data on a shared computer.
 
 ## Version history
 
-Current **1.0.5 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **1.0.6 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 
@@ -279,14 +279,20 @@ Current **1.0.5 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHA
 
 运行 `./script/build_and_run.sh --build-only` 生成 `dist/EUDAMED Local Beta.app` 和本机架构 Mac ZIP。Mac 需要 Python 3.10+，用户数据继续保存在 `~/Library/Application Support/EUDAMED Local Beta/local_beta_data`。此构建为本地签名、未公证版本。
 
-v2.14 主表的 `UDI - Product Designer SRN` 支持原始制造商 Actor ID/SRN；未注册组织可填写 `UDI - Product Designer Organisation Name` 及地址字段。两种方式互斥；填写地址时 Country 和 Post Code 必填。旧 `Product Designer ID` 不可上传，应留空。首次注册可随 DEVICE.POST / UDI_DI.POST 上传；已注册器械可选择 **Update product original manufacturer / PRODUCT_DESIGNER.PUT**，无需 UDI 当前版本号。组织名称使用 ANY 语言；本版不提供联系人字段或删除操作，独立更新前请核对完整组织信息。PR/SPP 暂不支持此功能。
+v2.14 起，主表的 `UDI - Product Designer SRN` 支持原始制造商 Actor ID/SRN；未注册组织可填写 `UDI - Product Designer Organisation Name` 及地址字段。两种方式互斥；填写地址时 Country 和 Post Code 必填。旧 `Product Designer ID` 不可上传，应留空。首次注册可随 DEVICE.POST / UDI_DI.POST 上传；已注册器械可选择 **Update product original manufacturer / PRODUCT_DESIGNER.PUT**，无需 UDI 当前版本号。组织名称使用 ANY 语言；本版不提供联系人字段或删除操作，独立更新前请核对完整组织信息。PR/SPP 暂不支持此功能。
 
 依据：[官方 M2M 用户指南](https://webgate.ec.europa.eu/eudamed-help/en/files/M2M%20-%20user%20guide.pdf)，官方样例 `SAMPLE_DTX_UDI_015.01.xml` / `015.02.xml` 及生产 XSD 3.0.30。XSD 通过仅证明 XML 结构，实际业务接受仍需在 Playground 验证。
 
 ### Additional Product Description / BR-UDID-131
 
-System / Procedure Pack 或 Kit=TRUE（含 IVDD Legacy）必须填写每条 UDI 的 Additional Description；只要填写描述，就必须明确选择 Description Language。工具不会自动填写 en、替代描述或更改 Kit 属性。导入会保存记录并显示红色错误；DEVICE.POST、UDI_DI.POST、UDI_DI.PATCH 在缺项时阻止导出。其余普通 Regulation / Legacy 器械仍可留空。模板保持 v2.14。
+System / Procedure Pack 或 Kit=TRUE（含 IVDD Legacy）必须填写每条 UDI 的 Additional Description；只要填写描述，就必须明确选择 Description Language。工具不会自动填写 en、替代描述或更改 Kit 属性。导入会保存记录并显示红色错误；DEVICE.POST、UDI_DI.POST、UDI_DI.PATCH 在缺项时阻止导出。其余普通 Regulation / Legacy 器械仍可留空。
 
-Additional Description is required for System / Procedure Pack and Kit=TRUE, including IVDD Legacy. Any supplied description requires an explicit Description Language. No language, description or Kit status is inferred. Imports retain the records with errors; DEVICE.POST, UDI_DI.POST and UDI_DI.PATCH block export until corrected. Other ordinary Regulation / Legacy devices may leave it blank. Template version remains v2.14.
+Additional Description is required for System / Procedure Pack and Kit=TRUE, including IVDD Legacy. Any supplied description requires an explicit Description Language. No language, description or Kit status is inferred. Imports retain the records with errors; DEVICE.POST, UDI_DI.POST and UDI_DI.PATCH block export until corrected. Other ordinary Regulation / Legacy devices may leave it blank.
 
 Official rule: [RULE-00185, formerly BR-UDID-131](https://webgate.ec.europa.eu/eudamed-help/en/files/UDI%20Devices%20-%20business%20rules.pdf), page 26. Local business checks and Production XSD validation do not establish actual EUDAMED acceptance.
+
+### Basic 注册对象类别 / Registration Entity Type
+
+同一 Basic 的所有 UDI 共用注册类别。注册对象为器械时选 **Device**，Device Type 保留实际属性，包括 MDR 下本身作为器械注册的 System 或 Procedure Pack。独立注册的系统或组合包选 **PR/SPP**，填写生产者 PR Actor ID、Basic 医疗目的（Basic - Additional Description）和语言，器械专属字段及 Market Info 留空。组件数量不能确定类别。请与 EUDAMED 既有 Basic 核对。v2.14 仍可导入，普通器械可按明确法规兼容解析。旧 System / Procedure Pack 及分类冲突记录保存后显示错误，核对并在 Basic 详情确认后方可导出。
+
+All UDIs linked to a Basic share its registration category. Match it to the existing Basic in EUDAMED. Select **Device** for an MDR system or procedure pack registered as a device and keep its actual Device Type. Select **PR/SPP** for a separately registered system or pack. Enter the producer PR Actor ID, Basic medical purpose and its language. Leave device-only fields and Market Info blank. Component count cannot establish the category. Older v2.14 workbooks remain importable. Unconfirmed or conflicting classifications block export until resolved on the Basic.

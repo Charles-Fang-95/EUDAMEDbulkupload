@@ -17,7 +17,7 @@ EXPORT_DIR = DATA_DIR / "exports"
 DB_PATH = DATA_DIR / "eudamed_beta.db"
 STATIC_DIR = APP_DIR / "static"
 STYLE_PATH = STATIC_DIR / "style.css"
-TEMPLATE_VERSION = "v2.14"
+TEMPLATE_VERSION = "v2.15"
 TEMPLATE_FILENAME = f"EUDAMED_Template_{TEMPLATE_VERSION}.xlsx"
 TEMPLATE_PATH = RESOURCE_ROOT / TEMPLATE_FILENAME
 TEMPLATE_EN_FILENAME = f"EUDAMED_Template_{TEMPLATE_VERSION}_EN.xlsx"
@@ -37,9 +37,9 @@ BULK_UPLOAD_LIMIT_SOURCE = (
 
 # 工具自身版本与最近更新日期（页脚展示，由维护者更新）
 # TOOL_VERSION 是语义化版本号，用于「检查更新」比对；TOOL_VERSION_LABEL 给人看，可带中文修饰。
-TOOL_VERSION = "1.0.5"
-TOOL_VERSION_LABEL = "1.0.5 · 公开测试版"
-TOOL_UPDATED = "2026-10-15"
+TOOL_VERSION = "1.0.6"
+TOOL_VERSION_LABEL = "1.0.6 · 公开测试版"
+TOOL_UPDATED = "2026-11-20"
 
 # 检查更新：优先 GitHub Releases API，失败时尝试 Gitee Release API；留空时帮助页显示「未配置更新源」。
 RELEASES_API_URL = "https://api.github.com/repos/Charles-Fang-95/EUDAMEDbulkupload/releases/latest"
@@ -89,6 +89,7 @@ BASIC_FIELDS = [
     "Manufacturer SRN",
     "Risk Class",
     "Applicable Legislation",
+    "Registration Entity Type",
     "Device Type",
     "Device Name/Model",
     "EMDN Code",
@@ -107,6 +108,7 @@ BASIC_FIELDS = [
     "Instrument (IVDR)",
     "Microbial Origin (IVDR)",
     "Additional Description",
+    "PR Medical Purpose Language",
     "Device Model",
     "Is it a Kit",
     "Authorised Representative SRN",

@@ -15,6 +15,7 @@ from local_beta.importer import WorkbookImporter
 def _record(record_id, basic_code="BUDI-1", udi_code=None):
     return {
         "id": record_id,
+        "basic_payload": {"Basic UDI-DI Code": basic_code, "Applicable Legislation": "MDR", "Device Type": "Regular Device"},
         "basic_code": basic_code,
         "udi_code": udi_code or f"UDI-{record_id}",
     }
@@ -448,6 +449,7 @@ class ExportBatchPlanningTests(unittest.TestCase):
                     "basic_code": "WRONG-SHARED-BASIC",
                     "udi_code": udi_code,
                     "basic_payload": {
+                        "Device Type": "Regular Device",
                         "Applicable Legislation": "MDD",
                         "Basic UDI-DI Code": "WRONG-SHARED-BASIC",
                         "Issuing Entity": "GS1",
@@ -473,6 +475,7 @@ class LegacyEudamedDIContractTests(unittest.TestCase):
     def setUp(self):
         self.exporter = BetaXMLExporter(repository=None)
         self.basic_payload = {
+            "Device Type": "Regular Device",
             "Applicable Legislation": "MDD",
             "Basic UDI-DI Code": "WRONG-BASIC",
             "Issuing Entity": "GS1",
