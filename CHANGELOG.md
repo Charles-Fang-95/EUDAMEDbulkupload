@@ -2,11 +2,12 @@
 
 本文件记录本地内测工具和 Excel template 的关键变更，便于对外发包、排查客户问题和回溯 EUDAMED 规则变化。
 
-## 1.0.6 · 2026-11-20（待审查，未发布）
+## 1.0.6 - 2026-11-20
 
 - 模板 v2.15 新增 Basic 注册对象类别。MDR 器械可以保留 System / Procedure Pack 属性并输出完整 MDR 数据。独立 PR/SPP 使用生产者、医疗目的与对应 XML 结构。
 - 兼容导入 v2.14。普通器械按法规解析，旧组合包保留待确认。Basic 分类冲突、无法归类及 PR 不适用的申报数据阻止生成。产品库无需批量改写。
 - 按发送方拆分批量 XML，manifest 列出 actor 和依赖顺序。同一 Basic 的追加 UDI 文件须明确勾选 UDI_DI.POST。保留 PATCH version 和 BR-UDID-131 检查。Production XSD 仍为 3.0.30。
+- 升级后请核对 EUDAMED 中既有 Basic 的实际注册类别，再重新生成受影响的 XML。虚构数据已通过本地预检与 Production XSD 校验，线上验收尚未完成。
 
 ## 1.0.5 - 2026-10-15
 
