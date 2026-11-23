@@ -176,6 +176,46 @@ class RegistrationEntityTests(XSDValidationBase):
                 uid = self.repo.list_udis()[0]["id"]
                 self.assertNotIn("file_path", self.exporter.export("UDI_DI.POST", [uid]))
 
+    def test_import_review_before_writes_then_confirm_and_reimport(self):
+        path = self.tmp / "review.xlsx"
+        write_pack_workbook(path, ("Device", "Device"))
+        importer = WorkbookImporter(self.repo)
+        importer.import_workbook(path)
+        code = "FICT-DEVICE-BASIC"
+        saved = self.repo.get_basic_by_code(code)
+        saved["payload"][ENTITY] = "PR/SPP"
+        self.repo.update_basic(saved["id"], saved["payload"], [], [], "1", "draft", "")
+        history = len(self.repo.recent_imports())
+
+        pending = importer.import_workbook(path, reviewed_changes=[])["review_required"]
+        self.assertEqual(pending, [{"basic": code, "previous": "PR/SPP", "current": "Device", "location": "MDR!4"}])
+        self.assertEqual(len(self.repo.recent_imports()), history)
+        self.assertEqual(self.repo.get_basic_by_code(code)["payload"][ENTITY], "PR/SPP")
+        result = importer.import_workbook(path, reviewed_changes=pending)
+        self.assertEqual(result["validation"]["errors"], [])
+        self.assertEqual(self.repo.get_basic_by_code(code)["payload"][ENTITY], "Device")
+        self.assertEqual(importer.import_workbook(path, reviewed_changes=[])["validation"]["errors"], [])
+
+        for blank in (None, ""):  # v2.14 missing column and v2.15 empty cells
+            write_pack_workbook(path, (blank, blank))
+            result = importer.import_workbook(path, reviewed_changes=[])
+            self.assertEqual(result["validation"]["errors"], [])
+            self.assertEqual(self.repo.get_basic_by_code(code)["payload"][ENTITY], "Device")
+
+    def test_invalid_or_inconsistent_excel_is_not_an_overwrite_candidate(self):
+        path = self.tmp / "invalid.xlsx"
+        importer = WorkbookImporter(self.repo)
+        write_pack_workbook(path, ("Device",))
+        importer.import_workbook(path)
+        for values in (("PR/SPP",), ("PR/SPP", "Device")):
+            write_pack_workbook(path, values)
+            result = importer.import_workbook(path, reviewed_changes=[])
+            self.assertTrue(any(e["field"] == ENTITY for e in result["validation"]["errors"]))
+            write_pack_workbook(path, (None,))
+            reimport = importer.import_workbook(path, reviewed_changes=[])
+            self.assertTrue(any(e["field"] == ENTITY for e in reimport["validation"]["errors"]))
+            self.assertEqual(self.repo.get_basic_by_code("FICT-DEVICE-BASIC")["payload"][ENTITY], "Device")
+
     def test_explicit_false_in_pr_device_only_field_is_not_silently_lost(self):
         _, uid = self._seed("PR", udi_over={"Containing Latex": False})
         result = self.exporter.export("UDI_DI.POST", [uid])

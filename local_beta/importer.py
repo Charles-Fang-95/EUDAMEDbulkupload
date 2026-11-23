@@ -31,7 +31,7 @@ if str(TOOL_DIR) not in sys.path:
     sys.path.insert(0, str(TOOL_DIR))
 
 import openpyxl  # type: ignore
-from validator import CONFLICT_FIELD, ENTITY_FIELD, DataValidator  # type: ignore
+from validator import CONFLICT_FIELD, ENTITY_FIELD, DataValidator, registration_profile  # type: ignore
 
 
 BUSINESS_SHEETS = [
@@ -108,9 +108,12 @@ class WorkbookImporter:
             source.close()
         return workbook
 
-    def import_workbook(self, workbook_path: Path) -> dict:
+    def import_workbook(self, workbook_path: Path, *, reviewed_changes=None) -> dict:
         wb = self._load_import_workbook(workbook_path)
         parsed, import_meta, format_warnings, migration_warnings, identifier_errors = self._parse_workbook(wb)
+        changes = self._check_basic_classifications(parsed, import_meta, review=reviewed_changes is not None)
+        if reviewed_changes is not None and changes != reviewed_changes:
+            return {"review_required": changes}
 
         summary = self._summary(parsed)
         if not any(summary.values()):
@@ -265,7 +268,6 @@ class WorkbookImporter:
                 duplicate_local_ids,
             )
 
-        self._check_basic_classifications(parsed, import_meta)
         self._filter_duplicate_legacy_results(
             parsed,
             import_meta,
@@ -289,7 +291,8 @@ class WorkbookImporter:
 
         return parsed, import_meta, format_warnings, migration_warnings, identifier_errors
 
-    def _check_basic_classifications(self, parsed, import_meta):
+    def _check_basic_classifications(self, parsed, import_meta, *, review):
+        changes = []
         for basic in parsed["Basic UDI-DI"]:
             code = basic["Basic UDI-DI Code"]
             conflicts = []
@@ -297,11 +300,25 @@ class WorkbookImporter:
                 if len(origins) > 1:
                     conflicts.append(f"{field}: " + ", ".join(f"{v} ({loc})" for v, loc in origins.items()))
             existing = self.repository.get_basic_by_code(code) if self.repository else None
-            previous = existing["payload"].get(ENTITY_FIELD) if existing else None
+            stored = existing["payload"] if existing else {}
+            previous = stored.get(ENTITY_FIELD)
             current = basic.get(ENTITY_FIELD)
-            if not current and basic.get("Device Type") == "Regular Device":
-                current = "Device"
+            if not current:
+                if previous:
+                    basic[ENTITY_FIELD] = previous
+                if stored.get(CONFLICT_FIELD):
+                    basic[CONFLICT_FIELD] = stored[CONFLICT_FIELD]
+                    import_meta["normalization_blocked"] = True
             if previous and current and previous != current:
+                if review and not conflicts:
+                    try:
+                        registration_profile(basic)
+                    except ValueError as exc:
+                        conflicts.append(str(exc))
+                    else:
+                        changes.append({"basic": code, "previous": previous, "current": current,
+                                        "location": import_meta["classification_origins"][code][ENTITY_FIELD][current]})
+                        continue
                 conflicts.append(f"{ENTITY_FIELD}: 产品库 {previous}, Excel {current}")
             if conflicts:
                 basic[CONFLICT_FIELD] = "分类冲突，请在 Basic 详情核对并确认。 " + " / ".join(conflicts)
@@ -309,6 +326,7 @@ class WorkbookImporter:
                 # The conflict marker always blocks XML, and the editor requires a fresh choice.
                 basic[ENTITY_FIELD] = previous or ""
                 import_meta["normalization_blocked"] = True
+        return changes
 
     def _filter_duplicate_legacy_results(self, parsed: dict, import_meta: dict, local_record_map: dict, errors: list[dict]):
         origins = defaultdict(list)

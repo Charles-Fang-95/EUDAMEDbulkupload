@@ -37,8 +37,8 @@ BULK_UPLOAD_LIMIT_SOURCE = (
 
 # 工具自身版本与最近更新日期（页脚展示，由维护者更新）
 # TOOL_VERSION 是语义化版本号，用于「检查更新」比对；TOOL_VERSION_LABEL 给人看，可带中文修饰。
-TOOL_VERSION = "1.0.6"
-TOOL_VERSION_LABEL = "1.0.6 · 公开测试版"
+TOOL_VERSION = "1.0.7"
+TOOL_VERSION_LABEL = "1.0.7 · 公开测试版"
 TOOL_UPDATED = "2026-11-20"
 
 # 检查更新：优先 GitHub Releases API，失败时尝试 Gitee Release API；留空时帮助页显示「未配置更新源」。

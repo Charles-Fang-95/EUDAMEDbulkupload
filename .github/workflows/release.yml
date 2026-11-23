@@ -178,14 +178,14 @@ jobs:
               "1. Windows: download `EUDAMED_Local_Beta_Windows.zip`, extract it, and run the launcher inside.",
               "2. Apple Silicon Mac: download `EUDAMED_Local_Beta_Mac_arm64.zip`, extract it, and open `EUDAMED Local Beta.app`.",
               "3. The Mac build is ad-hoc signed and not Apple-notarized. It requires macOS 13+ and Python 3.10+; on first launch, Control-click the app and choose Open if Gatekeeper asks for confirmation.",
-              "4. User data is stored separately from the application package; replacing the package does not delete the database or exports.",
+              "4. Upgrading on Windows: quit the old tool, extract the new ZIP into a fresh folder, then copy the entire `local_beta_data` folder from beside the old .exe to beside the new .exe before launch. On Mac, quit and replace the app under the same account. If you use `EUDAMED_DATA_DIR`, keep the existing path.",
               "5. Download `EUDAMED_Template_v2.15.xlsx` for the Chinese template or `EUDAMED_Template_v2.15_EN.xlsx` for the English template.",
               "",
               "中文说明：",
               "1. Windows：下载 `EUDAMED_Local_Beta_Windows.zip`，完整解压后运行启动程序。",
               "2. Apple 芯片 Mac：下载 `EUDAMED_Local_Beta_Mac_arm64.zip`，解压后打开 `EUDAMED Local Beta.app`。",
               "3. Mac 包使用本地签名、未经 Apple 公证，需要 macOS 13+ 和 Python 3.10+；首次启动如被 Gatekeeper 拦截，请按住 Control 点击应用并选择“打开”。",
-              "4. 用户数据与应用包分开保存；替换新版程序不会删除数据库或导出文件。",
+              "4. Windows 更新：退出旧工具，将新版完整解压到新目录，首次启动前把旧 .exe 旁的整个 `local_beta_data` 文件夹复制到新 .exe 旁边。Mac 退出后在同一账户下替换应用即可。若已设置 `EUDAMED_DATA_DIR`，请沿用原路径。",
               "5. 中文模板下载 `EUDAMED_Template_v2.15.xlsx`，英文模板下载 `EUDAMED_Template_v2.15_EN.xlsx`。",
           ])
           body = guide.strip() + "\n\n" + body

@@ -732,6 +732,29 @@ def support_status_panel(xsd_report: dict) -> str:
     """
 
 
+def import_review_page(filename: str, changes: list, token: str) -> str:
+    title = t("确认更新 Basic 注册对象类别", "Review Basic registration category changes")
+    rows = "".join(
+        f"<tr><td>{esc(item['basic'])}</td><td>{esc(item['location'])}</td>"
+        f"<td>{esc(item['previous'])}</td><td>{esc(item['current'])}</td></tr>"
+        for item in changes
+    )
+    body = f"""
+    <section class="panel"><h1>{title}</h1><p>{esc(filename)}</p>
+      <p>{t('请核对以下 Basic 在 EUDAMED 的登记类别。确认后将按 Excel 更新所列 Basic 的类别，并导入整份工作簿。同一 Basic 下的全部 UDI 共用该类别。', 'Check these Basics against their EUDAMED registrations. Confirming applies the Excel categories shown below and imports the whole workbook. All UDIs under each Basic share its category.')}</p>
+      <div class="table-wrap"><table><thead><tr><th>Basic UDI-DI</th><th>{t('工作表及行号', 'Sheet and row')}</th>
+      <th>{t('产品库当前类别', 'Current library category')}</th><th>{t('Excel 拟更新类别', 'Proposed Excel category')}</th></tr></thead>
+      <tbody>{rows}</tbody></table></div>
+      <form method="post" action="/import/confirm" class="toolbar">
+        <input type="hidden" name="token" value="{esc(token)}">
+        <button class="button secondary" name="action" value="cancel">{t('取消本次导入', 'Cancel import')}</button>
+        <button class="button primary" name="action" value="apply">{t('确认按 Excel 更新并导入', 'Apply Excel categories and import')}</button>
+      </form>
+    </section>
+    """
+    return page(title, body, "/import")
+
+
 def import_page(message: str = "", result: dict | None = None, message_level: str = "notice") -> str:
     alert = alert_block(message, message_level)
     import_notes = f"""

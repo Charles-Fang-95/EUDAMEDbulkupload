@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import shutil
@@ -5,6 +6,7 @@ import sys
 import traceback
 import threading
 import webbrowser
+from secrets import token_urlsafe
 from datetime import datetime, timedelta
 from email.parser import BytesParser
 from email.policy import default
@@ -43,6 +45,7 @@ from .views import (
     help_page,
     history_page,
     import_page,
+    import_review_page,
     library_page,
     migrate_template_page,
     page,
@@ -140,6 +143,8 @@ class App:
         self.repository = Repository()
         self.importer = WorkbookImporter(self.repository)
         self.exporter = BetaXMLExporter(self.repository)
+        self.pending_imports = {}
+        self.write_lock = threading.Lock()
 
     def handler(self):
         app = self
@@ -149,7 +154,8 @@ class App:
                 app.route(self)
 
             def do_POST(self):
-                app.route(self)
+                with app.write_lock:
+                    app.route(self)
 
             def log_message(self, fmt, *args):
                 return
@@ -236,6 +242,8 @@ class App:
             return self.respond_html(request, import_page())
         if request.command == "POST" and path == "/import":
             return self.handle_import(request)
+        if request.command == "POST" and path == "/import/confirm":
+            return self.handle_import(request, confirm=True)
         if request.command == "GET" and path == "/migrate-template":
             return self.respond_html(request, migrate_template_page())
         if request.command == "POST" and path == "/migrate-template":
@@ -345,16 +353,38 @@ class App:
             return self.respond_file(request, EXPORT_DIR / filename, self._download_content_type(filename))
         return self.respond_html(request, page(t("未找到","Not found"), f"<section class='panel'><h1>{t('页面不存在','Page not found')}</h1></section>"), HTTPStatus.NOT_FOUND)
 
-    def handle_import(self, request: BaseHTTPRequestHandler):
+    def handle_import(self, request: BaseHTTPRequestHandler, *, confirm=False):
         try:
-            body = self.read_body(request)
-            _, files = parse_multipart(request.headers, body)
-            file_part = files.get("workbook")
-            if not file_part:
-                return self.respond_html(request, import_page(t("请选择一个 Excel 文件。", "Please choose an Excel file."), message_level="error"), HTTPStatus.BAD_REQUEST)
-            upload_path = UPLOAD_DIR / Path(file_part["filename"]).name
-            upload_path.write_bytes(file_part["content"])
-            result = self.importer.import_workbook(upload_path)
+            reviewed = []
+            if confirm:
+                form = self.read_form(request)
+                pending = self.pending_imports.pop(form.get("token", [""])[0], None)
+                if form.get("action") == ["cancel"]:
+                    return self.redirect(request, "/import")
+                expired = t("待确认的导入已失效，请重新上传并核对。", "This review has expired. Upload the workbook again.")
+                if not pending or form.get("action") != ["apply"]:
+                    return self.respond_html(request, import_page(expired, message_level="error"), HTTPStatus.CONFLICT)
+                upload_path, digest, reviewed = pending
+                if not upload_path.is_file() or hashlib.sha256(upload_path.read_bytes()).digest() != digest:
+                    return self.respond_html(request, import_page(expired, message_level="error"), HTTPStatus.CONFLICT)
+            else:
+                _, files = parse_multipart(request.headers, self.read_body(request))
+                file_part = files.get("workbook")
+                if not file_part:
+                    return self.respond_html(request, import_page(t("请选择一个 Excel 文件。", "Please choose an Excel file."), message_level="error"), HTTPStatus.BAD_REQUEST)
+                upload_path = UPLOAD_DIR / Path(file_part["filename"]).name
+                upload_path.write_bytes(file_part["content"])
+                digest = hashlib.sha256(file_part["content"]).digest()
+            result = self.importer.import_workbook(upload_path, reviewed_changes=reviewed)
+            if "review_required" in result:
+                changes = result["review_required"]
+                if not changes:
+                    return self.respond_html(request, import_page(t("产品库已变化，请重新导入。", "The library has changed. Please import again.")), HTTPStatus.CONFLICT)
+                token = token_urlsafe(24)
+                if len(self.pending_imports) >= 64:
+                    del self.pending_imports[next(iter(self.pending_imports))]
+                self.pending_imports[token] = (upload_path, digest, changes)
+                return self.respond_html(request, import_review_page(upload_path.name, changes, token))
             error_count = len(result.get("validation", {}).get("errors", []))
             if error_count:
                 return self.respond_html(request, import_page(t("导入完成，但发现错误，请先处理后再导出。", "Import finished, but errors were found — please fix them before exporting."), result, "error"))

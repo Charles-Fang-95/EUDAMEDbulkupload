@@ -1,7 +1,7 @@
 # EUDAMED Bulk Upload 助手 / EUDAMED Bulk Upload Helper
 
-> 当前版本 **1.0.6 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
-> Current version **1.0.6 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
+> 当前版本 **1.0.7 · 公开测试版**，对应 EUDAMED 官方 XSD **3.0.30**。
+> Current version **1.0.7 · Public Beta**, built for EUDAMED official XSD **3.0.30**.
 
 ---
 
@@ -71,8 +71,8 @@ http://127.0.0.1:8765
 ## 如何更新
 
 1. 在工具的「帮助」页点 **检查更新**——它会优先读取 GitHub Releases；如果 GitHub API 访问失败，会尝试读取 Gitee 镜像 Release。
-2. 下载对应系统的新 ZIP；Windows 完整解压到新目录，Mac 替换旧 `.app`。
-3. 用户数据与程序包分开保存，升级不会自动删除。也可以用环境变量 `EUDAMED_DATA_DIR` 指定其他数据目录。
+2. Windows 用户先退出旧工具，将新版 ZIP 完整解压到一个新目录。首次启动前，把旧 `.exe` 旁的整个 `local_beta_data` 文件夹复制到新 `.exe` 旁边。保留旧目录，打开新版后在产品库核对产品数量。
+3. Mac 用户退出旧工具，在同一用户账户下替换 `.app` 即可继续使用原库。两个平台如已设置 `EUDAMED_DATA_DIR`，请让新版继续指向原数据目录。
 
 > 工具版本和官方 XSD 版本是**绑定**的：EUDAMED 升级 XSD 时必须整包更新工具，不能只替换 XSD 文件，否则生成的 XML 会不合规。
 
@@ -128,7 +128,7 @@ http://127.0.0.1:8765
 
 ## 版本历史
 
-当前 **1.0.6 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+当前 **1.0.7 公开测试版 / XSD 3.0.30**。完整变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 作者与授权
 
@@ -207,8 +207,8 @@ http://127.0.0.1:8765
 ## Update
 
 1. On the tool's **Help** page, click **Check for updates** — it reads GitHub Releases first; if the GitHub API is unavailable, it tries the Gitee mirror release.
-2. Download the new ZIP for your operating system; fully extract the Windows package or replace the old Mac `.app`.
-3. User data is stored separately from the application package and is kept during upgrades. You can also point the data folder elsewhere with `EUDAMED_DATA_DIR`.
+2. On Windows, quit the old tool and extract the entire new ZIP into a fresh folder. Before the first launch, copy the whole `local_beta_data` folder from beside the old `.exe` to beside the new one. Keep the old folder and check the product count in the new library.
+3. On Mac, quit the old app and replace the `.app` under the same user account to reuse the library. On either platform, if you set `EUDAMED_DATA_DIR`, keep it pointed at your existing data folder.
 
 > The tool version and the official XSD version are **coupled**: when EUDAMED upgrades the XSD, update the whole tool package — do not just swap the XSD files, or the generated XML will be non-compliant.
 
@@ -264,7 +264,7 @@ Helpers:
 
 ## Version history
 
-Current **1.0.6 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Current **1.0.7 Public Beta / XSD 3.0.30**. Full changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Author & license
 
@@ -293,6 +293,6 @@ Official rule: [RULE-00185, formerly BR-UDID-131](https://webgate.ec.europa.eu/e
 
 ### Basic 注册对象类别 / Registration Entity Type
 
-同一 Basic 的所有 UDI 共用注册类别。注册对象为器械时选 **Device**，Device Type 保留实际属性，包括 MDR 下本身作为器械注册的 System 或 Procedure Pack。独立注册的系统或组合包选 **PR/SPP**，填写生产者 PR Actor ID、Basic 医疗目的（Basic - Additional Description）和语言，器械专属字段及 Market Info 留空。组件数量不能确定类别。请与 EUDAMED 既有 Basic 核对。v2.14 仍可导入，普通器械可按明确法规兼容解析。旧 System / Procedure Pack 及分类冲突记录保存后显示错误，核对并在 Basic 详情确认后方可导出。
+同一 Basic 的所有 UDI 共用注册类别。注册对象为器械时选 **Device**，Device Type 保留实际属性，包括 MDR 下本身作为器械注册的 System 或 Procedure Pack。独立注册的系统或组合包选 **PR/SPP**，填写生产者 PR Actor ID、Basic 医疗目的（Basic - Additional Description）和语言，器械专属字段及 Market Info 留空。组件数量不能确定类别。请与 EUDAMED 既有 Basic 核对。v2.14 仍可导入，普通器械可按明确法规兼容解析。重新导入时，空白注册类别沿用该 Basic 已保存的类别。Excel 明确填写的合法类别与产品库不同时，导入页先列出差异；确认后按 Excel 更新，取消则整批不入库。首次导入且类别不明的组合包仍需确认。
 
-All UDIs linked to a Basic share its registration category. Match it to the existing Basic in EUDAMED. Select **Device** for an MDR system or procedure pack registered as a device and keep its actual Device Type. Select **PR/SPP** for a separately registered system or pack. Enter the producer PR Actor ID, Basic medical purpose and its language. Leave device-only fields and Market Info blank. Component count cannot establish the category. Older v2.14 workbooks remain importable. Unconfirmed or conflicting classifications block export until resolved on the Basic.
+All UDIs linked to a Basic share its registration category. Match it to the existing Basic in EUDAMED. Select **Device** for an MDR system or procedure pack registered as a device and keep its actual Device Type. Select **PR/SPP** for a separately registered system or pack. Enter the producer PR Actor ID, Basic medical purpose and its language. Leave device-only fields and Market Info blank. Component count cannot establish the category. Older v2.14 workbooks remain importable. On reimport, a blank category retains the saved Basic category. If an explicit valid category differs from the library, review the listed changes before importing. Confirm to use the Excel values or cancel the entire batch. A new pack with no category still requires confirmation.
